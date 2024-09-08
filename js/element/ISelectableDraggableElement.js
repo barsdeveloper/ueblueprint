@@ -1,5 +1,5 @@
 import Configuration from "../Configuration.js"
-import Utility from "../Utility.js"
+import BooleanEntity from "../entity/BooleanEntity.js"
 import IDraggableElement from "./IDraggableElement.js"
 
 /**
@@ -15,7 +15,7 @@ export default class ISelectableDraggableElement extends IDraggableElement {
             type: Boolean,
             attribute: "data-selected",
             reflect: true,
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
         },
     }
 

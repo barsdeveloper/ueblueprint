@@ -1,23 +1,24 @@
-import Parsernostrum from "parsernostrum"
-import AttributeInfo from "./AttributeInfo.js"
+import P from "parsernostrum"
 import IntegerEntity from "./IntegerEntity.js"
 
 export default class ByteEntity extends IntegerEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: new AttributeInfo({
-            ...super.attributes.value,
-            predicate: v => v % 1 == 0 && v >= 0 && v < 1 << 8,
-        }),
-    }
     static grammar = this.createGrammar()
 
-    static createGrammar() {
-        return Parsernostrum.numberByte.map(v => new this(v))
+    get value() {
+        return super.value
+    }
+    set value(value) {
+        value = Math.trunc(value)
+        if (value >= 0 && value < 1 << 8) {
+            super.value = value
+        }
     }
 
-    constructor(values = 0) {
-        super(values)
+    createGrammar() {
+        return /** @type {P<ByteEntity>} */(
+            // @ts-expect-error
+            P.numberByte.map(v => new this(v))
+        )
     }
 }

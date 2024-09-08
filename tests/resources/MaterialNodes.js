@@ -1,7 +1,7 @@
 import Configuration from "../../js/Configuration.js"
-import Utility from "../../js/Utility.js"
 import PinElement from "../../js/element/PinElement.js"
 import IntegerEntity from "../../js/entity/IntegerEntity.js"
+import NumberEntity from "../../js/entity/NumberEntity.js"
 import RBSerializationVector2DEntity from "../../js/entity/RBSerializationVector2DEntity.js"
 import VectorEntity from "../../js/entity/VectorEntity.js"
 import { expect } from "../fixtures/test.js"
@@ -70,10 +70,10 @@ export default class MaterialNodes extends NodeTests {
                 development: false,
                 additionalTest: async node => {
                     const value = 10000.0
-                    /** @type {Locator<PinElement<Number>>} */
+                    /** @type {Locator<PinElement<NumberEntity>>} */
                     const pin = node.locator("ueb-pin").first()
-                    expect(await pin.evaluate(pin => pin.getDefaultValue())).toBeCloseTo(value)
-                    await expect(node.locator("ueb-input")).toHaveText([Utility.printNumber(value)])
+                    expect(await pin.evaluate(pin => pin.getDefaultValue().valueOf())).toBeCloseTo(value)
+                    await expect(node.locator("ueb-input")).toHaveText([NumberEntity.printNumber(value)])
                 }
             },
             {
@@ -111,13 +111,13 @@ export default class MaterialNodes extends NodeTests {
                 additionalTest: async node => {
                     const x = 0.1
                     const y = 23.88888
-                    /** @type {Locator<PinElement<Number>>} */
+                    /** @type {Locator<PinElement<NumberEntity>>} */
                     const xPin = node.locator("ueb-pin").nth(0)
-                    /** @type {Locator<PinElement<Number>>} */
+                    /** @type {Locator<PinElement<NumberEntity>>} */
                     const yPin = node.locator("ueb-pin").nth(1)
-                    expect(await xPin.evaluate(pin => pin.getDefaultValue())).toBeCloseTo(x)
-                    expect(await yPin.evaluate(pin => pin.getDefaultValue())).toBeCloseTo(y)
-                    await expect(node.locator("ueb-input")).toHaveText([Utility.printNumber(x), Utility.printNumber(y)])
+                    expect(await xPin.evaluate(pin => pin.getDefaultValue().valueOf())).toBeCloseTo(x)
+                    expect(await yPin.evaluate(pin => pin.getDefaultValue().valueOf())).toBeCloseTo(y)
+                    await expect(node.locator("ueb-input")).toHaveText([NumberEntity.printNumber(x), NumberEntity.printNumber(y)])
                 }
             },
             {
@@ -157,7 +157,7 @@ export default class MaterialNodes extends NodeTests {
                     const values = await input.evaluate(pin => pin.getDefaultValue().toArray())
                     const expected = [0.00432, 123.199997, 7657650176.0]
                     expected.forEach((v, i) => expect(v).toBeCloseTo(values[i]))
-                    await expect(input.locator("ueb-input")).toHaveText(expected.map(v => Utility.printNumber(v)))
+                    await expect(input.locator("ueb-input")).toHaveText(expected.map(v => NumberEntity.printNumber(v)))
                 }
             },
             {
@@ -490,9 +490,7 @@ export default class MaterialNodes extends NodeTests {
                 color: Configuration.nodeColors.red,
                 icon: null,
                 pins: 2,
-                pinNames: [
-                    "Preview",
-                ],
+                pinNames: ["Preview"],
                 delegate: false,
                 development: false,
             },
@@ -520,9 +518,7 @@ export default class MaterialNodes extends NodeTests {
                 color: Configuration.nodeColors.red,
                 icon: null,
                 pins: 2,
-                pinNames: [
-                    "Preview",
-                ],
+                pinNames: ["Preview"],
                 delegate: false,
                 development: false,
             },

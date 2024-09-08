@@ -52,17 +52,17 @@ const colors = {
 
 const pinColorMaterial = css`120, 120, 120`
 
-/** @param {PinEntity} entity */
+/** @param {PinEntity<IEntity>} entity */
 export default function pinColor(entity) {
-    if (entity.PinType.PinCategory == "mask") {
+    if (entity.PinType.PinCategory?.toString() === "mask") {
         const result = colors[entity.PinType.PinSubCategory]
         if (result) {
             return result
         }
-    } else if (entity.PinType.PinCategory == "optional") {
+    } else if (entity.PinType.PinCategory?.toString() === "optional") {
         return pinColorMaterial
     }
     return colors[entity.getType()]
-        ?? colors[entity.PinType.PinCategory.toLowerCase()]
+        ?? colors[entity.PinType.PinCategory?.toString().toLowerCase()]
         ?? colors["default"]
 }

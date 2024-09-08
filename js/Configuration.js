@@ -128,6 +128,7 @@ export default class Configuration {
         eTextureMipValueMode: "/Script/Engine.ETextureMipValueMode",
         eTraceTypeQuery: "/Script/Engine.ETraceTypeQuery",
         event: "/Script/BlueprintGraph.K2Node_Event",
+        eWorldPositionIncludedOffsets: "/Script/Engine.EWorldPositionIncludedOffsets",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
         flipflop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:FlipFlop",
         forEachElementInEnum: "/Script/BlueprintGraph.K2Node_ForEachElementInEnum",
@@ -166,8 +167,10 @@ export default class Configuration {
         materialExpressionLogarithm2: "/Script/Engine.MaterialExpressionLogarithm2",
         materialExpressionMaterialFunctionCall: "/Script/Engine.MaterialExpressionMaterialFunctionCall",
         materialExpressionSquareRoot: "/Script/Engine.MaterialExpressionSquareRoot",
+        materialExpressionSubtract: "/Script/Engine.MaterialExpressionSubtract",
         materialExpressionTextureCoordinate: "/Script/Engine.MaterialExpressionTextureCoordinate",
         materialExpressionTextureSample: "/Script/Engine.MaterialExpressionTextureSample",
+        materialExpressionWorldPosition: "/Script/Engine.MaterialExpressionWorldPosition",
         materialGraphNode: "/Script/UnrealEd.MaterialGraphNode",
         materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
         metasoundEditorGraphExternalNode: "/Script/MetasoundEditor.MetasoundEditorGraphExternalNode",
@@ -212,7 +215,7 @@ export default class Configuration {
         vector4f: "/Script/CoreUObject.Vector4f",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
-    static pinInputWrapWidth = 143 // px
+    static pinInputWrapWidth = 145 // px
     static removeEventName = "ueb-element-delete"
     static scale = {
         [-12]: 0.133333,
@@ -265,6 +268,7 @@ export default class Configuration {
             "KeepWorld",
             "SnapToTarget",
         ],
+        [this.paths.eDrawDebugTrace]: ["None", "ForOneFrame", "ForDuration", "Persistent"],
         [this.paths.eMaterialSamplerType]: [
             "Color",
             "Grayscale",
@@ -291,6 +295,14 @@ export default class Configuration {
             ["NewEnumerator3", "A"],
         ],
         [this.paths.eSamplerSourceMode]: ["From texture asset", "Shared: Wrap", "Shared: Clamp", "Hidden"],
+        [this.paths.eSearchCase]: ["CaseSensitive", "IgnoreCase"],
+        [this.paths.eWorldPositionIncludedOffsets]: [
+            "Absolute World Position (Including Material Shader Offsets)",
+            "Absolute World Position (Excluding Material Shader Offsets)",
+            "Camera Relative World Position (Including Material Shader Offsets)",
+            "Camera Relative World Position (Excluding Material Shader Offsets)",
+        ],
+        [this.paths.eSearchDir]: ["FromStart", "FromEnd"],
         [this.paths.eSpawnActorCollisionHandlingMethod]: [
             ["Undefined", "Default"],
             ["AlwaysSpawn", "Always Spawn, Ignore Collisions"],
@@ -298,9 +310,6 @@ export default class Configuration {
             ["AdjustIfPossibleButDontSpawnIfColliding", "Try To Adjust Location, Don't Spawn If Still Colliding"],
             ["DontSpawnIfColliding", "Do Not Spawn"],
         ],
-        [this.paths.eSearchCase]: ["CaseSensitive", "IgnoreCase"],
-        [this.paths.eSearchDir]: ["FromStart", "FromEnd"],
-        [this.paths.eDrawDebugTrace]: ["None", "ForOneFrame", "ForDuration", "Persistent"],
         [this.paths.eTextureMipValueMode]: [
             "None (use computed mip level)",
             "MipLevel (absolute, 0 is full resolution)",

@@ -1,5 +1,5 @@
 import { html } from "lit"
-import Utility from "../../Utility.js"
+import NumberEntity from "../../entity/NumberEntity.js"
 import RotatorEntity from "../../entity/RotatorEntity.js"
 import INumericPinTemplate from "./INumericPinTemplate.js"
 
@@ -7,15 +7,15 @@ import INumericPinTemplate from "./INumericPinTemplate.js"
 export default class RotatorPinTemplate extends INumericPinTemplate {
 
     #getR() {
-        return Utility.printNumber(this.element.getDefaultValue()?.R ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.R.valueOf() ?? 0)
     }
 
     #getP() {
-        return Utility.printNumber(this.element.getDefaultValue()?.P ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.P.valueOf() ?? 0)
     }
 
     #getY() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Y ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.Y.valueOf() ?? 0)
     }
 
     setDefaultValue(values = [], rawValues = values) {
@@ -23,9 +23,9 @@ export default class RotatorPinTemplate extends INumericPinTemplate {
         if (!(rotator instanceof RotatorEntity)) {
             throw new TypeError("Expected DefaultValue to be a RotatorEntity")
         }
-        rotator.R = values[0] // Roll
-        rotator.P = values[1] // Pitch
-        rotator.Y = values[2] // Yaw
+        rotator.R.value = values[0] // Roll
+        rotator.P.value = values[1] // Pitch
+        rotator.Y.value = values[2] // Yaw
         this.element.requestUpdate("DefaultValue", rotator)
     }
 

@@ -20,7 +20,7 @@ export default function nodeTemplateClass(nodeEntity) {
         || nodeEntity.getClass() === Configuration.paths.callArrayFunction
     ) {
         const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? ""
-        const memberName = nodeEntity.FunctionReference?.MemberName
+        const memberName = nodeEntity.FunctionReference?.MemberName?.toString()
         if (
             memberName && (
                 memberParent === Configuration.paths.kismetMathLibrary
@@ -96,13 +96,15 @@ export default function nodeTemplateClass(nodeEntity) {
             }
             return MetasoundNodeTemplate
         case Configuration.paths.niagaraNodeOp:
-            if ([
-                "Boolean::LogicEq",
-                "Boolean::LogicNEq",
-                "Numeric::Abs",
-                "Numeric::Add",
-                "Numeric::Mul",
-            ].includes(nodeEntity.OpName)) {
+            if (
+                [
+                    "Boolean::LogicEq",
+                    "Boolean::LogicNEq",
+                    "Numeric::Abs",
+                    "Numeric::Add",
+                    "Numeric::Mul",
+                ].includes(nodeEntity.OpName?.toString())
+            ) {
                 return VariableOperationNodeTemplate
             }
             break

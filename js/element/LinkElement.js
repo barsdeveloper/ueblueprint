@@ -1,9 +1,10 @@
 import { html, nothing } from "lit"
 import Configuration from "../Configuration.js"
-import IFromToPositionedElement from "./IFromToPositionedElement.js"
-import LinkTemplate from "../template/LinkTemplate.js"
 import SVGIcon from "../SVGIcon.js"
 import Utility from "../Utility.js"
+import BooleanEntity from "../entity/BooleanEntity.js"
+import LinkTemplate from "../template/LinkTemplate.js"
+import IFromToPositionedElement from "./IFromToPositionedElement.js"
 
 /** @extends {IFromToPositionedElement<Object, LinkTemplate>} */
 export default class LinkElement extends IFromToPositionedElement {
@@ -13,7 +14,7 @@ export default class LinkElement extends IFromToPositionedElement {
         dragging: {
             type: Boolean,
             attribute: "data-dragging",
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
             reflect: true,
         },
         originatesFromInput: {
@@ -205,11 +206,16 @@ export default class LinkElement extends IFromToPositionedElement {
         this.toY = location[1]
     }
 
-    getInputPin() {
+    getInputPin(getSomething = false) {
         if (this.source?.isInput()) {
             return this.source
         }
-        return this.destination
+        if (this.destination?.isInput()) {
+            return this.destination
+        }
+        if (getSomething) {
+            return this.source ?? this.destination
+        }
     }
 
     /** @param {PinElement} pin */
@@ -220,11 +226,16 @@ export default class LinkElement extends IFromToPositionedElement {
         this.destination = pin
     }
 
-    getOutputPin() {
+    getOutputPin(getSomething = false) {
+        if (this.source?.isOutput()) {
+            return this.source
+        }
         if (this.destination?.isOutput()) {
             return this.destination
         }
-        return this.source
+        if (getSomething) {
+            return this.source ?? this.destination
+        }
     }
 
     /** @param {PinElement} pin */

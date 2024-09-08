@@ -1,12 +1,11 @@
 import Configuration from "../Configuration.js"
-import Utility from "../Utility.js"
 import nodeTemplateClass from "../decoding/nodeTemplate.js"
 import nodeTitle from "../decoding/nodeTitle.js"
-import IdentifierEntity from "../entity/IdentifierEntity.js"
+import BooleanEntity from "../entity/BooleanEntity.js"
 import ObjectEntity from "../entity/ObjectEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
-import SerializerFactory from "../serialization/SerializerFactory.js"
+import SymbolEntity from "../entity/SymbolEntity.js"
 import NodeTemplate from "../template/node/NodeTemplate.js"
 import ISelectableDraggableElement from "./ISelectableDraggableElement.js"
 
@@ -28,7 +27,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         advancedPinDisplay: {
             type: String,
             attribute: "data-advanced-display",
-            converter: IdentifierEntity.attributeConverter,
+            converter: SymbolEntity.attributeConverter,
             reflect: true,
         },
         enabledState: {
@@ -42,7 +41,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         },
         pureFunction: {
             type: Boolean,
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
             attribute: "data-pure-function",
             reflect: true,
         },
@@ -86,7 +85,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     /** @param {String} str */
     static fromSerializedObject(str) {
         str = str.trim()
-        let entity = SerializerFactory.getSerializer(ObjectEntity).read(str)
+        let entity = ObjectEntity.grammar.parse(str)
         return NodeElement.newObject(/** @type {ObjectEntity} */(entity))
     }
 
@@ -100,13 +99,17 @@ export default class NodeElement extends ISelectableDraggableElement {
         return result
     }
 
+    /** @param {String} name */
     #redirectLinksAfterRename(name) {
         for (let sourcePinElement of this.getPinElements()) {
             for (let targetPinReference of sourcePinElement.getLinks()) {
-                this.blueprint.getPin(targetPinReference).redirectLink(sourcePinElement, new PinReferenceEntity({
-                    objectName: name,
-                    pinGuid: sourcePinElement.entity.PinId,
-                }))
+                this.blueprint.getPin(targetPinReference).redirectLink(
+                    sourcePinElement,
+                    new PinReferenceEntity(
+                        new SymbolEntity(name),
+                        sourcePinElement.entity.PinId,
+                    )
+                )
             }
         }
     }
@@ -117,7 +120,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         this.advancedPinDisplay = entity.AdvancedPinDisplay?.toString()
         this.enabledState = entity.EnabledState
         this.nodeDisplayName = nodeTitle(entity)
-        this.pureFunction = entity.bIsPureFunc
+        this.pureFunction = entity.bIsPureFunc?.valueOf()
         this.dragLinkObjects = []
         super.initialize(entity, template)
         this.#pins = this.template.createPinElements()
@@ -128,11 +131,15 @@ export default class NodeElement extends ISelectableDraggableElement {
         } else {
             this.updateComplete.then(() => this.computeSizes())
         }
-        entity.listenAttribute("Name", name => {
-            this.nodeTitle = entity.Name
-            this.nodeDisplayName = nodeTitle(entity)
-            this.#redirectLinksAfterRename(name)
-        })
+        entity.listenAttribute(
+            "Name",
+            /** @param {InstanceType<typeof ObjectEntity.attributes.Name>} newName */
+            newName => {
+                this.nodeTitle = newName.value
+                this.nodeDisplayName = nodeTitle(entity)
+                this.#redirectLinksAfterRename(newName.value)
+            }
+        )
     }
 
     async getUpdateComplete() {
@@ -223,7 +230,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     setShowAdvancedPinDisplay(value) {
-        this.entity.AdvancedPinDisplay = new IdentifierEntity(value ? "Shown" : "Hidden")
+        this.entity.AdvancedPinDisplay = new SymbolEntity(value ? "Shown" : "Hidden")
         this.advancedPinDisplay = this.entity.AdvancedPinDisplay
     }
 

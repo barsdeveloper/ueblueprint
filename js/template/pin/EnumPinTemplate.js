@@ -1,5 +1,6 @@
 import { html } from "lit"
 import Configuration from "../../Configuration.js"
+import StringEntity from "../../entity/StringEntity.js"
 import Utility from "../../Utility.js"
 import IInputPinTemplate from "./IInputPinTemplate.js"
 
@@ -15,11 +16,11 @@ export default class EnumPinTemplate extends IInputPinTemplate {
 
     setup() {
         super.setup()
-        const enumEntries = this.element.nodeElement.entity.EnumEntries
+        const enumEntries = this.element.nodeElement.entity.EnumEntries?.valueOf()
         this.#dropdownEntries =
             enumEntries?.map(k => {
-                if (k === "") {
-                    k = "None"
+                if (k.valueOf() === "") {
+                    k = new StringEntity("None")
                 }
                 return [
                     k,
@@ -42,12 +43,11 @@ export default class EnumPinTemplate extends IInputPinTemplate {
     }
 
     renderInput() {
-        const entity = this.element.nodeElement.entity
         return html`
             <ueb-dropdown
                 class="ueb-pin-input-wrapper ueb-pin-input"
                 .options="${this.#dropdownEntries}"
-                .selectedOption="${this.element.defaultValue.value}"
+                .selectedOption="${this.element.defaultValue}"
             >
             </ueb-dropdown>
         `
@@ -61,5 +61,17 @@ export default class EnumPinTemplate extends IInputPinTemplate {
 
     getInputs() {
         return [this.#dropdownElement.getValue()]
+    }
+
+    /**
+     * @this {EnumPinTemplate}
+     * @param {String[]} values
+     * @param {String[]} rawValues
+     */
+    setDefaultValue(values = [], rawValues) {
+        const value = this.element.getDefaultValue()
+        value.value = values[0]
+        this.element.setDefaultValue(value)
+        this.element.requestUpdate()
     }
 }

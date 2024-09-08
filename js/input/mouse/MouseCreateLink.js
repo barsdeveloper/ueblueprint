@@ -43,7 +43,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
                 this.link.setMessageReplaceOutputLink()
                 this.linkValid = true
             } else if (
-                (a.entity.PinType.PinCategory != "object" || b.entity.PinType.PinCategory != "object")
+                (a.entity.PinType.PinCategory.valueOf() != "object" || b.entity.PinType.PinCategory.valueOf() != "object")
                 && a.pinType != b.pinType
             ) {
                 this.link.setMessageTypesIncompatible(a, b)
@@ -113,6 +113,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
         })
         this.#listenedPins = null
         if (this.enteredPin && this.linkValid) {
+            // Knot can use wither the input or output (by default) part indifferently, check if a switch is needed
             if (this.#knotPin) {
                 const otherPin = this.#knotPin !== this.link.source ? this.link.source : this.enteredPin
                 // Knot pin direction correction
@@ -125,7 +126,11 @@ export default class MouseCreateLink extends IMouseClickDrag {
                     }
                 }
             } else if (this.enteredPin.nodeElement.getType() === Configuration.paths.knot) {
-                this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).getOppositePin()
+                this.#knotPin = this.enteredPin
+                if (this.link.source.isOutput()) {
+                    // Knot uses by default the output pin, let's switch to keep it coherent with the source node we have
+                    this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).getOppositePin()
+                }
             }
             if (!this.link.source.getLinks().find(ref => ref.equals(this.enteredPin.createPinReference()))) {
                 this.blueprint.addGraphElement(this.link)

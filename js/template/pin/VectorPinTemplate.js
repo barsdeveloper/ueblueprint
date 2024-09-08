@@ -1,5 +1,5 @@
 import { html } from "lit"
-import Utility from "../../Utility.js"
+import NumberEntity from "../../entity/NumberEntity.js"
 import VectorEntity from "../../entity/VectorEntity.js"
 import INumericPinTemplate from "./INumericPinTemplate.js"
 
@@ -7,15 +7,15 @@ import INumericPinTemplate from "./INumericPinTemplate.js"
 export default class VectorPinTemplate extends INumericPinTemplate {
 
     #getX() {
-        return Utility.printNumber(this.element.getDefaultValue()?.X ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.X.valueOf() ?? 0)
     }
 
     #getY() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Y ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.Y.valueOf() ?? 0)
     }
 
     #getZ() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Z ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.Z.valueOf() ?? 0)
     }
 
     /**
@@ -27,9 +27,9 @@ export default class VectorPinTemplate extends INumericPinTemplate {
         if (!(vector instanceof VectorEntity)) {
             throw new TypeError("Expected DefaultValue to be a VectorEntity")
         }
-        vector.X = values[0]
-        vector.Y = values[1]
-        vector.Z = values[2]
+        vector.X.value = values[0]
+        vector.Y.value = values[1]
+        vector.Z.value = values[2]
         this.element.requestUpdate("DefaultValue", vector)
     }
 

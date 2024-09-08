@@ -1,38 +1,39 @@
-import Parsernostrum from "parsernostrum"
+import P from "parsernostrum"
 import Grammar from "../serialization/Grammar.js"
-import AttributeInfo from "./AttributeInfo.js"
+import BooleanEntity from "./BooleanEntity.js"
 import IEntity from "./IEntity.js"
-import IdentifierEntity from "./IdentifierEntity.js"
+import StringEntity from "./StringEntity.js"
+import SymbolEntity from "./SymbolEntity.js"
 
 export default class KeyBindingEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        ActionName: AttributeInfo.createValue(""),
-        bShift: AttributeInfo.createValue(false),
-        bCtrl: AttributeInfo.createValue(false),
-        bAlt: AttributeInfo.createValue(false),
-        bCmd: AttributeInfo.createValue(false),
-        Key: AttributeInfo.createType(IdentifierEntity),
+        ActionName: StringEntity,
+        bShift: BooleanEntity,
+        bCtrl: BooleanEntity,
+        bAlt: BooleanEntity,
+        bCmd: BooleanEntity,
+        Key: SymbolEntity,
     }
     static grammar = this.createGrammar()
 
-    static createGrammar() {
-        return Parsernostrum.alt(
-            IdentifierEntity.grammar.map(identifier => new this({
-                Key: identifier
-            })),
-            Grammar.createEntityGrammar(this)
-        )
+    constructor(values) {
+        super(values)
+        /** @type {InstanceType<typeof KeyBindingEntity.attributes.ActionName>} */ this.ActionName
+        /** @type {InstanceType<typeof KeyBindingEntity.attributes.bShift>} */ this.bShift
+        /** @type {InstanceType<typeof KeyBindingEntity.attributes.bCtrl>} */ this.bCtrl
+        /** @type {InstanceType<typeof KeyBindingEntity.attributes.bAlt>} */ this.bAlt
+        /** @type {InstanceType<typeof KeyBindingEntity.attributes.bCmd>} */ this.bCmd
+        /** @type {InstanceType<typeof KeyBindingEntity.attributes.Key>} */ this.Key
     }
 
-    constructor(values = {}) {
-        super(values, true)
-        /** @type {String} */ this.ActionName
-        /** @type {Boolean} */ this.bShift
-        /** @type {Boolean} */ this.bCtrl
-        /** @type {Boolean} */ this.bAlt
-        /** @type {Boolean} */ this.bCmd
-        /** @type {IdentifierEntity} */ this.Key
+    static createGrammar() {
+        return /** @type {P<KeyBindingEntity>} */(
+            P.alt(
+                SymbolEntity.grammar.map(identifier => new this({ Key: identifier })),
+                Grammar.createEntityGrammar(this)
+            )
+        )
     }
 }

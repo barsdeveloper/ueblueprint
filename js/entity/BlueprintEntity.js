@@ -63,8 +63,8 @@ export default class BlueprintEntity extends ObjectEntity {
             this.ScriptVariables = entity.ScriptVariables
         }
         let scriptVariables = Utility.mergeArrays(
-            this.ScriptVariables,
-            entity.ScriptVariables,
+            this.ScriptVariables.valueOf(),
+            entity.ScriptVariables.valueOf(),
             (l, r) => l.OriginalChangeId.value == r.OriginalChangeId.value
         )
         if (scriptVariables.length === this.ScriptVariables.length) {

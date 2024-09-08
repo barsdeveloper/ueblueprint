@@ -1,34 +1,6 @@
-import ComputedType from "./entity/ComputedType.js"
 import Configuration from "./Configuration.js"
-import MirroredEntity from "./entity/MirroredEntity.js"
-import Union from "./entity/Union.js"
 
 export default class Utility {
-
-    static booleanConverter = {
-        fromAttribute: (value, type) => {
-            value ? "true" : "false"
-        },
-        toAttribute: (value, type) => {
-            if (value === true) {
-                return "true"
-            }
-            if (value === false) {
-                return "false"
-            }
-            return ""
-        }
-    }
-
-    /** @param {Number} x */
-    static sigmoid(x, curvature = 1.7) {
-        return 1 / (1 + (x / (1 - x) ** -curvature))
-    }
-
-    /** @param {Number} x */
-    static sigmoidPositive(x, curvature = 3.7, length = 1.1) {
-        return 1 - Math.exp(-((x / length) ** curvature))
-    }
 
     /** @param {Number} value */
     static clamp(value, min = -Infinity, max = Infinity) {
@@ -55,23 +27,6 @@ export default class Utility {
         return num.toFixed(decimals)
     }
 
-    /** @param {String} value */
-    static numberFromText(value = "") {
-        value = value.toLowerCase()
-        switch (value) {
-            case "zero": return 0
-            case "one": return 1
-            case "two": return 2
-            case "three": return 3
-            case "four": return 4
-            case "five": return 5
-            case "six": return 6
-            case "seven": return 7
-            case "eight": return 8
-            case "nine": return 9
-        }
-    }
-
     /**
      * @param {Number} num
      * @param {Number} decimals
@@ -79,16 +34,6 @@ export default class Utility {
     static roundDecimals(num, decimals = 1) {
         const power = 10 ** decimals
         return Math.round(num * power) / power
-    }
-
-    /** @param {Number} num */
-    static printNumber(num) {
-        if (num == Number.POSITIVE_INFINITY) {
-            return "inf"
-        } else if (num == Number.NEGATIVE_INFINITY) {
-            return "-inf"
-        }
-        return Utility.minDecimals(num)
     }
 
     /** @param {Number} num */
@@ -185,97 +130,6 @@ export default class Utility {
     }
 
     /**
-     * @param {Attribute} a
-     * @param {Attribute} b
-     */
-    static equals(a, b) {
-        while (a instanceof MirroredEntity) {
-            a = a.get()
-        }
-        while (b instanceof MirroredEntity) {
-            b = b.get()
-        }
-        // Here we cannot check both instanceof IEntity because this would introduce a circular include dependency
-        if (/** @type {IEntity?} */(a)?.equals && /** @type {IEntity?} */(b)?.equals) {
-            return /** @type {IEntity} */(a).equals(/** @type {IEntity} */(b))
-        }
-        a = Utility.sanitize(a)
-        b = Utility.sanitize(b)
-        if (a?.constructor === BigInt && b?.constructor === Number) {
-            b = BigInt(b)
-        } else if (a?.constructor === Number && b?.constructor === BigInt) {
-            a = BigInt(a)
-        }
-        if (a === b) {
-            return true
-        }
-        if (a instanceof Array && b instanceof Array) {
-            return a.length === b.length && a.every((value, i) => Utility.equals(value, b[i]))
-        }
-        return false
-    }
-
-    /**
-     * @template {Attribute | AttributeTypeDescription} T
-     * @param {T} value
-     * @returns {AttributeConstructor<T>}
-     */
-    static getType(value) {
-        if (value === null) {
-            return null
-        }
-        if (value?.constructor === Object && /** @type {AttributeInformation} */(value)?.type instanceof Function) {
-            return /** @type {AttributeInformation} */(value).type
-        }
-        return /** @type {AttributeConstructor<any>} */(value?.constructor)
-    }
-
-    /**
-     * @template {Attribute} V
-     * @template {AttributeConstructor<V>} C
-     * @param {C} type
-     * @returns {value is InstanceType<C>}
-     */
-    static isValueOfType(value, type, acceptNull = false) {
-        if (type instanceof MirroredEntity) {
-            type = type.getTargetType()
-        }
-        return (acceptNull && value === null) || value instanceof type || value?.constructor === type
-    }
-
-    /** @param {Attribute} value */
-    static sanitize(value, targetType = /** @type {AttributeTypeDescription } */(value?.constructor)) {
-        if (targetType instanceof Array) {
-            targetType = targetType[0]
-        }
-        if (targetType instanceof ComputedType) {
-            return value // The type is computed, can't say anything about it
-        }
-        if (targetType instanceof Union) {
-            let type = targetType.values.find(t => Utility.isValueOfType(value, t, false))
-            if (!type) {
-                type = targetType.values[0]
-            }
-            targetType = type
-        }
-        if (targetType instanceof MirroredEntity) {
-            if (value instanceof MirroredEntity) {
-                return value
-            }
-            return Utility.sanitize(value, targetType.getTargetType())
-        }
-        if (targetType && !Utility.isValueOfType(value, targetType, true)) {
-            value = targetType === BigInt
-                ? BigInt(/** @type {Number} */(value))
-                : new /** @type {EntityConstructor} */(targetType)(value)
-        }
-        if (value instanceof Boolean || value instanceof Number || value instanceof String) {
-            value = /** @type {TerminalAttribute} */(value.valueOf()) // Get the relative primitive value
-        }
-        return value
-    }
-
-    /**
      * @param {Number} x
      * @param {Number} y
      * @param {Number} gridSize
@@ -334,11 +188,14 @@ export default class Utility {
     }
 
     /** @param {String} value */
-    static escapeString(value) {
-        return value
-            .replaceAll(new RegExp(`(${Configuration.stringEscapedCharacters.source})`, "g"), '\\$1')
-            .replaceAll("\n", "\\n") // Replace newline with \n
-            .replaceAll("\t", "\\t") // Replace tab with \t
+    static escapeString(value, inline = true) {
+        let result = value.replaceAll(new RegExp(`(${Configuration.stringEscapedCharacters.source})`, "g"), '\\$1')
+        if (inline) {
+            result = result
+                .replaceAll("\n", "\\n") // Replace newline with \n
+                .replaceAll("\t", "\\t") // Replace tab with \t
+        }
+        return result
     }
 
     /** @param {String} value */
@@ -396,11 +253,6 @@ export default class Utility {
         // From end to the first "/" or "."
         const regex = dropCounter ? /([^\.\/]+?)(?:_\d+)$/ : /([^\.\/]+)$/
         return pathValue.match(regex)?.[1] ?? ""
-    }
-
-    /** @param {LinearColorEntity} value */
-    static printLinearColor(value) {
-        return `${Math.round(value.R.valueOf() * 255)}, ${Math.round(value.G.valueOf() * 255)}, ${Math.round(value.B.valueOf() * 255)}`
     }
 
     /**

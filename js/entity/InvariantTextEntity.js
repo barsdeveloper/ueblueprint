@@ -1,44 +1,37 @@
-import Parsernostrum from "parsernostrum"
-import Grammar from "../serialization/Grammar.js"
-import AttributeInfo from "./AttributeInfo.js"
+import P from "parsernostrum"
 import IEntity from "./IEntity.js"
 
 export default class InvariantTextEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: AttributeInfo.createValue(""),
-        lookbehind: new AttributeInfo({
-            ...super.attributes.lookbehind,
-            default: "INVTEXT",
-        }),
-    }
+    static lookbehind = "INVTEXT"
+
     static grammar = this.createGrammar()
 
+    constructor(value = "") {
+        super()
+        this.value = value
+    }
+
     static createGrammar() {
-        return Parsernostrum.alt(
-            Parsernostrum.seq(
-                Parsernostrum.reg(new RegExp(`${this.attributes.lookbehind.default}\\s*\\(`)),
-                Grammar.grammarFor(this.attributes.value),
-                Parsernostrum.reg(/\s*\)/)
+        return /** @type {P<InvariantTextEntity>} */(
+            P.alt(
+                P.seq(
+                    P.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
+                    P.doubleQuotedString,
+                    P.reg(/\s*\)/)
+                ).map(([_0, value, _2]) => Number(value)),
+                P.reg(new RegExp(this.lookbehind)).map(() => 0) // InvariantTextEntity can not have arguments
             )
-                .map(([_0, value, _2]) => value),
-            Parsernostrum.reg(new RegExp(this.attributes.lookbehind.default)) // InvariantTextEntity can not have arguments
-                .map(() => "")
-        ).map(value => new this(value))
+                .map(value => new this(value))
+                .label("InvariantTextEntity")
+        )
     }
 
-    constructor(values) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            }
-        }
-        super(values)
-        /** @type {String} */ this.value
+    doSerialize() {
+        return this.lookbehind + "(" + this.value + ")"
     }
 
-    toString() {
+    valueOf() {
         return this.value
     }
 }

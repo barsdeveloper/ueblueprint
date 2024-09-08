@@ -40,7 +40,7 @@ export default class EventNodeTemplate extends NodeTemplate {
 
     createDelegatePinElement() {
         const pin = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin")).newObject(
-            this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory === "delegate"),
+            this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory?.toString() === "delegate"),
             new MinimalPinTemplate(),
             this.element
         )
@@ -50,7 +50,7 @@ export default class EventNodeTemplate extends NodeTemplate {
 
     createPinElements() {
         return this.element.getPinEntities()
-            .filter(v => !v.isHidden() && v.PinType.PinCategory !== "delegate")
+            .filter(v => !v.isHidden() && v.PinType.PinCategory?.toString() !== "delegate")
             .map(pinEntity => /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
                 .newObject(pinEntity, undefined, this.element)
             )

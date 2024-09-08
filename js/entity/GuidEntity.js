@@ -1,9 +1,9 @@
-import Grammar from "../serialization/Grammar.js"
-import AttributeInfo from "./AttributeInfo.js"
 import IEntity from "./IEntity.js"
+import P from "parsernostrum"
 
 var crypto
 if (typeof window === "undefined") {
+    // When used in nodejs, mainly for test purpose
     import("crypto").then(mod => crypto = mod.default).catch()
 } else {
     crypto = window.crypto
@@ -11,43 +11,39 @@ if (typeof window === "undefined") {
 
 export default class GuidEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: AttributeInfo.createValue(""),
-    }
     static grammar = this.createGrammar()
 
-    static createGrammar() {
-        return Grammar.guid.map(v => new this(v))
-    }
-
-    static generateGuid(random = true) {
+    static generateGuid() {
         let values = new Uint32Array(4)
-        if (random === true) {
-            crypto.getRandomValues(values)
-        }
+        crypto.getRandomValues(values)
         let guid = ""
         values.forEach(n => {
             guid += ("0".repeat(8) + n.toString(16).toUpperCase()).slice(-8)
         })
-        return new GuidEntity({ value: guid })
+        return guid
     }
 
-    constructor(values) {
-        if (!values) {
-            values = GuidEntity.generateGuid().value
-        }
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            }
-        }
-        super(values)
-        /** @type {String} */ this.value
+    constructor(value = GuidEntity.generateGuid()) {
+        super()
+        this.value = value
     }
 
-    valueOf() {
-        return this.value
+    static createGrammar() {
+        return /** @type {P<GuidEntity>} */(
+            P.reg(/[0-9A-F]{32}/i).map(v => new this(v)).label("GuidEntity")
+        )
+    }
+
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+    ) {
+        let result = this.value
+        if (Self.serialized) {
+            result = `"${result}"`
+        }
+        return result
     }
 
     toString() {

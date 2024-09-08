@@ -1,14 +1,17 @@
 import IInputPinTemplate from "./IInputPinTemplate.js"
 
 /**
- * @template {TerminalAttribute} T
+ * @template {IEntity} T
  * @extends IInputPinTemplate<T>
  */
 export default class INumericPinTemplate extends IInputPinTemplate {
 
     static singleLineInput = true
 
-    /** @param {String[]} values */
+    /**
+     * @this {INumericPinTemplate<NumberEntity>}
+     * @param {String[]} values
+     */
     setInputs(values = [], updateDefaultValue = false) {
         if (!values || values.length == 0) {
             values = [this.getInput()]
@@ -29,11 +32,14 @@ export default class INumericPinTemplate extends IInputPinTemplate {
     }
 
     /**
+     * @this {INumericPinTemplate<NumberEntity>}
      * @param {Number[]} values
      * @param {String[]} rawValues
      */
     setDefaultValue(values = [], rawValues) {
-        this.element.setDefaultValue(/** @type {T} */(values[0]))
+        const value = this.element.getDefaultValue()
+        value.value = values[0]
+        this.element.setDefaultValue(value)
         this.element.requestUpdate()
     }
 }

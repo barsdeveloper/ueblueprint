@@ -1,27 +1,32 @@
+import P from "parsernostrum"
 import Grammar from "../serialization/Grammar.js"
-import AttributeInfo from "./AttributeInfo.js"
+import BooleanEntity from "./BooleanEntity.js"
 import GuidEntity from "./GuidEntity.js"
 import IEntity from "./IEntity.js"
+import StringEntity from "./StringEntity.js"
 
 export default class VariableReferenceEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        MemberScope: AttributeInfo.createType(String),
-        MemberName: AttributeInfo.createValue(""),
-        MemberGuid: AttributeInfo.createType(GuidEntity),
-        bSelfContext: AttributeInfo.createType(Boolean),
+        MemberScope: StringEntity,
+        MemberName: StringEntity.withDefault(),
+        MemberGuid: GuidEntity,
+        bSelfContext: BooleanEntity,
     }
     static grammar = this.createGrammar()
 
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this)
-    }
-
     constructor(values) {
         super(values)
-        /** @type {String} */ this.MemberName
-        /** @type {GuidEntity} */ this.GuidEntity
-        /** @type {Boolean} */ this.bSelfContext
+        /** @type {InstanceType<typeof VariableReferenceEntity.attributes.MemberScope>} */ this.MemberScope
+        /** @type {InstanceType<typeof VariableReferenceEntity.attributes.MemberName>} */ this.MemberName
+        /** @type {InstanceType<typeof VariableReferenceEntity.attributes.MemberGuid>} */ this.MemberGuid
+        /** @type {InstanceType<typeof VariableReferenceEntity.attributes.bSelfContext>} */ this.bSelfContext
+    }
+
+    static createGrammar() {
+        return /** @type {P<VariableReferenceEntity>} */(
+            Grammar.createEntityGrammar(this).label("VariableReferenceEntity")
+        )
     }
 }

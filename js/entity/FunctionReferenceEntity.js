@@ -1,27 +1,29 @@
+import P from "parsernostrum"
 import Grammar from "../serialization/Grammar.js"
-import AttributeInfo from "./AttributeInfo.js"
 import GuidEntity from "./GuidEntity.js"
 import IEntity from "./IEntity.js"
 import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
+import StringEntity from "./StringEntity.js"
 
 export default class FunctionReferenceEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        MemberParent: AttributeInfo.createType(ObjectReferenceEntity),
-        MemberName: AttributeInfo.createType(String),
-        MemberGuid: AttributeInfo.createType(GuidEntity),
+        MemberParent: ObjectReferenceEntity,
+        MemberName: StringEntity,
+        MemberGuid: GuidEntity,
     }
     static grammar = this.createGrammar()
 
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this)
-    }
-
     constructor(values) {
         super(values)
-        /** @type {ObjectReferenceEntity} */ this.MemberParent
-        /** @type {String} */ this.MemberName
-        /** @type {GuidEntity} */ this.MemberGuid
+        /** @type {InstanceType<typeof FunctionReferenceEntity.attributes.MemberParent>} */ this.MemberParent
+        /** @type {InstanceType<typeof FunctionReferenceEntity.attributes.MemberName>} */ this.MemberName
+        /** @type {InstanceType<typeof FunctionReferenceEntity.attributes.MemberGuid>} */ this.MemberGuid
+    }
+
+    /** @returns {P<FunctionReferenceEntity>} */
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, false, 0)
     }
 }

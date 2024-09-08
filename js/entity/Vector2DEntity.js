@@ -1,34 +1,30 @@
+import P from "parsernostrum"
 import Grammar from "../serialization/Grammar.js"
-import AttributeInfo from "./AttributeInfo.js"
 import IEntity from "./IEntity.js"
+import NumberEntity from "./NumberEntity.js"
 
 export default class Vector2DEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        X: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-        Y: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
+        X: NumberEntity.withDefault(),
+        Y: NumberEntity.withDefault(),
     }
     static grammar = this.createGrammar()
 
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this, false)
-    }
-
     constructor(values) {
         super(values)
-        /** @type {Number} */ this.X
-        /** @type {Number} */ this.Y
+        /** @type {InstanceType<typeof Vector2DEntity.attributes.X>} */ this.X
+        /** @type {InstanceType<typeof Vector2DEntity.attributes.Y>} */ this.Y
+    }
+
+    /** @returns {P<Vector2DEntity>} */
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector2DEntity")
     }
 
     /** @returns {[Number, Number]} */
     toArray() {
-        return [this.X, this.Y]
+        return [this.X.valueOf(), this.Y.valueOf()]
     }
 }

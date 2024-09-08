@@ -1,25 +1,25 @@
 import { html } from "lit"
-import Utility from "../../Utility.js"
-import INumericPinTemplate from "./INumericPinTemplate.js"
+import NumberEntity from "../../entity/NumberEntity.js"
 import Vector4DEntity from "../../entity/Vector4DEntity.js"
+import INumericPinTemplate from "./INumericPinTemplate.js"
 
 /** @extends INumericPinTemplate<Vector4DEntity> */
 export default class Vector4DPinTemplate extends INumericPinTemplate {
 
     #getX() {
-        return Utility.printNumber(this.element.getDefaultValue()?.X ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.X.valueOf() ?? 0)
     }
 
     #getY() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Y ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.Y.valueOf() ?? 0)
     }
 
     #getZ() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Z ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.Z.valueOf() ?? 0)
     }
 
     #getW() {
-        return Utility.printNumber(this.element.getDefaultValue()?.W ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.W.valueOf() ?? 0)
     }
 
     /**
@@ -31,10 +31,10 @@ export default class Vector4DPinTemplate extends INumericPinTemplate {
         if (!(vector instanceof Vector4DEntity)) {
             throw new TypeError("Expected DefaultValue to be a Vector4DEntity")
         }
-        vector.X = values[0]
-        vector.Y = values[1]
-        vector.Z = values[2]
-        vector.W = values[3]
+        vector.X.value = values[0]
+        vector.Y.value = values[1]
+        vector.Z.value = values[2]
+        vector.W.value = values[3]
         this.element.requestUpdate("DefaultValue", vector)
     }
 

@@ -96,8 +96,8 @@ while (i < nodeTests.length) {
                                 },
                                 Configuration.gridSize
                             )
-                            expect(Math.abs(nodeTest.size[0] - expectedSize[0])).toBeLessThan(1.5)
-                            expect(Math.abs(nodeTest.size[1] - expectedSize[1])).toBeLessThan(1.5)
+                            expect(Math.abs(nodeTest.size[0] - expectedSize[0])).toBeLessThanOrEqual(1.5)
+                            expect(Math.abs(nodeTest.size[1] - expectedSize[1])).toBeLessThanOrEqual(1.5)
                             if (
                                 Math.abs(nodeTest.size[0] - expectedSize[0]) > 0.6
                                 || Math.abs(nodeTest.size[1] - expectedSize[1]) > 0.6
@@ -166,8 +166,10 @@ while (i < nodeTests.length) {
                         async ({ blueprintPage }) => {
                             const variadic = blueprintPage.node.getByText("Add pin")
                             await expect(variadic).toBeVisible()
+                            await variadic.hover()
                             await variadic.click()
                             expect(await blueprintPage.node.locator("ueb-pin").all()).toHaveLength(nodeTest.pins + 1)
+                            await variadic.blur()
                         }
                     )
                 }

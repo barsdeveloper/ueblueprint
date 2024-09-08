@@ -1,13 +1,14 @@
 import Parsernostrum from "parsernostrum"
 import Configuration from "../Configuration.js"
 import Utility from "../Utility.js"
-import AttributeInfo from "../entity/AttributeInfo.js"
+import AlternativesEntity from "../entity/AlternativesEntity.js"
 import IEntity from "../entity/IEntity.js"
-import MirroredEntity from "../entity/MirroredEntity.js"
-import Union from "../entity/Union.js"
-import Serializable from "./Serializable.js"
 
 export default class Grammar {
+
+    /** @type {String} */
+    // @ts-expect-error
+    static numberRegexSource = Parsernostrum.number.getParser().parser.regexp.source
 
     static separatedBy = (source, separator, min = 1) =>
         new RegExp(
@@ -36,10 +37,11 @@ export default class Grammar {
     static null = Parsernostrum.reg(/\(\s*\)/).map(() => null)
     static true = Parsernostrum.reg(/true/i).map(() => true)
     static false = Parsernostrum.reg(/false/i).map(() => false)
-    static boolean = Parsernostrum.regArray(/(true)|false/i).map(v => v[1] ? true : false)
     static number = Parsernostrum.regArray(
+        // @ts-expect-error
         new RegExp(`(${Parsernostrum.number.getParser().parser.regexp.source})|(\\+?inf)|(-inf)`)
     ).map(([_0, n, plusInf, minusInf]) => n ? Number(n) : plusInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY)
+    // @ts-expect-error
     static bigInt = Parsernostrum.reg(new RegExp(Parsernostrum.number.getParser().parser.regexp.source)).map(BigInt)
         .map(result =>
             result[2] !== undefined
@@ -68,173 +70,84 @@ export default class Grammar {
     /*   ---   Factory   ---   */
 
     /**
-     * @template T
-     * @param {AttributeInfo<T>} attribute
-     * @param {Parsernostrum<any>} defaultGrammar
-     * @returns {Parsernostrum<T>}
-     */
-    static grammarFor(attribute, type = attribute?.type, defaultGrammar = this.unknownValue) {
-        let result = defaultGrammar
-        if (type === Array || type instanceof Array) {
-            if (attribute?.inlined) {
-                return this.grammarFor(undefined, type[0])
-            }
-            result = Parsernostrum.seq(
-                Parsernostrum.reg(/\(\s*/),
-                this.grammarFor(undefined, type[0]).sepBy(this.commaSeparation).opt(),
-                Parsernostrum.reg(/\s*(?:,\s*)?\)/),
-            ).map(([_0, values, _3]) => values instanceof Array ? values : [])
-        } else if (type instanceof Union) {
-            result = type.values
-                .map(v => this.grammarFor(undefined, v))
-                .reduce((acc, cur) => !cur || cur === this.unknownValue || acc === this.unknownValue
-                    ? this.unknownValue
-                    : Parsernostrum.alt(acc, cur)
-                )
-        } else if (type instanceof MirroredEntity) {
-            // @ts-expect-error
-            return this.grammarFor(undefined, type.getTargetType())
-                .map(v => new MirroredEntity(type.type, () => v))
-        } else if (attribute?.constructor === Object) {
-            result = this.grammarFor(undefined, type)
-        } else {
-            switch (type) {
-                case Boolean:
-                    result = this.boolean
-                    break
-                case null:
-                    result = this.null
-                    break
-                case Number:
-                    result = this.number
-                    break
-                case BigInt:
-                    result = this.bigInt
-                    break
-                case String:
-                    result = this.string
-                    break
-                default:
-                    if (/** @type {AttributeConstructor<any>} */(type)?.prototype instanceof Serializable) {
-                        result = /** @type {typeof Serializable} */(type).grammar
-                    }
-            }
-        }
-        if (attribute) {
-            if (attribute.serialized && type.constructor !== String) {
-                if (result == this.unknownValue) {
-                    result = this.string
-                } else {
-                    result = Parsernostrum.seq(Parsernostrum.str('"'), result, Parsernostrum.str('"')).map(([_0, value, _2]) => value)
-                }
-            }
-            if (attribute.nullable) {
-                result = Parsernostrum.alt(result, this.null)
-            }
-        }
-        return result
-    }
-
-    /**
-     * @template {AttributeConstructor<Attribute>} T
-     * @param {T} entityType
+     * @param {typeof IEntity} entityType
      * @param {String[]} key
-     * @returns {AttributeInfo}
+     * @returns {typeof IEntity}
      */
-    static getAttribute(entityType, key) {
-        let result
-        let type
-        if (entityType instanceof Union) {
-            for (let t of entityType.values) {
-                if (result = this.getAttribute(t, key)) {
-                    return result
+    static getAttribute(entityType, [key, ...keys]) {
+        const attribute = entityType?.attributes?.[key]
+        if (!attribute) {
+            return
+        }
+        if (attribute.prototype instanceof AlternativesEntity) {
+            for (const alternative of /** @type {typeof AlternativesEntity} */(attribute).alternatives) {
+                const candidate = this.getAttribute(alternative, keys)
+                if (candidate) {
+                    return candidate
                 }
             }
         }
-        if (entityType instanceof IEntity.constructor) {
-            // @ts-expect-error
-            result = entityType.attributes[key[0]]
-            type = result?.type
-        } else if (entityType instanceof Array) {
-            result = entityType[key[0]]
-            type = result
+        if (keys.length > 0) {
+            return this.getAttribute(attribute, keys)
         }
-        if (key.length > 1) {
-            return this.getAttribute(type, key.slice(1))
-        }
-        return result
+        return attribute
     }
 
+    /** @param {typeof IEntity} entityType */
     static createAttributeGrammar(
         entityType,
-        attributeName = this.attributeName,
+        attributeNameGrammar = this.attributeName,
         valueSeparator = this.equalSeparation,
-        handleObjectSet = (obj, k, v) => { }
+        handleObjectSet = (values, attributeKey, attributeValue) => { },
     ) {
         return Parsernostrum.seq(
-            attributeName,
+            attributeNameGrammar,
             valueSeparator,
         ).chain(([attributeName, _1]) => {
             const attributeKey = attributeName.split(Configuration.keysSeparator)
             const attributeValue = this.getAttribute(entityType, attributeKey)
-            return this
-                .grammarFor(attributeValue)
-                .map(attributeValue =>
-                    values => {
-                        handleObjectSet(values, attributeKey, attributeValue)
-                        Utility.objectSet(values, attributeKey, attributeValue)
-                    }
-                )
+            const grammar = attributeValue ? attributeValue.grammar : IEntity.unknownEntityGrammar
+            return grammar.map(attributeValue =>
+                values => {
+                    Utility.objectSet(values, attributeKey, attributeValue)
+                    handleObjectSet(values, attributeKey, attributeValue)
+                }
+            )
         })
     }
 
     /**
-     * @template {IEntity} T
-     * @param {(new (...args: any) => T) & EntityConstructor} entityType
-     * @param {Boolean | Number} acceptUnknownKeys Number to specify the limit or true, to let it be a reasonable value
+     * @template {typeof IEntity & (new (...values: any) => InstanceType<T>)} T
+     * @param {T} entityType
+     * @return {Parsernostrum<InstanceType<T>>}
      */
-    static createEntityGrammar(entityType, acceptUnknownKeys = true, entriesSeparator = this.commaSeparation) {
-        const lookbehind = entityType.attributes.lookbehind.default
+    static createEntityGrammar(entityType, entriesSeparator = this.commaSeparation, complete = false, minKeys = 1) {
+        const lookbehind = entityType.lookbehind instanceof Array ? entityType.lookbehind.join("|") : entityType.lookbehind
         return Parsernostrum.seq(
-            Parsernostrum.reg(
-                lookbehind instanceof Union
-                    ? new RegExp(`(${lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*\\(\\s*`)
-                    : lookbehind.constructor == String && lookbehind.length > 0
-                        ? new RegExp(`(${lookbehind})\\s*\\(\\s*`)
-                        : /()\(\s*/,
-                1
-            ),
-            this.createAttributeGrammar(entityType).sepBy(entriesSeparator),
-            Parsernostrum.reg(/\s*(?:,\s*)?\)/), // trailing comma
+            Parsernostrum.reg(new RegExp(String.raw`(${lookbehind}\s*)\(\s*`), 1),
+            this.createAttributeGrammar(entityType).sepBy(entriesSeparator, minKeys),
+            Parsernostrum.reg(/\s*(,\s*)?\)/, 1), // optional trailing comma
         )
-            .map(([lookbehind, attributes, _2]) => {
+            .map(([lookbehind, attributes, trailing]) => {
                 let values = {}
-                attributes.forEach(attributeSetter => attributeSetter(values))
                 if (lookbehind.length) {
-                    values.lookbehind = lookbehind
+                    values["lookbehind"] = lookbehind
                 }
+                attributes.forEach(attributeSetter => attributeSetter(values))
+                values["trailing"] = trailing !== undefined
                 return values
             })
             // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
             .chain(values => {
-                let totalKeys = Object.keys(values)
-                let missingKey
-                // Check missing values
-                if (
-                    Object.keys(/** @type {AttributeDeclarations} */(entityType.attributes))
-                        .filter(key => entityType.attributes[key].expected)
-                        .find(key => !totalKeys.includes(key) && (missingKey = key))
-                ) {
-                    return Parsernostrum.failure()
+                if (entityType.lookbehind instanceof Array || entityType.lookbehind !== lookbehind) {
+                    entityType = entityType.withLookbehind(lookbehind)
                 }
-                const unknownKeys = Object.keys(values).filter(key => !(key in entityType.attributes)).length
-                if (!acceptUnknownKeys && unknownKeys > 0) {
-                    return Parsernostrum.failure()
-                }
-                return Parsernostrum.success().map(() => new entityType(values))
+                const keys = Object.keys(values)
+                return complete
+                    ? Parsernostrum.success()
+                        .assert(v => Object.keys(entityType.attributes).every(k => keys.includes(k)))
+                        .map(() => new entityType(values))
+                    : Parsernostrum.success().map(() => new entityType(values))
             })
     }
-
-    /** @type {Parsernostrum<any>} */
-    static unknownValue // Defined in initializeSerializerFactor to avoid circular include
 }

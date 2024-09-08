@@ -9,12 +9,12 @@ import VariableConversionNodeTemplate from "../node/VariableConversionNodeTempla
 import VariableOperationNodeTemplate from "../node/VariableOperationNodeTemplate.js"
 
 /**
- * @template {TerminalAttribute} T
+ * @template {IEntity} T
  * @typedef {import("../../element/PinElement.js").default<T>} PinElement
  */
 
 /**
- * @template {TerminalAttribute} T
+ * @template {IEntity} T
  * @extends ITemplate<PinElement<T>>
  */
 export default class PinTemplate extends ITemplate {
@@ -110,12 +110,12 @@ export default class PinTemplate extends ITemplate {
                     return SVGIcon.pcgStackPin
             }
         }
-        switch (this.element.entity.PinType?.ContainerType?.toString()) {
+        switch (this.element.entity.PinType?.ContainerType?.serialize()) {
             case "Array": return SVGIcon.arrayPin
             case "Set": return SVGIcon.setPin
             case "Map": return SVGIcon.mapPin
         }
-        if (this.element.entity.PinType?.PinCategory?.toLocaleLowerCase() === "delegate") {
+        if (this.element.entity.PinType?.PinCategory?.toString().toLocaleLowerCase() === "delegate") {
             return SVGIcon.delegate
         }
         if (this.element.nodeElement?.template instanceof VariableOperationNodeTemplate) {
@@ -141,8 +141,8 @@ export default class PinTemplate extends ITemplate {
 
     isInputRendered() {
         return this.element.isInput()
-            && !this.element.entity.bDefaultValueIsIgnored
-            && !this.element.entity.PinType.bIsReference
+            && !this.element.entity.bDefaultValueIsIgnored?.valueOf()
+            && !this.element.entity.PinType.bIsReference?.valueOf()
     }
 
     renderInput() {
@@ -170,6 +170,7 @@ export default class PinTemplate extends ITemplate {
 
     getLinkLocation() {
         const rect = this.iconElement.getBoundingClientRect()
+        /** @type {[Number, Number]} */
         const boundingLocation = [this.element.isInput() ? rect.left : rect.right + 1, (rect.top + rect.bottom) / 2]
         const location = Utility.convertLocation(boundingLocation, this.blueprint.template.gridElement)
         return this.blueprint.compensateTranslation(location[0], location[1])

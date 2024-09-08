@@ -11,7 +11,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
 
     #hasSubtitle = false
 
-    /** @type {() => PinEntity} */
+    /** @type {() => PinEntity<IEntity>} */
     pinInserter
 
     /** @type {HTMLElement} */
@@ -41,7 +41,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         this.element.updateComplete.then(() => this.element.acknowledgeReflow())
     }
 
-    /** @param {PinEntity} pinEntity */
+    /** @param {PinEntity<IEntity>} pinEntity */
     createPinElement(pinEntity) {
         const pinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
             .newObject(pinEntity, undefined, this.element)
@@ -165,7 +165,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
             .filter(v => !v.isHidden())
             .map(pinEntity => {
                 this.#hasSubtitle = this.#hasSubtitle
-                    || pinEntity.PinName === "self" && pinEntity.pinTitle() === "Target"
+                    || pinEntity.PinName.toString() === "self" && pinEntity.pinTitle() === "Target"
                 return this.createPinElement(pinEntity)
             })
     }

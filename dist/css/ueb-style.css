@@ -646,7 +646,7 @@ ueb-node.ueb-node-style-conversion .ueb-node-wrapper::after {
   grid-area: center;
   align-self: center;
   justify-self: center;
-  margin: 10px;
+  margin: 10px 10px 10px -6px;
   width: 6px;
   height: 6px;
   border-radius: 3px;

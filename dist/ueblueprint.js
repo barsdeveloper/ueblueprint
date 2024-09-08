@@ -152,6 +152,7 @@ class Configuration {
         eTextureMipValueMode: "/Script/Engine.ETextureMipValueMode",
         eTraceTypeQuery: "/Script/Engine.ETraceTypeQuery",
         event: "/Script/BlueprintGraph.K2Node_Event",
+        eWorldPositionIncludedOffsets: "/Script/Engine.EWorldPositionIncludedOffsets",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
         flipflop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:FlipFlop",
         forEachElementInEnum: "/Script/BlueprintGraph.K2Node_ForEachElementInEnum",
@@ -190,8 +191,10 @@ class Configuration {
         materialExpressionLogarithm2: "/Script/Engine.MaterialExpressionLogarithm2",
         materialExpressionMaterialFunctionCall: "/Script/Engine.MaterialExpressionMaterialFunctionCall",
         materialExpressionSquareRoot: "/Script/Engine.MaterialExpressionSquareRoot",
+        materialExpressionSubtract: "/Script/Engine.MaterialExpressionSubtract",
         materialExpressionTextureCoordinate: "/Script/Engine.MaterialExpressionTextureCoordinate",
         materialExpressionTextureSample: "/Script/Engine.MaterialExpressionTextureSample",
+        materialExpressionWorldPosition: "/Script/Engine.MaterialExpressionWorldPosition",
         materialGraphNode: "/Script/UnrealEd.MaterialGraphNode",
         materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
         metasoundEditorGraphExternalNode: "/Script/MetasoundEditor.MetasoundEditorGraphExternalNode",
@@ -236,7 +239,7 @@ class Configuration {
         vector4f: "/Script/CoreUObject.Vector4f",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
-    static pinInputWrapWidth = 143 // px
+    static pinInputWrapWidth = 145 // px
     static removeEventName = "ueb-element-delete"
     static scale = {
         [-12]: 0.133333,
@@ -289,6 +292,7 @@ class Configuration {
             "KeepWorld",
             "SnapToTarget",
         ],
+        [this.paths.eDrawDebugTrace]: ["None", "ForOneFrame", "ForDuration", "Persistent"],
         [this.paths.eMaterialSamplerType]: [
             "Color",
             "Grayscale",
@@ -315,6 +319,14 @@ class Configuration {
             ["NewEnumerator3", "A"],
         ],
         [this.paths.eSamplerSourceMode]: ["From texture asset", "Shared: Wrap", "Shared: Clamp", "Hidden"],
+        [this.paths.eSearchCase]: ["CaseSensitive", "IgnoreCase"],
+        [this.paths.eWorldPositionIncludedOffsets]: [
+            "Absolute World Position (Including Material Shader Offsets)",
+            "Absolute World Position (Excluding Material Shader Offsets)",
+            "Camera Relative World Position (Including Material Shader Offsets)",
+            "Camera Relative World Position (Excluding Material Shader Offsets)",
+        ],
+        [this.paths.eSearchDir]: ["FromStart", "FromEnd"],
         [this.paths.eSpawnActorCollisionHandlingMethod]: [
             ["Undefined", "Default"],
             ["AlwaysSpawn", "Always Spawn, Ignore Collisions"],
@@ -322,9 +334,6 @@ class Configuration {
             ["AdjustIfPossibleButDontSpawnIfColliding", "Try To Adjust Location, Don't Spawn If Still Colliding"],
             ["DontSpawnIfColliding", "Do Not Spawn"],
         ],
-        [this.paths.eSearchCase]: ["CaseSensitive", "IgnoreCase"],
-        [this.paths.eSearchDir]: ["FromStart", "FromEnd"],
-        [this.paths.eDrawDebugTrace]: ["None", "ForOneFrame", "ForDuration", "Persistent"],
         [this.paths.eTextureMipValueMode]: [
             "None (use computed mip level)",
             "MipLevel (absolute, 0 is full resolution)",
@@ -433,214 +442,7 @@ class Configuration {
     }
 }
 
-class ComputedType {
-
-    #f
-
-    /** @param {Function} f */
-    constructor(f) {
-        this.#f = f;
-    }
-
-    /** @param {IEntity} entity */
-    compute(entity) {
-        return this.#f(entity)
-    }
-}
-
-/**
- * @template T
- * @typedef {{
- *     type?: AttributeTypeDescription,
- *     default?: T,
- *     nullable?: Boolean,
- *     ignored?: Boolean,
- *     serialized?: Boolean,
- *     expected?: Boolean,
- *     inlined?: Boolean,
- *     quoted?: Boolean,
- *     silent?: Boolean,
- *     uninitialized?: Boolean,
- *     predicate?: (value: T) => Boolean,
- * }} AttributeInfoSource
- */
-
-/** @template T */
-class AttributeInfo {
-
-    /** @typedef {keyof AttributeInfo<number>} AttributeKey */
-
-    static #default = {
-        nullable: false,
-        ignored: false, // Never serialize or deserialize
-        serialized: false, // Value is written and read as string
-        expected: false, // Must be there
-        inlined: false, // The key is a subobject or array and printed as inlined (A.B=123, A(0)=123)
-        quoted: false, // Key is serialized with quotes
-        silent: false, // Do not serialize if default
-        uninitialized: false, // Do not initialize with default
-    }
-
-    /** @param {AttributeInfoSource<T>} source */
-    constructor(source) {
-        this.type = source.type ?? source.default?.constructor;
-        this.default = source.default;
-        this.nullable = source.nullable ?? source.default === null;
-        this.ignored = source.ignored;
-        this.serialized = source.serialized;
-        this.expected = source.expected;
-        this.inlined = source.inlined;
-        this.quoted = source.quoted;
-        this.silent = source.silent;
-        this.uninitialized = source.uninitialized;
-        this.predicate = source.predicate;
-        if (this.type === Array && this.default instanceof Array && this.default.length > 0) {
-            this.type = this.default
-                .map(v => v.constructor)
-                .reduce((acc, cur) => acc.includes(cur) ? acc : (acc.push(cur), acc), []);
-        }
-    }
-
-    /**
-     * @template {AttributeTypeDescription} D
-     * @param {D} type
-     * @returns {AttributeInfo<DescribedType<type>>}
-     */
-    static createType(type) {
-        return new AttributeInfo({ type })
-    }
-
-    /** 
-     * @template V
-     * @param {V} value
-     */
-    static createValue(value) {
-        return new AttributeInfo({ default: value })
-    }
-
-    /**
-     * @param {IEntity | Object} source
-     * @param {String} attribute
-     * @param {AttributeKey} key
-     */
-    static hasAttribute(source, attribute, key, type = /** @type {EntityConstructor} */(source.constructor)) {
-        const entity = /** @type {IEntity} */(source);
-        const result = entity.attributes[attribute]?.[key];
-        return /** @type {result} */(
-            result
-            ?? type?.attributes?.[attribute]?.[key]
-            ?? AttributeInfo.#default[key]
-        )
-    }
-
-    /**
-     * @template {IEntity | Object} S
-     * @template {EntityConstructor} C
-     * @template {keyof C["attributes"]} A
-     * @template {keyof C["attributes"][attribute]} K
-     * @param {S} source
-     * @param {A} attribute
-     * @param {K} key
-     * @param {C} type
-     * @returns {C["attributes"][attribute][key]}
-     */
-    static getAttribute(source, attribute, key, type = /** @type {C} */(source.constructor)) {
-        let result = source["attributes"]?.[attribute]?.[key];
-        // Remember null is a valid asignment value for some attributes
-        if (result !== undefined) {
-            return result
-        }
-        result = /** @type {C["attributes"]} */(type?.attributes)?.[attribute]?.[key];
-        if (result !== undefined) {
-            return result
-        }
-        result = /** @type {C["attributes"][attribute]} */(AttributeInfo.#default)[key];
-        if (result !== undefined) {
-            return result
-        }
-    }
-
-    /** @param {AttributeKey} key */
-    get(key) {
-        return this[key] ?? AttributeInfo.#default[key]
-    }
-}
-
-/** @template {Attribute} T */
-class MirroredEntity {
-
-    static attributes = {
-        type: new AttributeInfo({
-            ignored: true,
-        }),
-        getter: new AttributeInfo({
-            ignored: true,
-        }),
-    }
-
-    /**
-     * @param {ConstructorType<T>} type
-     * @param {() => T} getter
-     */
-    constructor(type, getter = null) {
-        this.type = type;
-        this.getter = getter;
-    }
-
-    get() {
-        return this.getter()
-    }
-
-    /** @returns {AttributeConstructor<Attribute>} */
-    getTargetType() {
-        const result = this.type;
-        if (result instanceof MirroredEntity) {
-            return result.getTargetType()
-        }
-        return result
-    }
-}
-
-/** @template {any[]} T */
-class Union {
-
-    /** @type {T} */
-    #values
-    get values() {
-        return this.#values
-    }
-
-    /** @param  {T} values */
-    constructor(...values) {
-        this.#values = values;
-    }
-}
-
 class Utility {
-
-    static booleanConverter = {
-        fromAttribute: (value, type) => {
-        },
-        toAttribute: (value, type) => {
-            if (value === true) {
-                return "true"
-            }
-            if (value === false) {
-                return "false"
-            }
-            return ""
-        }
-    }
-
-    /** @param {Number} x */
-    static sigmoid(x, curvature = 1.7) {
-        return 1 / (1 + (x / (1 - x) ** -curvature))
-    }
-
-    /** @param {Number} x */
-    static sigmoidPositive(x, curvature = 3.7, length = 1.1) {
-        return 1 - Math.exp(-((x / length) ** curvature))
-    }
 
     /** @param {Number} value */
     static clamp(value, min = -Infinity, max = Infinity) {
@@ -667,23 +469,6 @@ class Utility {
         return num.toFixed(decimals)
     }
 
-    /** @param {String} value */
-    static numberFromText(value = "") {
-        value = value.toLowerCase();
-        switch (value) {
-            case "zero": return 0
-            case "one": return 1
-            case "two": return 2
-            case "three": return 3
-            case "four": return 4
-            case "five": return 5
-            case "six": return 6
-            case "seven": return 7
-            case "eight": return 8
-            case "nine": return 9
-        }
-    }
-
     /**
      * @param {Number} num
      * @param {Number} decimals
@@ -691,16 +476,6 @@ class Utility {
     static roundDecimals(num, decimals = 1) {
         const power = 10 ** decimals;
         return Math.round(num * power) / power
-    }
-
-    /** @param {Number} num */
-    static printNumber(num) {
-        if (num == Number.POSITIVE_INFINITY) {
-            return "inf"
-        } else if (num == Number.NEGATIVE_INFINITY) {
-            return "-inf"
-        }
-        return Utility.minDecimals(num)
     }
 
     /** @param {Number} num */
@@ -797,97 +572,6 @@ class Utility {
     }
 
     /**
-     * @param {Attribute} a
-     * @param {Attribute} b
-     */
-    static equals(a, b) {
-        while (a instanceof MirroredEntity) {
-            a = a.get();
-        }
-        while (b instanceof MirroredEntity) {
-            b = b.get();
-        }
-        // Here we cannot check both instanceof IEntity because this would introduce a circular include dependency
-        if (/** @type {IEntity?} */(a)?.equals && /** @type {IEntity?} */(b)?.equals) {
-            return /** @type {IEntity} */(a).equals(/** @type {IEntity} */(b))
-        }
-        a = Utility.sanitize(a);
-        b = Utility.sanitize(b);
-        if (a?.constructor === BigInt && b?.constructor === Number) {
-            b = BigInt(b);
-        } else if (a?.constructor === Number && b?.constructor === BigInt) {
-            a = BigInt(a);
-        }
-        if (a === b) {
-            return true
-        }
-        if (a instanceof Array && b instanceof Array) {
-            return a.length === b.length && a.every((value, i) => Utility.equals(value, b[i]))
-        }
-        return false
-    }
-
-    /**
-     * @template {Attribute | AttributeTypeDescription} T
-     * @param {T} value
-     * @returns {AttributeConstructor<T>}
-     */
-    static getType(value) {
-        if (value === null) {
-            return null
-        }
-        if (value?.constructor === Object && /** @type {AttributeInformation} */(value)?.type instanceof Function) {
-            return /** @type {AttributeInformation} */(value).type
-        }
-        return /** @type {AttributeConstructor<any>} */(value?.constructor)
-    }
-
-    /**
-     * @template {Attribute} V
-     * @template {AttributeConstructor<V>} C
-     * @param {C} type
-     * @returns {value is InstanceType<C>}
-     */
-    static isValueOfType(value, type, acceptNull = false) {
-        if (type instanceof MirroredEntity) {
-            type = type.getTargetType();
-        }
-        return (acceptNull && value === null) || value instanceof type || value?.constructor === type
-    }
-
-    /** @param {Attribute} value */
-    static sanitize(value, targetType = /** @type {AttributeTypeDescription } */(value?.constructor)) {
-        if (targetType instanceof Array) {
-            targetType = targetType[0];
-        }
-        if (targetType instanceof ComputedType) {
-            return value // The type is computed, can't say anything about it
-        }
-        if (targetType instanceof Union) {
-            let type = targetType.values.find(t => Utility.isValueOfType(value, t, false));
-            if (!type) {
-                type = targetType.values[0];
-            }
-            targetType = type;
-        }
-        if (targetType instanceof MirroredEntity) {
-            if (value instanceof MirroredEntity) {
-                return value
-            }
-            return Utility.sanitize(value, targetType.getTargetType())
-        }
-        if (targetType && !Utility.isValueOfType(value, targetType, true)) {
-            value = targetType === BigInt
-                ? BigInt(/** @type {Number} */(value))
-                : new /** @type {EntityConstructor} */(targetType)(value);
-        }
-        if (value instanceof Boolean || value instanceof Number || value instanceof String) {
-            value = /** @type {TerminalAttribute} */(value.valueOf()); // Get the relative primitive value
-        }
-        return value
-    }
-
-    /**
      * @param {Number} x
      * @param {Number} y
      * @param {Number} gridSize
@@ -946,11 +630,14 @@ class Utility {
     }
 
     /** @param {String} value */
-    static escapeString(value) {
-        return value
-            .replaceAll(new RegExp(`(${Configuration.stringEscapedCharacters.source})`, "g"), '\\$1')
-            .replaceAll("\n", "\\n") // Replace newline with \n
-            .replaceAll("\t", "\\t") // Replace tab with \t
+    static escapeString(value, inline = true) {
+        let result = value.replaceAll(new RegExp(`(${Configuration.stringEscapedCharacters.source})`, "g"), '\\$1');
+        if (inline) {
+            result = result
+                .replaceAll("\n", "\\n") // Replace newline with \n
+                .replaceAll("\t", "\\t"); // Replace tab with \t
+        }
+        return result
     }
 
     /** @param {String} value */
@@ -1008,11 +695,6 @@ class Utility {
         // From end to the first "/" or "."
         const regex = dropCounter ? /([^\.\/]+?)(?:_\d+)$/ : /([^\.\/]+)$/;
         return pathValue.match(regex)?.[1] ?? ""
-    }
-
-    /** @param {LinearColorEntity} value */
-    static printLinearColor(value) {
-        return `${Math.round(value.R.valueOf() * 255)}, ${Math.round(value.G.valueOf() * 255)}, ${Math.round(value.B.valueOf() * 255)}`
     }
 
     /**
@@ -1229,2274 +911,6 @@ class IElement extends s {
     isSameGraph(element) {
         return this.blueprint && this.blueprint == element?.blueprint
     }
-}
-
-/**
- * @template {IEntity} EntityT
- * @template {ITemplate} TemplateT
- * @extends {IElement<EntityT, TemplateT>}
- */
-class IFromToPositionedElement extends IElement {
-
-    static properties = {
-        ...super.properties,
-        fromX: {
-            type: Number,
-            attribute: false,
-        },
-        fromY: {
-            type: Number,
-            attribute: false,
-        },
-        toX: {
-            type: Number,
-            attribute: false,
-        },
-        toY: {
-            type: Number,
-            attribute: false,
-        },
-    }
-
-    constructor() {
-        super();
-        this.fromX = 0;
-        this.fromY = 0;
-        this.toX = 0;
-        this.toY = 0;
-    }
-
-    /** @param {Coordinates} param0 */
-    setBothLocations([x, y]) {
-        this.fromX = x;
-        this.fromY = y;
-        this.toX = x;
-        this.toY = y;
-    }
-
-    /**
-     * @param {Number} x
-     * @param {Number} y
-     */
-    addSourceLocation(x, y) {
-        this.fromX += x;
-        this.fromY += y;
-    }
-
-    /**
-     * @param {Number} x
-     * @param {Number} y
-     */
-    addDestinationLocation(x, y) {
-        this.toX += x;
-        this.toY += y;
-    }
-}
-
-class Shortcuts {
-    static deleteNodes = "Delete"
-    static duplicateNodes = "(bCtrl=True,Key=D)"
-    static enableLinkDelete = "LeftAlt"
-    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 1:1 zoom
-    static selectAllNodes = "(bCtrl=True,Key=A)"
-}
-
-class ElementFactory {
-
-    /** @type {Map<String, AnyConstructor<IElement>>} */
-    static #elementConstructors = new Map()
-
-    /**
-     * @param {String} tagName
-     * @param {AnyConstructor<IElement>} entityConstructor
-     */
-    static registerElement(tagName, entityConstructor) {
-        ElementFactory.#elementConstructors.set(tagName, entityConstructor);
-    }
-
-    /** @param {String} tagName */
-    static getConstructor(tagName) {
-        return ElementFactory.#elementConstructors.get(tagName)
-    }
-}
-
-class Reply {
-
-    /**
-     * @template T
-     * @param {Number} position
-     * @param {T} value
-     * @param {PathNode} bestPath
-     * @returns {Result<T>}
-     */
-    static makeSuccess(position, value, bestPath = null, bestPosition = 0) {
-        return {
-            status: true,
-            value: value,
-            position: position,
-            bestParser: bestPath,
-            bestPosition: bestPosition,
-        }
-    }
-
-    /**
-     * @param {PathNode} bestPath
-     * @returns {Result<null>}
-     */
-    static makeFailure(position = 0, bestPath = null, bestPosition = 0) {
-        return {
-            status: false,
-            value: null,
-            position,
-            bestParser: bestPath,
-            bestPosition: bestPosition,
-        }
-    }
-
-    /** @param {Parsernostrum<Parser>} parsernostrum */
-    static makeContext(parsernostrum = null, input = "") {
-        return /** @type {Context} */({
-            parsernostrum,
-            input,
-            highlighted: null,
-        })
-    }
-
-    static makePathNode(parser, index = 0, previous = null) {
-        return /** @type {PathNode} */({
-            parent: previous,
-            current: parser,
-            index,
-        })
-    }
-}
-
-class Parser {
-
-    static indentation = "    "
-    static highlight = "Last valid parser"
-
-    /** @type {(new (...args: any) => Parser) & typeof Parser} */
-    Self
-
-    /** @param {String} value */
-    static frame(value, label = "", indentation = "") {
-        label = value ? "[ " + label + " ]" : "";
-        let rows = value.split("\n");
-        const width = Math.max(...rows.map(r => r.length));
-        const rightPadding = width < label.length ? " ".repeat(label.length - width) : "";
-        for (let i = 0; i < rows.length; ++i) {
-            rows[i] =
-                indentation
-                + "| "
-                + rows[i]
-                + " ".repeat(width - rows[i].length)
-                + rightPadding
-                + " |";
-        }
-        if (label.length < width) {
-            label = label + "─".repeat(width - label.length);
-        }
-        const rowA = "┌─" + label + "─┐";
-        const rowB = indentation + "└─" + "─".repeat(label.length) + "─┘";
-        rows = [rowA, ...rows, rowB];
-        return rows.join("\n")
-    }
-
-    /**
-     * @param {PathNode} path
-     * @param {Number} index
-     * @returns {PathNode}
-     */
-    makePath(path, index) {
-        return { current: this, parent: path, index }
-    }
-
-    /**
-     * @param {Context} context
-     * @param {PathNode} path
-     */
-    isHighlighted(context, path) {
-        if (context.highlighted instanceof Parser) {
-            return context.highlighted === this
-        }
-        if (!context.highlighted || !path?.current) {
-            return false
-        }
-        let a, b;
-        for (
-            a = path,
-            b = /** @type {PathNode} */(context.highlighted);
-            a.current && b.current;
-            a = a.parent,
-            b = b.parent
-        ) {
-            if (a.current !== b.current || a.index !== b.index) {
-                return false
-            }
-        }
-        return !a.current && !b.current
-    }
-
-    /** @param {PathNode?} path */
-    isVisited(path) {
-        if (!path) {
-            return false
-        }
-        for (path = path.parent; path != null; path = path.parent) {
-            if (path.current === this) {
-                return true
-            }
-        }
-        return false
-    }
-
-    /**
-     * @param {Context} context
-     * @param {Number} position
-     * @param {PathNode} path
-     * @param {Number} index
-     * @returns {Result<ParserValue<any>>}
-     */
-    parse(context, position, path, index) {
-        return null
-    }
-
-    /** @param {PathNode} path */
-    toString(context = Reply.makeContext(null, ""), indentation = "", path = null, index = 0) {
-        path = this.makePath(path, index);
-        if (this.isVisited(path)) {
-            return "<...>"
-        }
-        const isVisited = this.isVisited(path);
-        const isHighlighted = this.isHighlighted(context, path);
-        let result = isVisited ? "<...>" : this.doToString(context, isHighlighted ? "" : indentation, path, index);
-        if (isHighlighted) {
-            /** @type {String[]} */
-            result = Parser.frame(result, Parser.highlight, indentation);
-        }
-        return result
-    }
-
-    /**
-     * @protected
-     * @param {Context} context
-     * @param {String} indentation
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    doToString(context, indentation, path, index) {
-        return `${this.constructor.name} does not implement toString()`
-    }
-}
-
-/** @template {String} T */
-class StringParser extends Parser {
-
-    #value
-    get value() {
-        return this.#value
-    }
-
-    /** @param {T} value */
-    constructor(value) {
-        super();
-        this.#value = value;
-    }
-
-    /**
-     * @param {Context} context
-     * @param {Number} position
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    parse(context, position, path, index) {
-        path = this.makePath(path, index);
-        const end = position + this.#value.length;
-        const value = context.input.substring(position, end);
-        const result = this.#value === value
-            ? Reply.makeSuccess(end, this.#value, path, end)
-            : Reply.makeFailure();
-        return result
-    }
-
-    /**
-     * @protected
-     * @param {Context} context
-     * @param {String} indentation
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    doToString(context, indentation, path, index) {
-        return `"${this.value.replaceAll("\n", "\\n").replaceAll('"', '\\"')}"`
-    }
-}
-
-class SuccessParser extends Parser {
-
-    static instance = new SuccessParser()
-
-    /**
-     * @param {Context} context
-     * @param {Number} position
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    parse(context, position, path, index) {
-        path = this.makePath(path, index);
-        return Reply.makeSuccess(position, "", path, 0)
-    }
-
-    /**
-     * @protected
-     * @param {Context} context
-     * @param {String} indentation
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    doToString(context, indentation, path, index) {
-        return "<SUCCESS>"
-    }
-}
-
-/** @template {Parser[]} T */
-class AlternativeParser extends Parser {
-
-    #parsers
-    get parsers() {
-        return this.#parsers
-    }
-
-    /** @param {T} parsers */
-    constructor(...parsers) {
-        super();
-        this.#parsers = parsers;
-    }
-
-    /**
-     * @param {Context} context
-     * @param {Number} position
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    parse(context, position, path, index) {
-        path = this.makePath(path, index);
-        const result = Reply.makeSuccess(0, /** @type {ParserValue<T>} */(""));
-        for (let i = 0; i < this.#parsers.length; ++i) {
-            const outcome = this.#parsers[i].parse(context, position, path, i);
-            if (outcome.bestPosition > result.bestPosition) {
-                result.bestParser = outcome.bestParser;
-                result.bestPosition = outcome.bestPosition;
-            }
-            if (outcome.status) {
-                result.value = outcome.value;
-                result.position = outcome.position;
-                return result
-            }
-        }
-        result.status = false;
-        result.value = null;
-        return result
-    }
-
-    /**
-     * @protected
-     * @param {Context} context
-     * @param {String} indentation
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    doToString(context, indentation, path, index) {
-        // Short syntax for optional parser
-        if (this.#parsers.length === 2 && this.#parsers[1] instanceof SuccessParser) {
-            let result = this.#parsers[0].toString(context, indentation, path, 0);
-            if (!(this.#parsers[0] instanceof StringParser)) {
-                result = "<" + result + ">";
-            }
-            result += "?";
-            return result
-        }
-        const deeperIndentation = indentation + Parser.indentation;
-        let result = "ALT<\n"
-            + deeperIndentation
-            + this.#parsers
-                .map((parser, i) => parser.toString(
-                    context,
-                    deeperIndentation + " ".repeat(i === 0 ? 0 : Parser.indentation.length - 2),
-                    path,
-                    i,
-                ))
-                .join("\n" + deeperIndentation + "| ")
-            + "\n" + indentation + ">";
-        return result
-    }
-}
-
-/**
- * @template {Parser} T
- * @template {(v: ParserValue<T>, input: String, position: Number) => Parsernostrum<Parser>} C
- */
-class ChainedParser extends Parser {
-
-    #parser
-    get parser() {
-        return this.#parser
-    }
-
-    #fn
-
-    /**
-     * @param {T} parser
-     * @param {C} chained
-     */
-    constructor(parser, chained) {
-        super();
-        this.#parser = parser;
-        this.#fn = chained;
-    }
-
-    /**
-     * @param {Context} context
-     * @param {Number} position
-     * @param {PathNode} path
-     * @param {Number} index
-     * @returns {Result<ParserValue<UnwrapParser<ReturnType<C>>>>}
-     */
-    parse(context, position, path, index) {
-        path = this.makePath(path, index);
-        const outcome = this.#parser.parse(context, position, path, 0);
-        if (!outcome.status) {
-            // @ts-expect-error
-            return outcome
-        }
-        // @ts-expect-error
-        const result = this.#fn(outcome.value, context.input, outcome.position)
-            .getParser()
-            .parse(context, outcome.position);
-        if (outcome.bestPosition > result.bestPosition) {
-            result.bestParser = outcome.bestParser;
-            result.bestPosition = outcome.bestPosition;
-        }
-        return result
-    }
-
-    /**
-     * @protected
-     * @param {Context} context
-     * @param {String} indentation
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    doToString(context, indentation, path, index) {
-        const result = this.#parser.toString(context, indentation, path, 0) + " => chained<f()>";
-        return result
-    }
-}
-
-class FailureParser extends Parser {
-
-    static instance = new FailureParser()
-
-    /**
-     * @param {Context} context
-     * @param {Number} position
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    parse(context, position, path, index) {
-        return Reply.makeFailure()
-    }
-
-    /**
-     * @protected
-     * @param {Context} context
-     * @param {String} indentation
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    doToString(context, indentation, path, index) {
-        return "<FAILURE>"
-    }
-}
-
-/** @template {Parser} T */
-class Label extends Parser {
-
-    #parser
-    get parser() {
-        return this.#parser
-    }
-
-    #label = ""
-
-    /**
-     * @param {T} parser
-     * @param {String} label
-     */
-    constructor(parser, label) {
-        super();
-        this.#parser = parser;
-        this.#label = label;
-    }
-
-    /**
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    makePath(path, index) {
-        return path // Label does not alter the path
-    }
-
-    /**
-     * @param {Context} context
-     * @param {Number} position
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    parse(context, position, path, index) {
-        this.parse = this.#parser.parse.bind(this.#parser);
-        return this.parse(context, position, path, index)
-    }
-
-    /**
-     * @protected
-     * @param {Context} context
-     * @param {String} indentation
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    doToString(context, indentation, path, index) {
-        let result = this.#parser.toString(context, "", path, index);
-        result = Parser.frame(result, this.#label, indentation);
-        return result
-    }
-}
-
-/** @template {Parser} T */
-class LazyParser extends Parser {
-
-    #parser
-
-    /** @type {T} */
-    #resolvedPraser
-
-    /** @param {() => Parsernostrum<T>} parser */
-    constructor(parser) {
-        super();
-        this.#parser = parser;
-    }
-
-    /**
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    makePath(path, index) {
-        return path
-    }
-
-    /**
-     * @param {Context} context
-     * @param {PathNode} path
-     */
-    isHighlighted(context, path) {
-        if (super.isHighlighted(context, path)) {
-            // If LazyParser is highlighted, then highlight its child
-            const childrenPath = { parent: path, parser: this.#resolvedPraser, index: 0 };
-            context.highlighted = context.highlighted instanceof Parser ? this.#resolvedPraser : childrenPath;
-        }
-        return false
-    }
-
-    resolve() {
-        if (!this.#resolvedPraser) {
-            this.#resolvedPraser = this.#parser().getParser();
-        }
-        return this.#resolvedPraser
-    }
-
-    /**
-     * @param {Context} context
-     * @param {Number} position
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    parse(context, position, path, index) {
-        this.resolve();
-        this.parse = this.#resolvedPraser.parse.bind(this.#resolvedPraser);
-        return this.parse(context, position, path, index)
-    }
-
-    /**
-     * @protected
-     * @param {Context} context
-     * @param {String} indentation
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    doToString(context, indentation, path, index) {
-        this.resolve();
-        this.doToString = this.#resolvedPraser.toString.bind(this.#resolvedPraser);
-        return this.doToString(context, indentation, path, index)
-    }
-}
-
-/** @template {Parser} T */
-class Lookahead extends Parser {
-
-    #parser
-    get parser() {
-        return this.#parser
-    }
-
-    #type
-    get type() {
-        return this.#type
-    }
-
-    /**
-     * @readonly
-     * @enum {String}
-     */
-    static Type = {
-        NEGATIVE_AHEAD: "?!",
-        NEGATIVE_BEHIND: "?<!",
-        POSITIVE_AHEAD: "?=",
-        POSITIVE_BEHIND: "?<=",
-    }
-
-    /**
-     * @param {T} parser
-     * @param {Type} type
-     */
-    constructor(parser, type) {
-        super();
-        this.#parser = parser;
-        this.#type = type;
-    }
-
-    /**
-     * @param {Context} context
-     * @param {Number} position
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    parse(context, position, path, index) {
-        path = this.makePath(path, index);
-        let result = this.#parser.parse(context, position, path, 0);
-        result = result.status == (this.#type === Lookahead.Type.POSITIVE_AHEAD)
-            ? Reply.makeSuccess(position, "", path, position)
-            : Reply.makeFailure();
-        return result
-    }
-
-    /**
-     * @protected
-     * @param {Context} context
-     * @param {String} indentation
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    doToString(context, indentation, path, index) {
-        return "(" + this.#type + this.#parser.toString(context, indentation, path, 0) + ")"
-    }
-}
-
-/** @template T */
-class RegExpParser extends Parser {
-
-    /** @type {RegExp} */
-    #regexp
-    get regexp() {
-        return this.#regexp
-    }
-    /** @type {RegExp} */
-    #anchoredRegexp
-    #matchMapper
-
-    static #createEscapeable = character => String.raw`[^${character}\\]*(?:\\.[^${character}\\]*)*`
-    static #numberRegex = /[-\+]?(?:\d*\.)?\d+/
-    static common = {
-        number: new RegExp(this.#numberRegex.source + String.raw`(?!\.)`),
-        numberInteger: /[\-\+]?\d+(?!\.\d)/,
-        numberNatural: /\d+/,
-        numberExponential: new RegExp(this.#numberRegex.source + String.raw`(?:[eE][\+\-]?\d+)?(?!\.)`),
-        numberUnit: /\+?(?:0(?:\.\d+)?|1(?:\.0+)?)(?![\.\d])/,
-        numberByte: /0*(?:25[0-5]|2[0-4]\d|1?\d?\d)(?!\d|\.)/,
-        whitespace: /\s+/,
-        whitespaceOpt: /\s*/,
-        whitespaceInline: /[^\S\n]+/,
-        whitespaceInlineOpt: /[^\S\n]*/,
-        whitespaceMultiline: /\s*?\n\s*/,
-        doubleQuotedString: new RegExp(`"(${this.#createEscapeable('"')})"`),
-        singleQuotedString: new RegExp(`'(${this.#createEscapeable("'")})'`),
-        backtickQuotedString: new RegExp("`(" + this.#createEscapeable("`") + ")`"),
-    }
-
-
-    /**
-     * @param {RegExp} regexp
-     * @param {(match: RegExpExecArray) => T} matchMapper
-     */
-    constructor(regexp, matchMapper) {
-        super();
-        this.#regexp = regexp;
-        this.#anchoredRegexp = new RegExp(`^(?:${regexp.source})`, regexp.flags);
-        this.#matchMapper = matchMapper;
-    }
-
-    /**
-     * @param {Context} context
-     * @param {Number} position
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    parse(context, position, path, index) {
-        path = this.makePath(path, index);
-        const match = this.#anchoredRegexp.exec(context.input.substring(position));
-        if (match) {
-            position += match[0].length;
-        }
-        const result = match
-            ? Reply.makeSuccess(position, this.#matchMapper(match), path, position)
-            : Reply.makeFailure();
-        return result
-    }
-
-    /**
-     * @protected
-     * @param {Context} context
-     * @param {String} indentation
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    doToString(context, indentation, path, index) {
-        let result = "/" + this.#regexp.source + "/";
-        const shortname = Object.entries(RegExpParser.common).find(([k, v]) => v.source === this.#regexp.source)?.[0];
-        if (shortname) {
-            result = "P." + shortname;
-        }
-        return result
-    }
-}
-
-/**
- * @template {Parser} T
- * @template P
- */
-class MapParser extends Parser {
-
-    #parser
-    get parser() {
-        return this.#parser
-    }
-
-    #mapper
-    get mapper() {
-        return this.#mapper
-    }
-
-    /**
-     * @param {T} parser
-     * @param {(v: ParserValue<P>) => P} mapper
-     */
-    constructor(parser, mapper) {
-        super();
-        this.#parser = parser;
-        this.#mapper = mapper;
-    }
-
-    /**
-     * @param {Context} context
-     * @param {PathNode} path
-     */
-    isHighlighted(context, path) {
-        if (super.isHighlighted(context, path)) {
-            // If MapParser is highlighted, then highlight its child
-            const childrenPath = { parent: path, parser: this.#parser, index: 0 };
-            context.highlighted = context.highlighted instanceof Parser ? this.#parser : childrenPath;
-        }
-        return false
-    }
-
-    /**
-     * @param {Context} context
-     * @param {Number} position
-     * @param {PathNode} path
-     * @param {Number} index
-     * @returns {Result<P>}
-     */
-    parse(context, position, path, index) {
-        path = this.makePath(path, index);
-        const result = this.#parser.parse(context, position, path, 0);
-        if (result.status) {
-            result.value = this.#mapper(result.value);
-        }
-        return result
-    }
-
-    /**
-     * @protected
-     * @param {Context} context
-     * @param {String} indentation
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    doToString(context, indentation, path, index) {
-        let result = this.#parser.toString(context, indentation, path, 0);
-        if (this.#parser instanceof RegExpParser) {
-            if (Object.values(RegExpParser.common).includes(this.#parser.regexp)) {
-                if (
-                    this.#parser.regexp === RegExpParser.common.numberInteger
-                    && this.#mapper === /** @type {(v: any) => BigInt} */(BigInt)
-                ) {
-                    return "P.numberBigInteger"
-                }
-                return result
-            }
-        }
-        let serializedMapper = this.#mapper.toString();
-        if (serializedMapper.length > 60 || serializedMapper.includes("\n")) {
-            serializedMapper = "(...) => { ... }";
-        }
-        result += ` -> map<${serializedMapper}>`;
-        return result
-    }
-}
-
-/** @extends {RegExpParser<RegExpExecArray>} */
-class RegExpArrayParser extends RegExpParser {
-
-    /** @param {RegExpExecArray} match */
-    static #mapper = match => match
-
-    /** @param {RegExp} regexp */
-    constructor(regexp) {
-        super(regexp, RegExpArrayParser.#mapper);
-    }
-}
-
-/** @extends {RegExpParser<String>} */
-class RegExpValueParser extends RegExpParser {
-
-    /** @param {RegExp} regexp */
-    constructor(regexp, group = 0) {
-        super(
-            regexp,
-            /** @param {RegExpExecArray} match */
-            match => match[group]
-        );
-    }
-}
-
-/** @template {Parser[]} T */
-class SequenceParser extends Parser {
-
-    #parsers
-    get parsers() {
-        return this.#parsers
-    }
-
-    /** @param  {T} parsers */
-    constructor(...parsers) {
-        super();
-        this.#parsers = parsers;
-    }
-
-    /**
-     * @param {Context} context
-     * @param {Number} position
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    parse(context, position, path, index) {
-        path = this.makePath(path, index);
-        const value = /** @type {ParserValue<T>} */(new Array(this.#parsers.length));
-        const result = Reply.makeSuccess(position, value);
-        for (let i = 0; i < this.#parsers.length; ++i) {
-            const outcome = this.#parsers[i].parse(context, result.position, path, i);
-            if (outcome.bestPosition > result.bestPosition) {
-                result.bestParser = outcome.bestParser;
-                result.bestPosition = outcome.bestPosition;
-            }
-            if (!outcome.status) {
-                result.status = false;
-                result.value = null;
-                break
-            }
-            result.value[i] = outcome.value;
-            result.position = outcome.position;
-        }
-        return result
-    }
-
-    /**
-     * @protected
-     * @param {Context} context
-     * @param {String} indentation
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    doToString(context, indentation, path, index) {
-        const deeperIndentation = indentation + Parser.indentation;
-        const result = "SEQ<\n"
-            + deeperIndentation
-            + this.#parsers
-                .map((parser, index) => parser.toString(context, deeperIndentation, path, index))
-                .join("\n" + deeperIndentation)
-            + "\n" + indentation + ">";
-        return result
-    }
-}
-
-/** @template {Parser} T */
-class TimesParser extends Parser {
-
-    #parser
-    get parser() {
-        return this.#parser
-    }
-
-    #min
-    get min() {
-        return this.#min
-    }
-
-    #max
-    get max() {
-        return this.#max
-    }
-
-    /** @param {T} parser */
-    constructor(parser, min = 0, max = Number.POSITIVE_INFINITY) {
-        super();
-        if (min > max) {
-            throw new Error("Min is greater than max")
-        }
-        this.#parser = parser;
-        this.#min = min;
-        this.#max = max;
-    }
-
-    /**
-     * @param {Context} context
-     * @param {Number} position
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    parse(context, position, path, index) {
-        path = this.makePath(path, index);
-        const value = /** @type {ParserValue<T>[]} */([]);
-        const result = Reply.makeSuccess(position, value, path);
-        for (let i = 0; i < this.#max; ++i) {
-            const outcome = this.#parser.parse(context, result.position, path, 0);
-            if (outcome.bestPosition > result.bestPosition) {
-                result.bestParser = outcome.bestParser;
-                result.bestPosition = outcome.bestPosition;
-            }
-            if (!outcome.status) {
-                if (i < this.#min) {
-                    result.status = false;
-                    result.value = null;
-                }
-                break
-            }
-            result.value.push(outcome.value);
-            result.position = outcome.position;
-        }
-        return result
-    }
-
-    /**
-     * @protected
-     * @param {Context} context
-     * @param {String} indentation
-     * @param {PathNode} path
-     * @param {Number} index
-     */
-    doToString(context, indentation, path, index) {
-        let result = this.parser.toString(context, indentation, path, 0);
-        const serialized =
-            this.#min === 0 && this.#max === 1 ? "?"
-                : this.#min === 0 && this.#max === Number.POSITIVE_INFINITY ? "*"
-                    : this.#min === 1 && this.#max === Number.POSITIVE_INFINITY ? "+"
-                        : "{"
-                        + this.#min
-                        + (this.#min !== this.#max ? "," + this.#max : "")
-                        + "}";
-        result += serialized;
-        return result
-    }
-}
-
-/** @template {Parser} T */
-class Parsernostrum {
-
-    #parser
-
-    /** @type {(new (parser: Parser) => Parsernostrum<typeof parser>) & typeof Parsernostrum} */
-    Self
-
-    static lineColumnFromOffset(string, offset) {
-        const lines = string.substring(0, offset).split('\n');
-        const line = lines.length;
-        const column = lines[lines.length - 1].length + 1;
-        return { line, column }
-    }
-    /** @param {[any, ...any]|RegExpExecArray} param0 */
-    static #firstElementGetter = ([v, _]) => v
-    /** @param {[any, any, ...any]|RegExpExecArray} param0 */
-    static #secondElementGetter = ([_, v]) => v
-    static #arrayFlatter = ([first, rest]) => [first, ...rest]
-    /**
-     * @template T
-     * @param {T} v
-     * @returns {T extends Array ? String : T}
-     */
-    // @ts-expect-error
-    static #joiner = v => v instanceof Array ? v.join("") : v
-    static #createEscapeable = character => String.raw`[^${character}\\]*(?:\\.[^${character}\\]*)*`
-
-    // Prefedined parsers
-
-    /** Parser accepting any valid decimal, possibly signed number */
-    static number = this.reg(RegExpParser.common.number).map(Number)
-
-    /** Parser accepting any digits only number */
-    static numberInteger = this.reg(RegExpParser.common.numberInteger).map(Number)
-
-    /** Parser accepting any digits only number and returns a BigInt */
-    static numberBigInteger = this.reg(this.numberInteger.getParser().parser.regexp).map(BigInt)
-
-    /** Parser accepting any digits only number */
-    static numberNatural = this.reg(RegExpParser.common.numberNatural).map(Number)
-
-    /** Parser accepting any valid decimal, possibly signed, possibly in the exponential form number */
-    static numberExponential = this.reg(RegExpParser.common.numberExponential).map(Number)
-
-    /** Parser accepting any valid decimal number between 0 and 1 */
-    static numberUnit = this.reg(RegExpParser.common.numberUnit).map(Number)
-
-    /** Parser accepting any integer between 0 and 255 */
-    static numberByte = this.reg(RegExpParser.common.numberByte).map(Number)
-
-    /** Parser accepting whitespace */
-    static whitespace = this.reg(RegExpParser.common.whitespace)
-
-    /** Parser accepting whitespace */
-    static whitespaceOpt = this.reg(RegExpParser.common.whitespaceOpt)
-
-    /** Parser accepting whitespace that spans on a single line */
-    static whitespaceInline = this.reg(RegExpParser.common.whitespaceInline)
-
-    /** Parser accepting whitespace that spans on a single line */
-    static whitespaceInlineOpt = this.reg(RegExpParser.common.whitespaceInlineOpt)
-
-    /** Parser accepting whitespace that contains a list a newline */
-    static whitespaceMultiline = this.reg(RegExpParser.common.whitespaceMultiline)
-
-    /** Parser accepting a double quoted string and returns the content */
-    static doubleQuotedString = this.reg(RegExpParser.common.doubleQuotedString, 1)
-
-    /** Parser accepting a single quoted string and returns the content */
-    static singleQuotedString = this.reg(RegExpParser.common.singleQuotedString, 1)
-
-    /** Parser accepting a backtick quoted string and returns the content */
-    static backtickQuotedString = this.reg(RegExpParser.common.backtickQuotedString, 1)
-
-    /** @param {T} parser */
-    constructor(parser, optimized = false) {
-        this.#parser = parser;
-    }
-
-    /** @param {PathNode} path */
-    static #simplifyPath(path) {
-        /** @type {PathNode[]} */
-        const array = [];
-        while (path) {
-            array.push(path);
-            path = path.parent;
-        }
-        array.reverse();
-        /** @type {Map<Parser, Number>} */
-        let visited = new Map();
-        for (let i = 1; i < array.length; ++i) {
-            const existing = visited.get(array[i].current);
-            if (existing !== undefined) {
-                if (array[i + 1]) {
-                    array[i + 1].parent = array[existing];
-                }
-                visited = new Map([...visited.entries()].filter(([parser, index]) => index <= existing || index > i));
-                visited.set(array[i].current, existing);
-                array.splice(existing + 1, i - existing);
-                i = existing;
-            } else {
-                visited.set(array[i].current, i);
-            }
-        }
-        return array[array.length - 1]
-    }
-
-    getParser() {
-        return this.#parser
-    }
-
-    /**
-     * @param {String} input
-     * @returns {Result<ParserValue<T>>}
-     */
-    run(input) {
-        const result = this.#parser.parse(Reply.makeContext(this, input), 0, Reply.makePathNode(), 0);
-        if (result.position !== input.length) {
-            result.status = false;
-        }
-        return result
-    }
-
-    /**
-     * @param {String} input
-     * @throws {Error} when the parser fails to match
-     */
-    parse(input, printParser = true) {
-        const result = this.run(input);
-        if (result.status) {
-            return result.value
-        }
-        const chunkLength = 60;
-        const chunkRange = /** @type {[Number, Number]} */(
-            [Math.ceil(chunkLength / 2), Math.floor(chunkLength / 2)]
-        );
-        const position = Parsernostrum.lineColumnFromOffset(input, result.bestPosition);
-        let bestPosition = result.bestPosition;
-        const inlineInput = input.replaceAll(
-            /^(\s)+|\s{6,}|\s*?\n\s*/g,
-            (m, startingSpace, offset) => {
-                let replaced = startingSpace ? "..." : " ... ";
-                if (offset <= result.bestPosition) {
-                    if (result.bestPosition < offset + m.length) {
-                        bestPosition -= result.bestPosition - offset;
-                    } else {
-                        bestPosition -= m.length - replaced.length;
-                    }
-                }
-                return replaced
-            }
-        );
-        const string = inlineInput.substring(0, chunkLength).trimEnd();
-        const leadingWhitespaceLength = Math.min(
-            input.substring(result.bestPosition - chunkRange[0]).match(/^\s*/)[0].length,
-            chunkRange[0] - 1,
-        );
-        let offset = Math.min(bestPosition, chunkRange[0] - leadingWhitespaceLength);
-        chunkRange[0] = Math.max(0, bestPosition - chunkRange[0]) + leadingWhitespaceLength;
-        chunkRange[1] = Math.min(input.length, chunkRange[0] + chunkLength);
-        let segment = inlineInput.substring(...chunkRange);
-        if (chunkRange[0] > 0) {
-            segment = "..." + segment;
-            offset += 3;
-        }
-        if (chunkRange[1] < inlineInput.length - 1) {
-            segment = segment + "...";
-        }
-        const bestParser = this.toString(Parser.indentation, true, Parsernostrum.#simplifyPath(result.bestParser));
-        throw new Error(
-            `Could not parse: ${string}\n\n`
-            + `Input: ${segment}\n`
-            + "       " + " ".repeat(offset)
-            + `^ From here (line: ${position.line}, `
-            + `column: ${position.column}, `
-            + `offset: ${result.bestPosition})${result.bestPosition === input.length ? ", end of string" : ""}\n`
-            + (printParser
-                ? "\n"
-                + (result.bestParser ? "Last valid parser matched:" : "No parser matched:")
-                + bestParser
-                + "\n"
-                : ""
-            )
-        )
-    }
-
-    // Parsers
-
-    /**
-     * @template {String} S
-     * @param {S} value
-     */
-    static str(value) {
-        return new this(new StringParser(value))
-    }
-
-    /** @param {RegExp} value */
-    static reg(value, group = 0) {
-        return new this(new RegExpValueParser(value, group))
-    }
-
-    /** @param {RegExp} value */
-    static regArray(value) {
-        return new this(new RegExpArrayParser(value))
-    }
-
-    static success() {
-        return new this(SuccessParser.instance)
-    }
-
-    static failure() {
-        return new this(FailureParser.instance)
-    }
-
-    // Combinators
-
-    /**
-     * @template {[Parsernostrum<any>, Parsernostrum<any>, ...Parsernostrum<any>[]]} P
-     * @param {P} parsers
-     * @returns {Parsernostrum<SequenceParser<UnwrapParser<P>>>}
-     */
-    static seq(...parsers) {
-        const results = new this(new SequenceParser(...parsers.map(p => p.getParser())));
-        // @ts-expect-error
-        return results
-    }
-
-    /**
-     * @template {Parsernostrum<any>[]} P
-     * @param {P} parsers
-     * @returns {Parsernostrum<AlternativeParser<UnwrapParser<P>>>}
-     */
-    static alt(...parsers) {
-        // @ts-expect-error
-        return new this(new AlternativeParser(...parsers.map(p => p.getParser())))
-    }
-
-    /**
-     * @template {Parsernostrum<any>} P
-     * @param {P} parser
-     */
-    static lookahead(parser) {
-        return new this(new Lookahead(parser.getParser(), Lookahead.Type.POSITIVE_AHEAD))
-    }
-
-    /**
-     * @template {Parsernostrum<any>} P
-     * @param {() => P} parser
-     * @returns {Parsernostrum<LazyParser<UnwrapParser<P>>>}
-     */
-    static lazy(parser) {
-        return new this(new LazyParser(parser))
-    }
-
-    /** @param {Number} min */
-    times(min, max = min) {
-        return new Parsernostrum(new TimesParser(this.#parser, min, max))
-    }
-
-    many() {
-        return this.times(0, Number.POSITIVE_INFINITY)
-    }
-
-    /** @param {Number} n */
-    atLeast(n) {
-        return this.times(n, Number.POSITIVE_INFINITY)
-    }
-
-    /** @param {Number} n */
-    atMost(n) {
-        return this.times(0, n)
-    }
-
-    /** @returns {Parsernostrum<T?>} */
-    opt() {
-        // @ts-expect-error
-        return Parsernostrum.alt(this, Parsernostrum.success())
-    }
-
-    /**
-     * @template {Parsernostrum<Parser>} P
-     * @param {P} separator
-     */
-    sepBy(separator, allowTrailing = false) {
-        const results = Parsernostrum.seq(
-            this,
-            Parsernostrum.seq(separator, this).map(Parsernostrum.#secondElementGetter).many()
-        )
-            .map(Parsernostrum.#arrayFlatter);
-        return results
-    }
-
-    skipSpace() {
-        return Parsernostrum.seq(this, Parsernostrum.whitespaceOpt).map(Parsernostrum.#firstElementGetter)
-    }
-
-    /**
-     * @template P
-     * @param {(v: ParserValue<T>) => P} fn
-     * @returns {Parsernostrum<MapParser<T, P>>}
-     */
-    map(fn) {
-        // @ts-expect-error
-        return new Parsernostrum(new MapParser(this.#parser, fn))
-    }
-
-    /**
-     * @template {Parsernostrum<Parser>} P
-     * @param {(v: ParserValue<T>, input: String, position: Number) => P} fn
-     */
-    chain(fn) {
-        return new Parsernostrum(new ChainedParser(this.#parser, fn))
-    }
-
-    /**
-     * @param {(v: ParserValue<T>, input: String, position: Number) => boolean} fn
-     * @return {Parsernostrum<T>}
-     */
-    assert(fn) {
-        // @ts-expect-error
-        return this.chain((v, input, position) => fn(v, input, position)
-            ? Parsernostrum.success().map(() => v)
-            : Parsernostrum.failure()
-        )
-    }
-
-    join(value = "") {
-        return this.map(Parsernostrum.#joiner)
-    }
-
-    label(value = "") {
-        return new Parsernostrum(new Label(this.#parser, value))
-    }
-
-    /** @param {Parsernostrum<Parser> | Parser | PathNode} highlight */
-    toString(indentation = "", newline = false, highlight = null) {
-        if (highlight instanceof Parsernostrum) {
-            highlight = highlight.getParser();
-        }
-        const context = Reply.makeContext(this, "");
-        context.highlighted = highlight;
-        const path = Reply.makePathNode();
-        return (newline ? "\n" + indentation : "") + this.#parser.toString(context, indentation, path)
-    }
-}
-
-class Serializable {
-
-    static grammar = this.createGrammar()
-
-    /** @protected */
-    static createGrammar() {
-        return /** @type {Parsernostrum<any>} */(Parsernostrum.failure())
-    }
-}
-
-class SerializerFactory {
-
-    static #serializers = new Map()
-
-    /**
-     * @template {AttributeConstructor<Attribute>} T
-     * @param {T} type
-     * @param {Serializer<T>} object
-     */
-    static registerSerializer(type, object) {
-        SerializerFactory.#serializers.set(type, object);
-    }
-
-    /**
-     * @template {AttributeConstructor<Attribute>} T
-     * @param {T} type
-     * @returns {Serializer<T>}
-     */
-    static getSerializer(type) {
-        return SerializerFactory.#serializers.get(type)
-    }
-}
-
-/** @abstract */
-class IEntity extends Serializable {
-
-    /** @type {{ [attribute: String]: AttributeInfo }} */
-    static attributes = {
-        attributes: new AttributeInfo({
-            ignored: true,
-        }),
-        lookbehind: new AttributeInfo({
-            default: /** @type {String | Union<String[]>} */(""),
-            ignored: true,
-            uninitialized: true,
-        }),
-    }
-
-    /** @type {String[]} */
-    #_keys
-    get _keys() {
-        return this.#_keys
-    }
-    set _keys(keys) {
-        this.#_keys = keys;
-    }
-
-    constructor(values = {}, suppressWarns = false) {
-        super();
-        const Self = /** @type {typeof IEntity} */(this.constructor);
-        /** @type {AttributeDeclarations?} */ this.attributes;
-        /** @type {String} */ this.lookbehind;
-        const valuesKeys = Object.keys(values);
-        const attributesKeys = values.attributes
-            ? Utility.mergeArrays(Object.keys(values.attributes), Object.keys(Self.attributes))
-            : Object.keys(Self.attributes);
-        const allAttributesKeys = Utility.mergeArrays(valuesKeys, attributesKeys);
-        for (const key of allAttributesKeys) {
-            let value = values[key];
-            if (!suppressWarns && !(key in values)) {
-                if (!(key in Self.attributes) && !key.startsWith(Configuration.subObjectAttributeNamePrefix)) {
-                    const typeName = value instanceof Array ? `[${value[0]?.constructor.name}]` : value.constructor.name;
-                    console.warn(
-                        `UEBlueprint: Attribute ${key} (of type ${typeName}) in the serialized data is not defined in ${Self.name}.attributes`
-                    );
-                }
-            }
-            if (!(key in Self.attributes)) {
-                // Remember attributeName can come from the values and be not defined in the attributes.
-                // In that case just assign it and skip the rest.
-                this[key] = value;
-                continue
-            }
-            Self.attributes.lookbehind;
-            const predicate = AttributeInfo.getAttribute(values, key, "predicate", Self);
-            const assignAttribute = !predicate
-                ? v => this[key] = v
-                : v => {
-                    Object.defineProperties(this, {
-                        ["#" + key]: {
-                            writable: true,
-                            enumerable: false,
-                        },
-                        [key]: {
-                            enumerable: true,
-                            get() {
-                                return this["#" + key]
-                            },
-                            set(v) {
-                                if (!predicate(v)) {
-                                    console.warn(
-                                        `UEBlueprint: Tried to assign attribute ${key} to ${Self.name} not satisfying the predicate`
-                                    );
-                                    return
-                                }
-                                this["#" + key] = v;
-                            }
-                        },
-                    });
-                    this[key] = v;
-                };
-
-            let defaultValue = AttributeInfo.getAttribute(values, key, "default", Self);
-            if (defaultValue instanceof Function) {
-                defaultValue = defaultValue(this);
-            }
-            let defaultType = AttributeInfo.getAttribute(values, key, "type", Self);
-            if (defaultType instanceof ComputedType) {
-                defaultType = defaultType.compute(this);
-            }
-            if (defaultType instanceof Array) {
-                defaultType = Array;
-            }
-            if (defaultType === undefined) {
-                defaultType = Utility.getType(defaultValue);
-            }
-
-            if (value !== undefined) {
-                // Remember value can still be null
-                if (
-                    value?.constructor === String
-                    && AttributeInfo.getAttribute(values, key, "serialized", Self)
-                    && defaultType !== String
-                ) {
-                    try {
-                        value = SerializerFactory
-                            .getSerializer(defaultType)
-                            .read(/** @type {String} */(value));
-                    } catch (e) {
-                        assignAttribute(value);
-                        continue
-                    }
-                }
-                assignAttribute(Utility.sanitize(value, /** @type {AttributeConstructor<Attribute>} */(defaultType)));
-                continue // We have a value, need nothing more
-            }
-            if (defaultValue !== undefined && !AttributeInfo.getAttribute(values, key, "uninitialized", Self)) {
-                assignAttribute(defaultValue);
-            }
-        }
-    }
-
-    /** @param {AttributeTypeDescription} attributeType */
-    static defaultValueProviderFromType(attributeType) {
-        if (attributeType === Boolean) {
-            return false
-        } else if (attributeType === Number) {
-            return 0
-        } else if (attributeType === BigInt) {
-            return 0n
-        } else if (attributeType === String) {
-            return ""
-        } else if (attributeType === Array || attributeType instanceof Array) {
-            return () => []
-        } else if (attributeType instanceof Union) {
-            return this.defaultValueProviderFromType(attributeType.values[0])
-        } else if (attributeType instanceof MirroredEntity) {
-            return () => new MirroredEntity(attributeType.type, attributeType.getter)
-        } else if (attributeType instanceof ComputedType) {
-            return undefined
-        } else {
-            return () => new /** @type {AnyConstructor<Attribute>} */(attributeType)()
-        }
-    }
-
-    /**
-     * @template {new (...args: any) => any} C
-     * @param {C} type
-     * @returns {value is InstanceType<C>}
-     */
-    static isValueOfType(value, type) {
-        return value != null && (value instanceof type || value.constructor === type)
-    }
-
-    static defineAttributes(object, attributes) {
-        Object.defineProperty(object, "attributes", {
-            writable: true,
-            configurable: false,
-        });
-        object.attributes = attributes;
-    }
-
-    /**
-     * 
-     * @param {String} attribute
-     * @param {(v: any) => void} callback
-     */
-    listenAttribute(attribute, callback) {
-        const descriptor = Object.getOwnPropertyDescriptor(this, attribute);
-        const setter = descriptor.set;
-        if (setter) {
-            descriptor.set = v => {
-                setter(v);
-                callback(v);
-            };
-            Object.defineProperties(this, { [attribute]: descriptor });
-        } else if (descriptor.value) {
-            Object.defineProperties(this, {
-                ["#" + attribute]: {
-                    value: descriptor.value,
-                    writable: true,
-                    enumerable: false,
-                },
-                [attribute]: {
-                    enumerable: true,
-                    get() {
-                        return this["#" + attribute]
-                    },
-                    set(v) {
-                        if (v == this["#" + attribute]) {
-                            return
-                        }
-                        callback(v);
-                        this["#" + attribute] = v;
-                    }
-                },
-            });
-        }
-    }
-
-    getLookbehind() {
-        let lookbehind = this.lookbehind ?? AttributeInfo.getAttribute(this, "lookbehind", "default");
-        lookbehind = lookbehind instanceof Union ? lookbehind.values[0] : lookbehind;
-        return lookbehind
-    }
-
-    unexpectedKeys() {
-        return Object.keys(this).length - Object.keys(/** @type {typeof IEntity} */(this.constructor).attributes).length
-    }
-
-    /** @param {IEntity} other */
-    equals(other) {
-        const thisKeys = Object.keys(this);
-        const otherKeys = Object.keys(other);
-        if (thisKeys.length != otherKeys.length) {
-            return false
-        }
-        for (const key of thisKeys) {
-            if (this[key] instanceof IEntity && !this[key].equals(other[key])) {
-                return false
-            } else if (!Utility.equals(this[key], other[key])) {
-                return false
-            }
-        }
-        return true
-    }
-}
-
-class Grammar {
-
-    static separatedBy = (source, separator, min = 1) =>
-        new RegExp(
-            source + "(?:" + separator + source + ")"
-            + (min === 1 ? "*" : min === 2 ? "+" : `{${min},}`)
-        )
-
-    static Regex = class {
-        static HexDigit = /[0-9a-fA-F]/
-        static InsideString = /(?:[^"\\]|\\.)*/
-        static InsideSingleQuotedString = /(?:[^'\\]|\\.)*/
-        static Integer = /[\-\+]?\d+(?!\d|\.)/
-        static Number = /[-\+]?(?:\d*\.)?\d+(?!\d|\.)/
-        static RealUnit = /\+?(?:0(?:\.\d+)?|1(?:\.0+)?)(?![\.\d])/ // A number between 0 and 1 included
-        static Word = Grammar.separatedBy("[a-zA-Z]", "_")
-        static Symbol = /[a-zA-Z_]\w*/
-        static DotSeparatedSymbols = Grammar.separatedBy(this.Symbol.source, "\\.")
-        static MultipleWordsSymbols = Grammar.separatedBy(this.Symbol.source, "(?:\\.|\\ +)")
-        static PathFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:]")
-        static PathSpaceFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:\\ ]")
-        static Path = new RegExp(`(?:\\/${this.PathFragment.source}){2,}`) // Multiple (2+) /PathFragment
-    }
-
-    /*   ---   Primitive   ---   */
-
-    static null = Parsernostrum.reg(/\(\s*\)/).map(() => null)
-    static true = Parsernostrum.reg(/true/i).map(() => true)
-    static false = Parsernostrum.reg(/false/i).map(() => false)
-    static boolean = Parsernostrum.regArray(/(true)|false/i).map(v => v[1] ? true : false)
-    static number = Parsernostrum.regArray(
-        new RegExp(`(${Parsernostrum.number.getParser().parser.regexp.source})|(\\+?inf)|(-inf)`)
-    ).map(([_0, n, plusInf, minusInf]) => n ? Number(n) : plusInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY)
-    static bigInt = Parsernostrum.reg(new RegExp(Parsernostrum.number.getParser().parser.regexp.source)).map(BigInt)
-        .map(result =>
-            result[2] !== undefined
-                ? Number.POSITIVE_INFINITY
-                : result[3] !== undefined
-                    ? Number.NEGATIVE_INFINITY
-                    : Number(result[1])
-        )
-    static naturalNumber = Parsernostrum.lazy(() => Parsernostrum.reg(/\d+/).map(Number))
-    static string = Parsernostrum.doubleQuotedString.map(insideString => Utility.unescapeString(insideString))
-
-    /*   ---   Fragment   ---   */
-
-    static colorValue = Parsernostrum.numberByte
-    static word = Parsernostrum.reg(Grammar.Regex.Word)
-    static symbol = Parsernostrum.reg(Grammar.Regex.Symbol)
-    static symbolQuoted = Parsernostrum.reg(new RegExp('"(' + Grammar.Regex.Symbol.source + ')"'), 1)
-    static attributeName = Parsernostrum.reg(Grammar.Regex.DotSeparatedSymbols)
-    static attributeNameQuoted = Parsernostrum.reg(new RegExp('"(' + Grammar.Regex.InsideString.source + ')"'), 1)
-    static guid = Parsernostrum.reg(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
-    static commaSeparation = Parsernostrum.reg(/\s*,\s*(?!\))/)
-    static commaOrSpaceSeparation = Parsernostrum.reg(/\s*,\s*(?!\))|\s+/)
-    static equalSeparation = Parsernostrum.reg(/\s*=\s*/)
-    static hexColorChannel = Parsernostrum.reg(new RegExp(Grammar.Regex.HexDigit.source + "{2}"))
-
-    /*   ---   Factory   ---   */
-
-    /**
-     * @template T
-     * @param {AttributeInfo<T>} attribute
-     * @param {Parsernostrum<any>} defaultGrammar
-     * @returns {Parsernostrum<T>}
-     */
-    static grammarFor(attribute, type = attribute?.type, defaultGrammar = this.unknownValue) {
-        let result = defaultGrammar;
-        if (type === Array || type instanceof Array) {
-            if (attribute?.inlined) {
-                return this.grammarFor(undefined, type[0])
-            }
-            result = Parsernostrum.seq(
-                Parsernostrum.reg(/\(\s*/),
-                this.grammarFor(undefined, type[0]).sepBy(this.commaSeparation).opt(),
-                Parsernostrum.reg(/\s*(?:,\s*)?\)/),
-            ).map(([_0, values, _3]) => values instanceof Array ? values : []);
-        } else if (type instanceof Union) {
-            result = type.values
-                .map(v => this.grammarFor(undefined, v))
-                .reduce((acc, cur) => !cur || cur === this.unknownValue || acc === this.unknownValue
-                    ? this.unknownValue
-                    : Parsernostrum.alt(acc, cur)
-                );
-        } else if (type instanceof MirroredEntity) {
-            // @ts-expect-error
-            return this.grammarFor(undefined, type.getTargetType())
-                .map(v => new MirroredEntity(type.type, () => v))
-        } else if (attribute?.constructor === Object) {
-            result = this.grammarFor(undefined, type);
-        } else {
-            switch (type) {
-                case Boolean:
-                    result = this.boolean;
-                    break
-                case null:
-                    result = this.null;
-                    break
-                case Number:
-                    result = this.number;
-                    break
-                case BigInt:
-                    result = this.bigInt;
-                    break
-                case String:
-                    result = this.string;
-                    break
-                default:
-                    if (/** @type {AttributeConstructor<any>} */(type)?.prototype instanceof Serializable) {
-                        result = /** @type {typeof Serializable} */(type).grammar;
-                    }
-            }
-        }
-        if (attribute) {
-            if (attribute.serialized && type.constructor !== String) {
-                if (result == this.unknownValue) {
-                    result = this.string;
-                } else {
-                    result = Parsernostrum.seq(Parsernostrum.str('"'), result, Parsernostrum.str('"')).map(([_0, value, _2]) => value);
-                }
-            }
-            if (attribute.nullable) {
-                result = Parsernostrum.alt(result, this.null);
-            }
-        }
-        return result
-    }
-
-    /**
-     * @template {AttributeConstructor<Attribute>} T
-     * @param {T} entityType
-     * @param {String[]} key
-     * @returns {AttributeInfo}
-     */
-    static getAttribute(entityType, key) {
-        let result;
-        let type;
-        if (entityType instanceof Union) {
-            for (let t of entityType.values) {
-                if (result = this.getAttribute(t, key)) {
-                    return result
-                }
-            }
-        }
-        if (entityType instanceof IEntity.constructor) {
-            // @ts-expect-error
-            result = entityType.attributes[key[0]];
-            type = result?.type;
-        } else if (entityType instanceof Array) {
-            result = entityType[key[0]];
-            type = result;
-        }
-        if (key.length > 1) {
-            return this.getAttribute(type, key.slice(1))
-        }
-        return result
-    }
-
-    static createAttributeGrammar(
-        entityType,
-        attributeName = this.attributeName,
-        valueSeparator = this.equalSeparation,
-        handleObjectSet = (obj, k, v) => { }
-    ) {
-        return Parsernostrum.seq(
-            attributeName,
-            valueSeparator,
-        ).chain(([attributeName, _1]) => {
-            const attributeKey = attributeName.split(Configuration.keysSeparator);
-            const attributeValue = this.getAttribute(entityType, attributeKey);
-            return this
-                .grammarFor(attributeValue)
-                .map(attributeValue =>
-                    values => {
-                        handleObjectSet(values, attributeKey, attributeValue);
-                        Utility.objectSet(values, attributeKey, attributeValue);
-                    }
-                )
-        })
-    }
-
-    /**
-     * @template {IEntity} T
-     * @param {(new (...args: any) => T) & EntityConstructor} entityType
-     * @param {Boolean | Number} acceptUnknownKeys Number to specify the limit or true, to let it be a reasonable value
-     */
-    static createEntityGrammar(entityType, acceptUnknownKeys = true, entriesSeparator = this.commaSeparation) {
-        const lookbehind = entityType.attributes.lookbehind.default;
-        return Parsernostrum.seq(
-            Parsernostrum.reg(
-                lookbehind instanceof Union
-                    ? new RegExp(`(${lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*\\(\\s*`)
-                    : lookbehind.constructor == String && lookbehind.length > 0
-                        ? new RegExp(`(${lookbehind})\\s*\\(\\s*`)
-                        : /()\(\s*/,
-                1
-            ),
-            this.createAttributeGrammar(entityType).sepBy(entriesSeparator),
-            Parsernostrum.reg(/\s*(?:,\s*)?\)/), // trailing comma
-        )
-            .map(([lookbehind, attributes, _2]) => {
-                let values = {};
-                attributes.forEach(attributeSetter => attributeSetter(values));
-                if (lookbehind.length) {
-                    values.lookbehind = lookbehind;
-                }
-                return values
-            })
-            // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
-            .chain(values => {
-                let totalKeys = Object.keys(values);
-                // Check missing values
-                if (
-                    Object.keys(/** @type {AttributeDeclarations} */(entityType.attributes))
-                        .filter(key => entityType.attributes[key].expected)
-                        .find(key => !totalKeys.includes(key) && (key))
-                ) {
-                    return Parsernostrum.failure()
-                }
-                const unknownKeys = Object.keys(values).filter(key => !(key in entityType.attributes)).length;
-                if (!acceptUnknownKeys && unknownKeys > 0) {
-                    return Parsernostrum.failure()
-                }
-                return Parsernostrum.success().map(() => new entityType(values))
-            })
-    }
-
-    /** @type {Parsernostrum<any>} */
-    static unknownValue // Defined in initializeSerializerFactor to avoid circular include
-}
-
-class ColorChannelEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        value: AttributeInfo.createValue(0),
-    }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Parsernostrum.number.map(value => new this(value))
-    }
-
-    constructor(values = 0) {
-        if (values.constructor !== Object) {
-            // @ts-expect-error
-            values = {
-                value: values,
-            };
-        }
-        super(values);
-        /** @type {Number} */ this.value;
-    }
-
-    valueOf() {
-        return this.value
-    }
-
-    toString() {
-        return this.value.toFixed(6)
-    }
-}
-
-class LinearColorEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        R: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(),
-            expected: true,
-        }),
-        G: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(),
-            expected: true,
-        }),
-        B: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(),
-            expected: true,
-        }),
-        A: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(1),
-        }),
-        H: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(),
-            ignored: true,
-        }),
-        S: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(),
-            ignored: true,
-        }),
-        V: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(),
-            ignored: true,
-        }),
-    }
-    static grammar = this.createGrammar()
-
-    /** @param {Number} x */
-    static linearToSRGB(x) {
-        if (x <= 0) {
-            return 0
-        } else if (x >= 1) {
-            return 1
-        } else if (x < 0.0031308) {
-            return x * 12.92
-        } else {
-            return Math.pow(x, 1 / 2.4) * 1.055 - 0.055
-        }
-    }
-
-    /** @param {Number} x */
-    static sRGBtoLinear(x) {
-        if (x <= 0) {
-            return 0
-        } else if (x >= 1) {
-            return 1
-        } else if (x < 0.04045) {
-            return x / 12.92
-        } else {
-            return Math.pow((x + 0.055) / 1.055, 2.4)
-        }
-    }
-
-    static getWhite() {
-        return new LinearColorEntity({
-            R: 1,
-            G: 1,
-            B: 1,
-        })
-    }
-
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this, false)
-    }
-
-    static getLinearColorFromHexGrammar() {
-        return Parsernostrum.regArray(new RegExp(
-            "#(" + Grammar.Regex.HexDigit.source + "{2})"
-            + "(" + Grammar.Regex.HexDigit.source + "{2})"
-            + "(" + Grammar.Regex.HexDigit.source + "{2})"
-            + "(" + Grammar.Regex.HexDigit.source + "{2})?"
-        )).map(([m, R, G, B, A]) => new this({
-            R: parseInt(R, 16) / 255,
-            G: parseInt(G, 16) / 255,
-            B: parseInt(B, 16) / 255,
-            A: parseInt(A ?? "FF", 16) / 255,
-        }))
-    }
-
-    static getLinearColorRGBListGrammar() {
-        return Parsernostrum.seq(
-            Parsernostrum.numberByte,
-            Grammar.commaSeparation,
-            Parsernostrum.numberByte,
-            Grammar.commaSeparation,
-            Parsernostrum.numberByte,
-        ).map(([R, _1, G, _3, B]) => new this({
-            R: R / 255,
-            G: G / 255,
-            B: B / 255,
-            A: 1,
-        }))
-    }
-
-    static getLinearColorRGBGrammar() {
-        return Parsernostrum.seq(
-            Parsernostrum.reg(/rgb\s*\(\s*/),
-            this.getLinearColorRGBListGrammar(),
-            Parsernostrum.reg(/\s*\)/)
-        ).map(([_0, linearColor, _2]) => linearColor)
-    }
-
-    static getLinearColorRGBAGrammar() {
-        return Parsernostrum.seq(
-            Parsernostrum.reg(/rgba\s*\(\s*/),
-            this.getLinearColorRGBListGrammar(),
-            Parsernostrum.reg(/\s*\)/)
-        ).map(([_0, linearColor, _2]) => linearColor)
-    }
-
-    static getLinearColorFromAnyFormat() {
-        return Parsernostrum.alt(
-            this.getLinearColorFromHexGrammar(),
-            this.getLinearColorRGBAGrammar(),
-            this.getLinearColorRGBGrammar(),
-            this.getLinearColorRGBListGrammar(),
-        )
-    }
-
-    constructor(values) {
-        if (values instanceof Array) {
-            values = {
-                R: values[0] ?? 0,
-                G: values[1] ?? 0,
-                B: values[2] ?? 0,
-                A: values[3] ?? 1,
-            };
-        }
-        super(values);
-        /** @type {ColorChannelEntity} */ this.R;
-        /** @type {ColorChannelEntity} */ this.G;
-        /** @type {ColorChannelEntity} */ this.B;
-        /** @type {ColorChannelEntity} */ this.A;
-        /** @type {ColorChannelEntity} */ this.H;
-        /** @type {ColorChannelEntity} */ this.S;
-        /** @type {ColorChannelEntity} */ this.V;
-        this.#updateHSV();
-    }
-
-    #updateHSV() {
-        const r = this.R.value;
-        const g = this.G.value;
-        const b = this.B.value;
-        if (Utility.approximatelyEqual(r, g) && Utility.approximatelyEqual(r, b) && Utility.approximatelyEqual(g, b)) {
-            this.S.value = 0;
-            this.V.value = r;
-            return
-        }
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
-        const d = max - min;
-        let h;
-        switch (max) {
-            case min:
-                h = 0;
-                break
-            case r:
-                h = (g - b) / d + (g < b ? 6 : 0);
-                break
-            case g:
-                h = (b - r) / d + 2;
-                break
-            case b:
-                h = (r - g) / d + 4;
-                break
-        }
-        h /= 6;
-        this.H.value = h;
-        this.S.value = max == 0 ? 0 : d / max;
-        this.V.value = max;
-    }
-
-    /**
-     * @param {Number} r
-     * @param {Number} g
-     * @param {Number} b
-     * @param {Number} a
-     */
-    setFromRGBA(r, g, b, a = 1) {
-        this.R.value = r;
-        this.G.value = g;
-        this.B.value = b;
-        this.A.value = a;
-        this.#updateHSV();
-    }
-
-    /**
-     * @param {Number} h
-     * @param {Number} s
-     * @param {Number} v
-     * @param {Number} a
-     */
-    setFromHSVA(h, s, v, a = 1) {
-        const i = Math.floor(h * 6);
-        const f = h * 6 - i;
-        const p = v * (1 - s);
-        const q = v * (1 - f * s);
-        const t = v * (1 - (1 - f) * s);
-        const values = [v, q, p, p, t, v];
-        const [r, g, b] = [values[i % 6], values[(i + 4) % 6], values[(i + 2) % 6]];
-        this.R.value = r;
-        this.G.value = g;
-        this.B.value = b;
-        this.A.value = a;
-        this.H.value = h;
-        this.S.value = s;
-        this.V.value = v;
-    }
-
-    /**
-     * @param {Number} x
-     * @param {Number} y
-     * @param {Number} v
-     * @param {Number} a
-     */
-    setFromWheelLocation(x, y, v, a) {
-        const [r, theta] = Utility.getPolarCoordinates(x, y, true);
-        this.setFromHSVA(1 - theta / (2 * Math.PI), r, v, a);
-    }
-
-    toDimmedColor(minV = 0) {
-        const result = new LinearColorEntity();
-        result.setFromRGBANumber(this.toNumber());
-        result.setFromHSVA(
-            result.H.value,
-            result.S.value * 0.6,
-            Math.pow(result.V.value + minV, 0.55) * 0.7
-        );
-        return result
-    }
-
-    toCSSRGBValues() {
-        const r = Math.round(this.R.value * 255);
-        const g = Math.round(this.G.value * 255);
-        const b = Math.round(this.B.value * 255);
-        return i$3`${r}, ${g}, ${b}`
-    }
-
-    toRGBA() {
-        return [
-            Math.round(this.R.value * 255),
-            Math.round(this.G.value * 255),
-            Math.round(this.B.value * 255),
-            Math.round(this.A.value * 255),
-        ]
-    }
-
-    toSRGBA() {
-        return [
-            Math.round(LinearColorEntity.linearToSRGB(this.R.value) * 255),
-            Math.round(LinearColorEntity.linearToSRGB(this.G.value) * 255),
-            Math.round(LinearColorEntity.linearToSRGB(this.B.value) * 255),
-            Math.round(this.A.value * 255),
-        ]
-    }
-
-    toRGBAString() {
-        return this
-            .toRGBA()
-            .map(v => v.toString(16).toUpperCase().padStart(2, "0"))
-            .join("")
-    }
-
-    toSRGBAString() {
-        return this
-            .toSRGBA()
-            .map(v => v.toString(16).toUpperCase().padStart(2, "0"))
-            .join("")
-    }
-
-    toHSVA() {
-        return [this.H.value, this.S.value, this.V.value, this.A.value]
-    }
-
-    toNumber() {
-        return (
-            Math.round(this.R.value * 0xff) << 24)
-            + (Math.round(this.G.value * 0xff) << 16)
-            + (Math.round(this.B.value * 0xff) << 8)
-            + Math.round(this.A.value * 0xff)
-    }
-
-    /** @param {Number} number */
-    setFromRGBANumber(number) {
-        this.A.value = (number & 0xff) / 0xff;
-        this.B.value = ((number >> 8) & 0xff) / 0xff;
-        this.G.value = ((number >> 16) & 0xff) / 0xff;
-        this.R.value = ((number >> 24) & 0xff) / 0xff;
-        this.#updateHSV();
-    }
-
-    /** @param {Number} number */
-    setFromSRGBANumber(number) {
-        this.A.value = (number & 0xff) / 0xff;
-        this.B.value = LinearColorEntity.sRGBtoLinear(((number >> 8) & 0xff) / 0xff);
-        this.G.value = LinearColorEntity.sRGBtoLinear(((number >> 16) & 0xff) / 0xff);
-        this.R.value = LinearColorEntity.sRGBtoLinear(((number >> 24) & 0xff) / 0xff);
-        this.#updateHSV();
-    }
-
-    /** @returns {[Number, Number, Number, Number]} */
-    toArray() {
-        return [this.R.value, this.G.value, this.B.value, this.A.value]
-    }
-
-    toString() {
-        return Utility.printLinearColor(this)
-    }
-}
-
-/** @param {ObjectEntity} entity */
-function nodeColor(entity) {
-    switch (entity.getType()) {
-        case Configuration.paths.materialExpressionConstant2Vector:
-        case Configuration.paths.materialExpressionConstant3Vector:
-        case Configuration.paths.materialExpressionConstant4Vector:
-            return Configuration.nodeColors.yellow
-        case Configuration.paths.makeStruct:
-            return Configuration.nodeColors.darkBlue
-        case Configuration.paths.materialExpressionMaterialFunctionCall:
-            return Configuration.nodeColors.blue
-        case Configuration.paths.materialExpressionFunctionInput:
-            return Configuration.nodeColors.red
-        case Configuration.paths.materialExpressionTextureSample:
-            return Configuration.nodeColors.darkTurquoise
-        case Configuration.paths.materialExpressionTextureCoordinate:
-            return Configuration.nodeColors.red
-        case Configuration.paths.pcgEditorGraphNodeInput:
-        case Configuration.paths.pcgEditorGraphNodeOutput:
-            return Configuration.nodeColors.red
-    }
-    switch (entity.getClass()) {
-        case Configuration.paths.callFunction:
-            return entity.bIsPureFunc
-                ? Configuration.nodeColors.green
-                : Configuration.nodeColors.blue
-        case Configuration.paths.niagaraNodeFunctionCall:
-            return Configuration.nodeColors.darkerBlue
-        case Configuration.paths.dynamicCast:
-            return Configuration.nodeColors.turquoise
-        case Configuration.paths.inputDebugKey:
-        case Configuration.paths.inputKey:
-            return Configuration.nodeColors.red
-        case Configuration.paths.createDelegate:
-        case Configuration.paths.enumLiteral:
-        case Configuration.paths.makeArray:
-        case Configuration.paths.makeMap:
-        case Configuration.paths.materialGraphNode:
-        case Configuration.paths.select:
-            return Configuration.nodeColors.green
-        case Configuration.paths.executionSequence:
-        case Configuration.paths.ifThenElse:
-        case Configuration.paths.macro:
-        case Configuration.paths.multiGate:
-            return Configuration.nodeColors.gray
-        case Configuration.paths.functionEntry:
-        case Configuration.paths.functionResult:
-            return Configuration.nodeColors.violet
-        case Configuration.paths.timeline:
-            return Configuration.nodeColors.yellow
-    }
-    if (entity.switchTarget()) {
-        return Configuration.nodeColors.lime
-    }
-    if (entity.isEvent()) {
-        return Configuration.nodeColors.red
-    }
-    if (entity.isComment()) {
-        return (entity.CommentColor ? entity.CommentColor : LinearColorEntity.getWhite())
-            .toDimmedColor()
-            .toCSSRGBValues()
-    }
-    const pcgSubobject = entity.getPcgSubobject();
-    if (pcgSubobject) {
-        if (pcgSubobject.NodeTitleColor) {
-            return pcgSubobject.NodeTitleColor.toDimmedColor(0.1).toCSSRGBValues()
-        }
-        switch (entity.PCGNode?.getName(true)) {
-            case "Branch":
-            case "Select":
-                return Configuration.nodeColors.intenseGreen
-        }
-    }
-    if (entity.bIsPureFunc) {
-        return Configuration.nodeColors.green
-    }
-    return Configuration.nodeColors.blue
 }
 
 class SVGIcon {
@@ -3913,6 +1327,2612 @@ class SVGIcon {
     `
 }
 
+class Reply {
+
+    /**
+     * @template T
+     * @param {Number} position
+     * @param {T} value
+     * @param {PathNode} bestPath
+     * @returns {Result<T>}
+     */
+    static makeSuccess(position, value, bestPath = null, bestPosition = 0) {
+        return {
+            status: true,
+            value: value,
+            position: position,
+            bestParser: bestPath,
+            bestPosition: bestPosition,
+        }
+    }
+
+    /**
+     * @param {PathNode} bestPath
+     * @returns {Result<null>}
+     */
+    static makeFailure(position = 0, bestPath = null, bestPosition = 0) {
+        return {
+            status: false,
+            value: null,
+            position,
+            bestParser: bestPath,
+            bestPosition: bestPosition,
+        }
+    }
+
+    /** @param {Parsernostrum<any>} parsernostrum */
+    static makeContext(parsernostrum = null, input = "") {
+        return /** @type {Context} */({
+            parsernostrum,
+            input,
+            highlighted: null,
+        })
+    }
+
+    static makePathNode(parser, index = 0, previous = null) {
+        return /** @type {PathNode} */({
+            parent: previous,
+            current: parser,
+            index,
+        })
+    }
+}
+
+/** @template T */
+class Parser {
+
+    static indentation = "    "
+    static highlight = "Last valid parser"
+
+    /** @type {(new (...args: any) => Parser) & typeof Parser} */
+    Self
+
+    /** @param {String} value */
+    static frame(value, label = "", indentation = "") {
+        label = value ? "[ " + label + " ]" : "";
+        let rows = value.split("\n");
+        const width = Math.max(...rows.map(r => r.length));
+        const rightPadding = width < label.length ? " ".repeat(label.length - width) : "";
+        for (let i = 0; i < rows.length; ++i) {
+            rows[i] =
+                indentation
+                + "| "
+                + rows[i]
+                + " ".repeat(width - rows[i].length)
+                + rightPadding
+                + " |";
+        }
+        if (label.length < width) {
+            label = label + "─".repeat(width - label.length);
+        }
+        const rowA = "┌─" + label + "─┐";
+        const rowB = indentation + "└─" + "─".repeat(label.length) + "─┘";
+        rows = [rowA, ...rows, rowB];
+        return rows.join("\n")
+    }
+
+    /**
+     * @param {PathNode} path
+     * @param {Number} index
+     * @returns {PathNode}
+     */
+    makePath(path, index) {
+        return { current: this, parent: path, index }
+    }
+
+    /**
+     * @param {Context} context
+     * @param {PathNode} path
+     */
+    isHighlighted(context, path) {
+        if (context.highlighted instanceof Parser) {
+            return context.highlighted === this
+        }
+        if (!context.highlighted || !path?.current) {
+            return false
+        }
+        let a, b;
+        for (
+            a = path,
+            b = /** @type {PathNode} */(context.highlighted);
+            a.current && b.current;
+            a = a.parent,
+            b = b.parent
+        ) {
+            if (a.current !== b.current || a.index !== b.index) {
+                return false
+            }
+        }
+        return !a.current && !b.current
+    }
+
+    /** @param {PathNode?} path */
+    isVisited(path) {
+        if (!path) {
+            return false
+        }
+        for (path = path.parent; path != null; path = path.parent) {
+            if (path.current === this) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     * @param {Number} index
+     * @returns {Result<T>}
+     */
+    parse(context, position, path, index) {
+        return null
+    }
+
+    /** @param {PathNode} path */
+    toString(context = Reply.makeContext(null, ""), indentation = "", path = null, index = 0) {
+        path = this.makePath(path, index);
+        if (this.isVisited(path)) {
+            return "<...>"
+        }
+        const isVisited = this.isVisited(path);
+        const isHighlighted = this.isHighlighted(context, path);
+        let result = isVisited ? "<...>" : this.doToString(context, isHighlighted ? "" : indentation, path, index);
+        if (isHighlighted) {
+            /** @type {String[]} */
+            result = Parser.frame(result, Parser.highlight, indentation);
+        }
+        return result
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {String} indentation
+     * @param {PathNode} path
+     * @param {Number} index
+     */
+    doToString(context, indentation, path, index) {
+        return `${this.constructor.name} does not implement toString()`
+    }
+}
+
+/** @template {String} T */
+class StringParser extends Parser {
+
+    #value
+    get value() {
+        return this.#value
+    }
+
+    /** @param {T} value */
+    constructor(value) {
+        super();
+        this.#value = value;
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     * @param {Number} index
+     * @returns {Result<String>}
+     */
+    parse(context, position, path, index) {
+        path = this.makePath(path, index);
+        const end = position + this.#value.length;
+        const value = context.input.substring(position, end);
+        const result = this.#value === value
+            ? Reply.makeSuccess(end, this.#value, path, end)
+            : Reply.makeFailure();
+        return result
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {String} indentation
+     * @param {PathNode} path
+     * @param {Number} index
+     */
+    doToString(context, indentation, path, index) {
+        return `"${this.value.replaceAll("\n", "\\n").replaceAll('"', '\\"')}"`
+    }
+}
+
+/** @extends Parser<""> */
+class SuccessParser extends Parser {
+
+    static instance = new SuccessParser()
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     * @param {Number} index
+     * @returns {Result<"">}
+     */
+    parse(context, position, path, index) {
+        path = this.makePath(path, index);
+        return Reply.makeSuccess(position, "", path, 0)
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {String} indentation
+     * @param {PathNode} path
+     * @param {Number} index
+     */
+    doToString(context, indentation, path, index) {
+        return "<SUCCESS>"
+    }
+}
+
+/**
+ * @template {any[]} T
+ * @typedef {T extends [infer A] ? A
+ *     : T extends [infer A, ...infer B] ? A | Union<B>
+ *     : never
+ * } Union
+ */
+
+/**
+ * @template {any[]} T
+ * @extends Parser<Union<T>>
+ */
+class AlternativeParser extends Parser {
+
+    #parsers
+    get parsers() {
+        return this.#parsers
+    }
+
+    /** @param {Parser[]} parsers */
+    constructor(...parsers) {
+        super();
+        this.#parsers = parsers;
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     * @param {Number} index
+     */
+    parse(context, position, path, index) {
+        path = this.makePath(path, index);
+        const result = /** @type {Result<Union<T>>} */(Reply.makeSuccess(0, ""));
+        for (let i = 0; i < this.#parsers.length; ++i) {
+            const outcome = this.#parsers[i].parse(context, position, path, i);
+            if (outcome.bestPosition > result.bestPosition) {
+                result.bestParser = outcome.bestParser;
+                result.bestPosition = outcome.bestPosition;
+            }
+            if (outcome.status) {
+                result.value = outcome.value;
+                result.position = outcome.position;
+                return result
+            }
+        }
+        result.status = false;
+        result.value = null;
+        return result
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {String} indentation
+     * @param {PathNode} path
+     * @param {Number} index
+     */
+    doToString(context, indentation, path, index) {
+        // Short syntax for optional parser
+        if (this.#parsers.length === 2 && this.#parsers[1] instanceof SuccessParser) {
+            let result = this.#parsers[0].toString(context, indentation, path, 0);
+            if (!(this.#parsers[0] instanceof StringParser)) {
+                result = "<" + result + ">";
+            }
+            result += "?";
+            return result
+        }
+        const deeperIndentation = indentation + Parser.indentation;
+        let result = "ALT<\n"
+            + deeperIndentation
+            + this.#parsers
+                .map((parser, i) => parser.toString(
+                    context,
+                    deeperIndentation + " ".repeat(i === 0 ? 0 : Parser.indentation.length - 2),
+                    path,
+                    i,
+                ))
+                .join("\n" + deeperIndentation + "| ")
+            + "\n" + indentation + ">";
+        return result
+    }
+}
+
+/**
+ * @template S
+ * @template T
+ * @extends Parser<T>
+ */
+class ChainedParser extends Parser {
+
+    #parser
+    get parser() {
+        return this.#parser
+    }
+
+    #fn
+
+    /**
+     * @param {Parser<S>} parser
+     * @param {(v: S, input: String, position: Number) => Parsernostrum<T>} chained
+     */
+    constructor(parser, chained) {
+        super();
+        this.#parser = parser;
+        this.#fn = chained;
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     * @param {Number} index
+     * @returns {Result<T>}
+     */
+    parse(context, position, path, index) {
+        path = this.makePath(path, index);
+        const outcome = this.#parser.parse(context, position, path, 0);
+        if (!outcome.status) {
+            // @ts-expect-error
+            return outcome
+        }
+        const result = this.#fn(outcome.value, context.input, outcome.position)
+            .getParser()
+            .parse(context, outcome.position, path, 0);
+        if (outcome.bestPosition > result.bestPosition) {
+            result.bestParser = outcome.bestParser;
+            result.bestPosition = outcome.bestPosition;
+        }
+        return result
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {String} indentation
+     * @param {PathNode} path
+     * @param {Number} index
+     */
+    doToString(context, indentation, path, index) {
+        const result = this.#parser.toString(context, indentation, path, 0) + " => chained<f()>";
+        return result
+    }
+}
+
+/** @extends Parser<null> */
+class FailureParser extends Parser {
+
+    static instance = new FailureParser()
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     * @param {Number} index
+     */
+    parse(context, position, path, index) {
+        return Reply.makeFailure()
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {String} indentation
+     * @param {PathNode} path
+     * @param {Number} index
+     */
+    doToString(context, indentation, path, index) {
+        return "<FAILURE>"
+    }
+}
+
+/**
+ * @template T
+ * @extends Parser<T>
+ */
+class Label extends Parser {
+
+    #parser
+    get parser() {
+        return this.#parser
+    }
+
+    #label = ""
+
+    /**
+     * @param {Parser<T>} parser
+     * @param {String} label
+     */
+    constructor(parser, label) {
+        super();
+        this.#parser = parser;
+        this.#label = label;
+    }
+
+    /**
+     * @param {PathNode} path
+     * @param {Number} index
+     */
+    makePath(path, index) {
+        return path // Label does not alter the path
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     * @param {Number} index
+     */
+    parse(context, position, path, index) {
+        this.parse = this.#parser.parse.bind(this.#parser);
+        return this.parse(context, position, path, index)
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {String} indentation
+     * @param {PathNode} path
+     * @param {Number} index
+     */
+    doToString(context, indentation, path, index) {
+        let result = this.#parser.toString(context, "", path, index);
+        result = Parser.frame(result, this.#label, indentation);
+        return result
+    }
+}
+
+/**
+ * @template T
+ * @extends Parser<T>
+ */
+class LazyParser extends Parser {
+
+    #parser
+
+    /** @type {Parser<T>} */
+    #resolvedPraser
+
+    /** @param {() => Parsernostrum<T>} parser */
+    constructor(parser) {
+        super();
+        this.#parser = parser;
+    }
+
+    /**
+     * @param {PathNode} path
+     * @param {Number} index
+     */
+    makePath(path, index) {
+        return path
+    }
+
+    /**
+     * @param {Context} context
+     * @param {PathNode} path
+     */
+    isHighlighted(context, path) {
+        if (super.isHighlighted(context, path)) {
+            // If LazyParser is highlighted, then highlight its child
+            const childrenPath = { parent: path, parser: this.#resolvedPraser, index: 0 };
+            context.highlighted = context.highlighted instanceof Parser ? this.#resolvedPraser : childrenPath;
+        }
+        return false
+    }
+
+    resolve() {
+        if (!this.#resolvedPraser) {
+            this.#resolvedPraser = this.#parser().getParser();
+        }
+        return this.#resolvedPraser
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     * @param {Number} index
+     * @returns {Result<T>}
+     */
+    parse(context, position, path, index) {
+        this.resolve();
+        this.parse = this.#resolvedPraser.parse.bind(this.#resolvedPraser);
+        return this.parse(context, position, path, index)
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {String} indentation
+     * @param {PathNode} path
+     * @param {Number} index
+     */
+    doToString(context, indentation, path, index) {
+        this.resolve();
+        this.doToString = this.#resolvedPraser.toString.bind(this.#resolvedPraser);
+        return this.doToString(context, indentation, path, index)
+    }
+}
+
+/** @extends Parser<""> */
+class Lookahead extends Parser {
+
+    #parser
+    get parser() {
+        return this.#parser
+    }
+
+    #type
+    get type() {
+        return this.#type
+    }
+
+    /**
+     * @readonly
+     * @enum {String}
+     */
+    static Type = {
+        NEGATIVE_AHEAD: "?!",
+        NEGATIVE_BEHIND: "?<!",
+        POSITIVE_AHEAD: "?=",
+        POSITIVE_BEHIND: "?<=",
+    }
+
+    /**
+     * @param {Parser} parser
+     * @param {Type} type
+     */
+    constructor(parser, type) {
+        super();
+        this.#parser = parser;
+        this.#type = type;
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     * @param {Number} index
+     * @returns {Result<"">}
+     */
+    parse(context, position, path, index) {
+        path = this.makePath(path, index);
+        let result = this.#parser.parse(context, position, path, 0);
+        result = result.status == (this.#type === Lookahead.Type.POSITIVE_AHEAD)
+            ? Reply.makeSuccess(position, "", path, position)
+            : Reply.makeFailure();
+        return result
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {String} indentation
+     * @param {PathNode} path
+     * @param {Number} index
+     */
+    doToString(context, indentation, path, index) {
+        return "(" + this.#type + this.#parser.toString(context, indentation, path, 0) + ")"
+    }
+}
+
+/**
+ * @template T
+ * @extends Parser<T>
+ */
+class RegExpParser extends Parser {
+
+    /** @type {RegExp} */
+    #regexp
+    get regexp() {
+        return this.#regexp
+    }
+    /** @type {RegExp} */
+    #anchoredRegexp
+    #matchMapper
+
+    static #createEscapeable = character => String.raw`[^${character}\\]*(?:\\.[^${character}\\]*)*`
+    static #numberRegex = /[-\+]?(?:\d*\.)?\d+/
+    static common = {
+        number: new RegExp(this.#numberRegex.source + String.raw`(?!\.)`),
+        numberInteger: /[\-\+]?\d+(?!\.\d)/,
+        numberNatural: /\d+/,
+        numberExponential: new RegExp(this.#numberRegex.source + String.raw`(?:[eE][\+\-]?\d+)?(?!\.)`),
+        numberUnit: /\+?(?:0(?:\.\d+)?|1(?:\.0+)?)(?![\.\d])/,
+        numberByte: /0*(?:25[0-5]|2[0-4]\d|1?\d?\d)(?!\d|\.)/,
+        whitespace: /\s+/,
+        whitespaceOpt: /\s*/,
+        whitespaceInline: /[^\S\n]+/,
+        whitespaceInlineOpt: /[^\S\n]*/,
+        whitespaceMultiline: /\s*?\n\s*/,
+        doubleQuotedString: new RegExp(`"(${this.#createEscapeable('"')})"`),
+        singleQuotedString: new RegExp(`'(${this.#createEscapeable("'")})'`),
+        backtickQuotedString: new RegExp("`(" + this.#createEscapeable("`") + ")`"),
+    }
+
+    /**
+     * @param {RegExp} regexp
+     * @param {(match: RegExpExecArray) => T} matchMapper
+     */
+    constructor(regexp, matchMapper) {
+        super();
+        this.#regexp = regexp;
+        this.#anchoredRegexp = new RegExp(`^(?:${regexp.source})`, regexp.flags);
+        this.#matchMapper = matchMapper;
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     * @param {Number} index
+     * @returns {Result<T>}
+     */
+    parse(context, position, path, index) {
+        path = this.makePath(path, index);
+        const match = this.#anchoredRegexp.exec(context.input.substring(position));
+        if (match) {
+            position += match[0].length;
+        }
+        const result = match
+            ? Reply.makeSuccess(position, this.#matchMapper(match), path, position)
+            : Reply.makeFailure();
+        return result
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {String} indentation
+     * @param {PathNode} path
+     * @param {Number} index
+     */
+    doToString(context, indentation, path, index) {
+        let result = "/" + this.#regexp.source + "/";
+        const shortname = Object.entries(RegExpParser.common).find(([k, v]) => v.source === this.#regexp.source)?.[0];
+        if (shortname) {
+            result = "P." + shortname;
+        }
+        return result
+    }
+}
+
+/**
+ * @template S
+ * @template T
+ * @extends Parser<T>
+ */
+class MapParser extends Parser {
+
+    #parser
+    get parser() {
+        return this.#parser
+    }
+
+    #mapper
+    get mapper() {
+        return this.#mapper
+    }
+
+    /**
+     * @param {Parser<S>} parser
+     * @param {(v: S) => T} mapper
+     */
+    constructor(parser, mapper) {
+        super();
+        this.#parser = parser;
+        this.#mapper = mapper;
+    }
+
+    /**
+     * @param {Context} context
+     * @param {PathNode} path
+     */
+    isHighlighted(context, path) {
+        if (super.isHighlighted(context, path)) {
+            // If MapParser is highlighted, then highlight its child
+            const childrenPath = { parent: path, parser: this.#parser, index: 0 };
+            context.highlighted = context.highlighted instanceof Parser ? this.#parser : childrenPath;
+        }
+        return false
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     * @param {Number} index
+     * @returns {Result<T>}
+     */
+    parse(context, position, path, index) {
+        path = this.makePath(path, index);
+        // @ts-expect-error
+        const result = /** @type {Result<T>} */(this.#parser.parse(context, position, path, 0));
+        if (result.status) {
+            // @ts-expect-error
+            result.value = this.#mapper(result.value);
+        }
+        return result
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {String} indentation
+     * @param {PathNode} path
+     * @param {Number} index
+     */
+    doToString(context, indentation, path, index) {
+        let result = this.#parser.toString(context, indentation, path, 0);
+        if (this.#parser instanceof RegExpParser) {
+            if (Object.values(RegExpParser.common).includes(this.#parser.regexp)) {
+                if (
+                    this.#parser.regexp === RegExpParser.common.numberInteger
+                    && this.#mapper === /** @type {(v: any) => BigInt} */(BigInt)
+                ) {
+                    return "P.numberBigInteger"
+                }
+                return result
+            }
+        }
+        let serializedMapper = this.#mapper.toString();
+        if (serializedMapper.length > 60 || serializedMapper.includes("\n")) {
+            serializedMapper = "(...) => { ... }";
+        }
+        result += ` -> map<${serializedMapper}>`;
+        return result
+    }
+}
+
+/** @extends {RegExpParser<RegExpExecArray>} */
+class RegExpArrayParser extends RegExpParser {
+
+    /** @param {RegExpExecArray} match */
+    static #mapper = match => match
+
+    /** @param {RegExp} regexp */
+    constructor(regexp) {
+        super(regexp, RegExpArrayParser.#mapper);
+    }
+}
+
+/** @extends {RegExpParser<String>} */
+class RegExpValueParser extends RegExpParser {
+
+    /** @param {RegExp} regexp */
+    constructor(regexp, group = 0) {
+        super(regexp, match => match[group]);
+    }
+}
+
+/**
+ * @template {any[]} T
+ * @extends Parser<T>
+ */
+class SequenceParser extends Parser {
+
+    #parsers
+    get parsers() {
+        return this.#parsers
+    }
+
+    /** @param {Parser[]} parsers */
+    constructor(...parsers) {
+        super();
+        this.#parsers = parsers;
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     * @param {Number} index
+     * @returns {Result<T>}
+     */
+    parse(context, position, path, index) {
+        path = this.makePath(path, index);
+        const value = /** @type {ParserValue<T>} */(new Array(this.#parsers.length));
+        const result = Reply.makeSuccess(position, value);
+        for (let i = 0; i < this.#parsers.length; ++i) {
+            const outcome = this.#parsers[i].parse(context, result.position, path, i);
+            if (outcome.bestPosition > result.bestPosition) {
+                result.bestParser = outcome.bestParser;
+                result.bestPosition = outcome.bestPosition;
+            }
+            if (!outcome.status) {
+                result.status = false;
+                result.value = null;
+                break
+            }
+            result.value[i] = outcome.value;
+            result.position = outcome.position;
+        }
+        return result
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {String} indentation
+     * @param {PathNode} path
+     * @param {Number} index
+     */
+    doToString(context, indentation, path, index) {
+        const deeperIndentation = indentation + Parser.indentation;
+        const result = "SEQ<\n"
+            + deeperIndentation
+            + this.#parsers
+                .map((parser, index) => parser.toString(context, deeperIndentation, path, index))
+                .join("\n" + deeperIndentation)
+            + "\n" + indentation + ">";
+        return result
+    }
+}
+
+/**
+ * @template T
+ * @extends Parser<T[]>
+ */
+class TimesParser extends Parser {
+
+    #parser
+    get parser() {
+        return this.#parser
+    }
+
+    #min
+    get min() {
+        return this.#min
+    }
+
+    #max
+    get max() {
+        return this.#max
+    }
+
+    /** @param {Parser<T>} parser */
+    constructor(parser, min = 0, max = Number.POSITIVE_INFINITY) {
+        super();
+        if (min > max) {
+            throw new Error("Min is greater than max")
+        }
+        this.#parser = parser;
+        this.#min = min;
+        this.#max = max;
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     * @param {Number} index
+     * @returns {Result<T[]>}
+     */
+    parse(context, position, path, index) {
+        path = this.makePath(path, index);
+        const value = /** @type {ParserValue<T>[]} */([]);
+        const result = Reply.makeSuccess(position, value, path);
+        for (let i = 0; i < this.#max; ++i) {
+            const outcome = this.#parser.parse(context, result.position, path, 0);
+            if (outcome.bestPosition > result.bestPosition) {
+                result.bestParser = outcome.bestParser;
+                result.bestPosition = outcome.bestPosition;
+            }
+            if (!outcome.status) {
+                if (i < this.#min) {
+                    result.status = false;
+                    result.value = null;
+                }
+                break
+            }
+            // @ts-expect-error
+            result.value.push(outcome.value);
+            result.position = outcome.position;
+        }
+        // @ts-expect-error
+        return result
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {String} indentation
+     * @param {PathNode} path
+     * @param {Number} index
+     */
+    doToString(context, indentation, path, index) {
+        let result = this.parser.toString(context, indentation, path, 0);
+        const serialized =
+            this.#min === 0 && this.#max === 1 ? "?"
+                : this.#min === 0 && this.#max === Number.POSITIVE_INFINITY ? "*"
+                    : this.#min === 1 && this.#max === Number.POSITIVE_INFINITY ? "+"
+                        : "{"
+                        + this.#min
+                        + (this.#min !== this.#max ? "," + this.#max : "")
+                        + "}";
+        result += serialized;
+        return result
+    }
+}
+
+/** @template T */
+class Parsernostrum {
+
+    #parser
+
+    /** @type {(new (parser: Parser) => Parsernostrum<T>) & typeof Parsernostrum} */
+    Self
+
+    static lineColumnFromOffset(string, offset) {
+        const lines = string.substring(0, offset).split('\n');
+        const line = lines.length;
+        const column = lines[lines.length - 1].length + 1;
+        return { line, column }
+    }
+    /** @param {[any, ...any] | RegExpExecArray} param0 */
+    static #firstElementGetter = ([v, _]) => v
+    /** @param {[any, any, ...any] | RegExpExecArray} param0 */
+    static #secondElementGetter = ([_, v]) => v
+    static #arrayFlatter = ([first, rest]) => [first, ...rest]
+    /**
+     * @template T
+     * @param {T} v
+     * @returns {T extends Array ? String : T}
+     */
+    // @ts-expect-error
+    static #joiner = v => v instanceof Array ? v.join("") : v
+
+    // Prefedined parsers
+
+    /** Parser accepting any valid decimal, possibly signed number */
+    static number = this.reg(RegExpParser.common.number).map(Number)
+
+    /** Parser accepting any digits only number */
+    static numberInteger = this.reg(RegExpParser.common.numberInteger).map(Number)
+
+    /** Parser accepting any digits only number and returns a BigInt */
+    // @ts-expect-error
+    static numberBigInteger = this.reg(this.numberInteger.getParser().parser.regexp).map(BigInt)
+
+    /** Parser accepting any digits only number */
+    static numberNatural = this.reg(RegExpParser.common.numberNatural).map(Number)
+
+    /** Parser accepting any valid decimal, possibly signed, possibly in the exponential form number */
+    static numberExponential = this.reg(RegExpParser.common.numberExponential).map(Number)
+
+    /** Parser accepting any valid decimal number between 0 and 1 */
+    static numberUnit = this.reg(RegExpParser.common.numberUnit).map(Number)
+
+    /** Parser accepting any integer between 0 and 255 */
+    static numberByte = this.reg(RegExpParser.common.numberByte).map(Number)
+
+    /** Parser accepting whitespace */
+    static whitespace = this.reg(RegExpParser.common.whitespace)
+
+    /** Parser accepting whitespace */
+    static whitespaceOpt = this.reg(RegExpParser.common.whitespaceOpt)
+
+    /** Parser accepting whitespace that spans on a single line */
+    static whitespaceInline = this.reg(RegExpParser.common.whitespaceInline)
+
+    /** Parser accepting whitespace that spans on a single line */
+    static whitespaceInlineOpt = this.reg(RegExpParser.common.whitespaceInlineOpt)
+
+    /** Parser accepting whitespace that contains a list a newline */
+    static whitespaceMultiline = this.reg(RegExpParser.common.whitespaceMultiline)
+
+    /** Parser accepting a double quoted string and returns the content */
+    static doubleQuotedString = this.reg(RegExpParser.common.doubleQuotedString, 1)
+
+    /** Parser accepting a single quoted string and returns the content */
+    static singleQuotedString = this.reg(RegExpParser.common.singleQuotedString, 1)
+
+    /** Parser accepting a backtick quoted string and returns the content */
+    static backtickQuotedString = this.reg(RegExpParser.common.backtickQuotedString, 1)
+
+    /** @param {Parser<T>} parser */
+    constructor(parser, optimized = false) {
+        this.#parser = parser;
+    }
+
+    /** @param {PathNode} path */
+    static #simplifyPath(path) {
+        /** @type {PathNode[]} */
+        const array = [];
+        while (path) {
+            array.push(path);
+            path = path.parent;
+        }
+        array.reverse();
+        /** @type {Map<Parser, Number>} */
+        let visited = new Map();
+        for (let i = 1; i < array.length; ++i) {
+            const existing = visited.get(array[i].current);
+            if (existing !== undefined) {
+                if (array[i + 1]) {
+                    array[i + 1].parent = array[existing];
+                }
+                visited = new Map([...visited.entries()].filter(([parser, index]) => index <= existing || index > i));
+                visited.set(array[i].current, existing);
+                array.splice(existing + 1, i - existing);
+                i = existing;
+            } else {
+                visited.set(array[i].current, i);
+            }
+        }
+        return array[array.length - 1]
+    }
+
+    getParser() {
+        return this.#parser
+    }
+
+    /** @param {String} input */
+    run(input) {
+        const result = this.#parser.parse(Reply.makeContext(this, input), 0, Reply.makePathNode(), 0);
+        if (result.position !== input.length) {
+            result.status = false;
+        }
+        return /** @type {Result<T>} */(result)
+    }
+
+    /**
+     * @param {String} input
+     * @throws {Error} when the parser fails to match
+     */
+    parse(input, printParser = true) {
+        const result = this.run(input);
+        if (result.status) {
+            return result.value
+        }
+        const chunkLength = 60;
+        const chunkRange = /** @type {[Number, Number]} */(
+            [Math.ceil(chunkLength / 2), Math.floor(chunkLength / 2)]
+        );
+        const position = Parsernostrum.lineColumnFromOffset(input, result.bestPosition);
+        let bestPosition = result.bestPosition;
+        const inlineInput = input.replaceAll(
+            /^(\s)+|\s{6,}|\s*?\n\s*/g,
+            (m, startingSpace, offset) => {
+                let replaced = startingSpace ? "..." : " ... ";
+                if (offset <= result.bestPosition) {
+                    if (result.bestPosition < offset + m.length) {
+                        bestPosition -= result.bestPosition - offset;
+                    } else {
+                        bestPosition -= m.length - replaced.length;
+                    }
+                }
+                return replaced
+            }
+        );
+        const string = inlineInput.substring(0, chunkLength).trimEnd();
+        const leadingWhitespaceLength = Math.min(
+            input.substring(result.bestPosition - chunkRange[0]).match(/^\s*/)[0].length,
+            chunkRange[0] - 1,
+        );
+        let offset = Math.min(bestPosition, chunkRange[0] - leadingWhitespaceLength);
+        chunkRange[0] = Math.max(0, bestPosition - chunkRange[0]) + leadingWhitespaceLength;
+        chunkRange[1] = Math.min(input.length, chunkRange[0] + chunkLength);
+        let segment = inlineInput.substring(...chunkRange);
+        if (chunkRange[0] > 0) {
+            segment = "..." + segment;
+            offset += 3;
+        }
+        if (chunkRange[1] < inlineInput.length - 1) {
+            segment = segment + "...";
+        }
+        const bestParser = this.toString(Parser.indentation, true, Parsernostrum.#simplifyPath(result.bestParser));
+        throw new Error(
+            `Could not parse: ${string}\n\n`
+            + `Input: ${segment}\n`
+            + "       " + " ".repeat(offset)
+            + `^ From here (line: ${position.line}, `
+            + `column: ${position.column}, `
+            + `offset: ${result.bestPosition})${result.bestPosition === input.length ? ", end of string" : ""}\n`
+            + (printParser
+                ? "\n"
+                + (result.bestParser ? "Last valid parser matched:" : "No parser matched:")
+                + bestParser
+                + "\n"
+                : ""
+            )
+        )
+    }
+
+    // Parsers
+
+    /**
+     * @template {String} S
+     * @param {S} value
+     */
+    static str(value) {
+        return new this(new StringParser(value))
+    }
+
+    /** @param {RegExp} value */
+    static reg(value, group = 0) {
+        return new this(new RegExpValueParser(value, group))
+    }
+
+    /** @param {RegExp} value */
+    static regArray(value) {
+        return new this(new RegExpArrayParser(value))
+    }
+
+    static success() {
+        return new this(SuccessParser.instance)
+    }
+
+    static failure() {
+        return new this(FailureParser.instance)
+    }
+
+    // Combinators
+
+    /**
+     * @template {Parsernostrum[]} P
+     * @param {P} parsers
+     * @returns {Parsernostrum<ParserValue<P>>}
+     */
+    static seq(...parsers) {
+        return new this(new SequenceParser(...parsers.map(p => p.getParser())))
+    }
+
+    /**
+     * @template {Parsernostrum[]} P
+     * @param {P} parsers
+     * @returns {Parsernostrum<UnionFromArray<ParserValue<P>>>}
+     */
+    static alt(...parsers) {
+        return new this(new AlternativeParser(...parsers.map(p => p.getParser())))
+    }
+
+    /**
+     * @template {Parsernostrum} P
+     * @param {P} parser
+     */
+    static lookahead(parser) {
+        return new this(new Lookahead(parser.getParser(), Lookahead.Type.POSITIVE_AHEAD))
+    }
+
+    /**
+     * @template {Parsernostrum} P
+     * @param {() => P} parser
+     * @returns {Parsernostrum<ParserValue<P>>}
+     */
+    static lazy(parser) {
+        return new this(new LazyParser(parser))
+    }
+
+    /** @param {Number} min */
+    times(min, max = min) {
+        return new Parsernostrum(new TimesParser(this.#parser, min, max))
+    }
+
+    many() {
+        return this.times(0, Number.POSITIVE_INFINITY)
+    }
+
+    /** @param {Number} n */
+    atLeast(n) {
+        return this.times(n, Number.POSITIVE_INFINITY)
+    }
+
+    /** @param {Number} n */
+    atMost(n) {
+        return this.times(0, n)
+    }
+
+    /**
+     * @param {any} emptyResult
+     * @returns {Parsernostrum<T?>}
+     */
+    opt(emptyResult = "") {
+        let success = Parsernostrum.success();
+        if (emptyResult !== "") {
+            success = success.map(() => emptyResult);
+        }
+        // @ts-expect-error
+        return Parsernostrum.alt(this, success)
+    }
+
+    /**
+     * @template {Parsernostrum} P
+     * @param {P} separator
+     */
+    sepBy(separator, atLeast = 1, allowTrailing = false) {
+        let result = Parsernostrum.seq(
+            this,
+            Parsernostrum.seq(separator, this).map(Parsernostrum.#secondElementGetter).atLeast(atLeast - 1),
+            ...(allowTrailing ? [separator.opt([])] : [])
+        ).map(Parsernostrum.#arrayFlatter);
+        if (atLeast === 0) {
+            result = result.opt([]);
+        }
+        return result
+    }
+
+    skipSpace() {
+        return Parsernostrum.seq(this, Parsernostrum.whitespaceOpt).map(Parsernostrum.#firstElementGetter)
+    }
+
+    /**
+     * @template R
+     * @param {(v: T) => R} fn
+     * @returns {Parsernostrum<R>}
+     */
+    map(fn) {
+        return new Parsernostrum(new MapParser(this.#parser, fn))
+    }
+
+    /**
+     * @template {Parsernostrum} P
+     * @param {(v: T, input: String, position: Number) => P} fn
+     * @returns {P}
+     */
+    chain(fn) {
+        // @ts-expect-error
+        return new Parsernostrum(new ChainedParser(this.#parser, fn))
+    }
+
+    /**
+     * @param {(v: T, input: String, position: Number) => boolean} fn
+     * @return {Parsernostrum<T>}
+     */
+    assert(fn) {
+        return this.chain((v, input, position) => fn(v, input, position)
+            ? Parsernostrum.success().map(() => v)
+            : Parsernostrum.failure()
+        )
+    }
+
+    join(value = "") {
+        return this.map(Parsernostrum.#joiner)
+    }
+
+    /** @return {Parsernostrum<T>} */
+    label(value = "") {
+        return new Parsernostrum(new Label(this.#parser, value))
+    }
+
+    /** @param {Parsernostrum | Parser | PathNode} highlight */
+    toString(indentation = "", newline = false, highlight = null) {
+        if (highlight instanceof Parsernostrum) {
+            highlight = highlight.getParser();
+        }
+        const context = Reply.makeContext(this, "");
+        context.highlighted = highlight;
+        const path = Reply.makePathNode();
+        return (newline ? "\n" + indentation : "") + this.#parser.toString(context, indentation, path)
+    }
+}
+
+/** @abstract */
+class IEntity {
+
+    /** @type {(v: String) => String} */
+    static same = v => v
+    /** @type {(entity: IEntity, serialized: String) => String} */
+    static notWrapped = (entity, serialized) => serialized
+    /** @type {(entity: IEntity, serialized: String) => String} */
+    static defaultWrapped = (entity, serialized) => `${entity.#lookbehind}(${serialized})`
+    static wrap = this.defaultWrapped
+    static attributeSeparator = ","
+    static keySeparator = "="
+    /** @type {(k: String) => String} */
+    static printKey = k => k
+    static grammar = Parsernostrum.lazy(() => this.createGrammar())
+    /** @type {P<IEntity>} */
+    static unknownEntityGrammar
+    static unknownEntity
+    /** @type {{ [key: String]: typeof IEntity }} */
+    static attributes = {}
+    /** @type {String | String[]} */
+    static lookbehind = ""
+    /** @type {(type: typeof IEntity) => InstanceType<typeof IEntity>} */
+    static default
+    static nullable = false
+    static ignored = false // Never serialize or deserialize
+    static serialized = false // Value is written and read as string
+    static expected = false // Must be there
+    static inlined = false // The key is a subobject or array and printed as inlined (A.B=123, A(0)=123)
+    /** @type {Boolean} */
+    static quoted // Key is serialized with quotes
+    static silent = false // Do not serialize if default
+    static trailing = false // Add attribute separator after the last attribute when serializing
+
+    /** @type {String[]} */
+    #keys
+    get keys() {
+        return this.#keys ?? Object.keys(this)
+    }
+    set keys(value) {
+        this.#keys = [... new Set(value)];
+    }
+
+    #lookbehind = /** @type {String} */(this.constructor.lookbehind)
+    get lookbehind() {
+        return this.#lookbehind.trim()
+    }
+    set lookbehind(value) {
+        this.#lookbehind = value;
+    }
+
+    #ignored = this.constructor.ignored
+    get ignored() {
+        return this.#ignored
+    }
+    set ignored(value) {
+        this.#ignored = value;
+    }
+
+    #quoted
+    get quoted() {
+        return /** @type {typeof IEntity} */(this.constructor).quoted ?? this.#quoted ?? false
+    }
+    set quoted(value) {
+        this.#quoted = value;
+    }
+
+    #trailing = this.constructor.trailing
+    get trailing() {
+        return this.#trailing
+    }
+    set trailing(value) {
+        this.#trailing = value;
+    }
+
+    constructor(values = {}) {
+        const attributes = /** @type {typeof IEntity} */(this.constructor).attributes;
+        const keys = Utility.mergeArrays(
+            Object.keys(values),
+            Object.entries(attributes).filter(([k, v]) => v.default !== undefined).map(([k, v]) => k)
+        );
+        for (const key of keys) {
+            if (values[key] !== undefined) {
+                if (values[key].constructor === Object) {
+                    // It is part of a nested key (words separated by ".")
+                    values[key] = new (
+                        attributes[key] !== undefined ? attributes[key] : IEntity.unknownEntity
+                    )(values[key]);
+                }
+                const computedEntity = /** @type {ComputedTypeEntityConstructor} */(attributes[key]);
+                this[key] = values[key];
+                if (computedEntity?.compute) {
+                    /** @type {typeof IEntity} */
+                    const actualEntity = computedEntity.compute(this);
+                    const parsed = actualEntity.grammar.run(values[key].toString());
+                    if (parsed.status) {
+                        this[key] = parsed.value;
+                    }
+                }
+                continue
+            }
+            const attribute = attributes[key];
+            if (attribute.default !== undefined) {
+                this[key] = attribute.default(attribute);
+                continue
+            }
+        }
+    }
+
+    /**
+     * @protected
+     * @returns {P<IEntity>}
+     */
+    static createGrammar() {
+        return this.unknownEntityGrammar
+    }
+
+    static actualClass() {
+        let self = this;
+        while (!self.name) {
+            self = Object.getPrototypeOf(self);
+        }
+        return self
+    }
+
+    static className() {
+        return this.actualClass().name
+    }
+
+    /**
+     * @protected
+     * @template {typeof IEntity} T
+     * @this {T}
+     * @returns {T}
+     */
+    static asUniqueClass() {
+        let result = this;
+        if (this.name.length) {
+            // @ts-expect-error
+            result = (() => class extends this { })(); // Comes from a lambda otherwise the class will have name "result"
+            result.grammar = result.createGrammar(); // Reassign grammar to capture the correct this from subclass
+
+        }
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     * @param {String} value
+     */
+    static withLookbehind(value) {
+        const result = this.asUniqueClass();
+        result.lookbehind = value;
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     * @param {(type: T) => (InstanceType<T> | NullEntity)} value
+     * @returns {T}
+     */
+    static withDefault(value = type => new type()) {
+        const result = this.asUniqueClass();
+        result.default = value;
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagNullable(value = true) {
+        const result = this.asUniqueClass();
+        result.nullable = value;
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagIgnored(value = true) {
+        const result = this.asUniqueClass();
+        result.ignored = value;
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagSerialized(value = true) {
+        const result = this.asUniqueClass();
+        result.serialized = value;
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagInlined(value = true) {
+        const result = this.asUniqueClass();
+        result.inlined = value;
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagQuoted(value = true) {
+        const result = this.asUniqueClass();
+        result.quoted = value;
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagSilent(value = true) {
+        const result = this.asUniqueClass();
+        result.silent = value;
+        return result
+    }
+
+    /**
+     * @protected
+     * @param {String} string
+     */
+    static asSerializedString(string) {
+        return `"${string.replaceAll(/(?<=(?:[^\\]|^)(?:\\\\)*?)"/g, '\\"')}"`
+    }
+
+    /** @param {String} key */
+    showProperty(key) {
+        /** @type {IEntity} */
+        let value = this[key];
+        const valueType = /** @type {typeof IEntity} */(value.constructor);
+        if (valueType.silent && valueType.default !== undefined) {
+            if (valueType["#default"] === undefined) {
+                valueType["#default"] = valueType.default(valueType);
+            }
+            const defaultValue = valueType["#default"];
+            return !value.equals(defaultValue)
+        }
+        return true
+    }
+
+    /**
+     * 
+     * @param {String} attributeName
+     * @param {(v: any) => void} callback
+     */
+    listenAttribute(attributeName, callback) {
+        const descriptor = Object.getOwnPropertyDescriptor(this, attributeName);
+        const setter = descriptor.set;
+        if (setter) {
+            descriptor.set = v => {
+                setter(v);
+                callback(v);
+            };
+            Object.defineProperties(this, { [attributeName]: descriptor });
+        } else if (descriptor.value) {
+
+            Object.defineProperties(this, {
+                ["#" + attributeName]: {
+                    value: descriptor.value,
+                    writable: true,
+                    enumerable: false,
+                },
+                [attributeName]: {
+                    enumerable: true,
+                    get() {
+                        return this["#" + attributeName]
+                    },
+                    set(v) {
+                        callback(v);
+                        this["#" + attributeName] = v;
+                    },
+                },
+            });
+        }
+    }
+
+    /** @this {IEntity | Array} */
+    doSerialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+        printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
+        wrap = Self.wrap,
+    ) {
+        let result = "";
+        let first = true;
+        const keys = this instanceof IEntity ? this.keys : Object.keys(this);
+        for (const key of keys) {
+            /** @type {IEntity} */
+            const value = this[key];
+            const valueType = /** @type {typeof IEntity} */(value?.constructor);
+            if (value === undefined || this instanceof IEntity && !this.showProperty(key)) {
+                continue
+            }
+            if (first) {
+                first = false;
+            } else {
+                result += attributeSeparator;
+            }
+            let keyValue = this instanceof Array ? `(${key})` : key;
+            if (keyValue.length && (Self.attributes[key]?.quoted === true || value.quoted === true)) {
+                keyValue = `"${keyValue}"`;
+            }
+            if (valueType.inlined) {
+                const inlinedPrintKey = valueType.className() === "ArrayEntity"
+                    ? k => printKey(`${keyValue}${k}`)
+                    : k => printKey(`${keyValue}.${k}`);
+                result += value.serialize(
+                    insideString,
+                    indentation,
+                    undefined,
+                    inlinedPrintKey,
+                    keySeparator,
+                    attributeSeparator,
+                    Self.notWrapped
+                );
+                continue
+            }
+            keyValue = printKey(keyValue);
+            if (keyValue.length) {
+                result += (attributeSeparator.includes("\n") ? indentation : "") + keyValue + keySeparator;
+            }
+            let serialization = value?.serialize(insideString, indentation);
+            result += serialization;
+        }
+        if (this instanceof IEntity && this.trailing && result.length) {
+            result += attributeSeparator;
+        }
+        return wrap(/** @type {IEntity} */(this), result)
+    }
+
+    /** @this {IEntity | Array} */
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+        printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
+        wrap = Self.wrap,
+    ) {
+        let result = this instanceof Array
+            ? IEntity.prototype.doSerialize.bind(this)(insideString, indentation, Self, printKey, keySeparator, attributeSeparator, wrap)
+            : this.doSerialize(insideString, indentation, Self, printKey, keySeparator, attributeSeparator, wrap);
+        if (Self.serialized) {
+            result = IEntity.asSerializedString(result);
+        }
+        return result
+    }
+
+    equals(other) {
+        if (!(other instanceof IEntity)) {
+            return false
+        }
+        const thisKeys = Object.keys(this);
+        const otherKeys = Object.keys(other);
+        const thisType = /** @type {typeof IEntity} */(this.constructor).actualClass();
+        const otherType = /** @type {typeof IEntity} */(other.constructor).actualClass();
+        if (
+            thisKeys.length !== otherKeys.length
+            || this.lookbehind != other.lookbehind
+            || !(other instanceof thisType) && !(this instanceof otherType)
+        ) {
+            return false
+        }
+        for (let i = 0; i < thisKeys.length; ++i) {
+            const k = thisKeys[i];
+            if (!otherKeys.includes(k)) {
+                return false
+            }
+            const a = this[k];
+            const b = other[k];
+            if (a instanceof IEntity) {
+                if (!a.equals(b)) {
+                    return false
+                }
+            } else if (a instanceof Array && b instanceof Array) {
+                if (a.length !== b.length) {
+                    return false
+                }
+                for (let j = 0; j < a.length; ++j) {
+                    if (!(a[j] instanceof IEntity && a[j].equals(b[j])) && a[j] !== b[j]) {
+                        return false
+                    }
+                }
+            } else {
+                if (a !== b) {
+                    return false
+                }
+            }
+        }
+        return true
+    }
+}
+
+class BooleanEntity extends IEntity {
+
+    static grammar = this.createGrammar()
+    static booleanConverter = {
+        fromAttribute: (value, type) => {
+        },
+        toAttribute: (value, type) => {
+            if (value === true) {
+                return "true"
+            }
+            if (value === false) {
+                return "false"
+            }
+            return ""
+        }
+    }
+
+    #uppercase = true
+    get uppercase() {
+        return this.#uppercase
+    }
+    set uppercase(value) {
+        this.#uppercase = value;
+    }
+
+    static createGrammar() {
+        return /** @type {P<BooleanEntity>} */(
+            Parsernostrum.regArray(/(true)|(True)|(false)|(False)/)
+                .map(v => {
+                    const result = (v[1] ?? v[2]) ? new this(true) : new this(false);
+                    result.uppercase = (v[2] ?? v[4]) !== undefined;
+                    return result
+                })
+                .label("BooleanEntity")
+        )
+    }
+
+    constructor(value = false) {
+        super();
+        this.value = value;
+    }
+
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+    ) {
+        let result = this.value
+            ? this.#uppercase ? "True" : "true"
+            : this.#uppercase ? "False" : "false";
+        if (Self.serialized) {
+            result = `"${result}"`;
+        }
+        return result
+    }
+
+    valueOf() {
+        return this.value
+    }
+}
+
+class ElementFactory {
+
+    /** @type {Map<String, IElementConstructor>} */
+    static #elementConstructors = new Map()
+
+    /**
+     * @param {String} tagName
+     * @param {IElementConstructor} entityConstructor
+     */
+    static registerElement(tagName, entityConstructor) {
+        ElementFactory.#elementConstructors.set(tagName, entityConstructor);
+    }
+
+    /** @param {String} tagName */
+    static getConstructor(tagName) {
+        return ElementFactory.#elementConstructors.get(tagName)
+    }
+}
+
+/** @template {(typeof IEntity)[]} T */
+class AlternativesEntity extends IEntity {
+
+    /** @type {(typeof IEntity)[]} */
+    static alternatives = []
+
+    static className() {
+        let result = super.className();
+        if (this.alternatives.length) {
+            result += ".accepting(" + this.alternatives.map(v => v.className()).join(", ") + ")";
+        }
+        return result
+    }
+
+    static createGrammar() {
+        const grammars = this.alternatives.map(entity => entity.grammar);
+        if (this.alternatives.length == 0 || grammars.includes(this.unknownEntityGrammar)) {
+            return this.unknownEntityGrammar
+        }
+        return Parsernostrum.alt(...grammars)
+    }
+
+    /**
+     * @template {(typeof IEntity)[]} Types
+     * @param {Types} types
+     */
+    static accepting(...types) {
+        const result = /** @type {typeof AlternativesEntity<Types> & { alternatives: Types }} */(
+            this.asUniqueClass()
+        );
+        result.alternatives = types;
+        result.grammar = result.createGrammar();
+        return result
+    }
+}
+
+class Grammar {
+
+    /** @type {String} */
+    // @ts-expect-error
+    static numberRegexSource = Parsernostrum.number.getParser().parser.regexp.source
+
+    static separatedBy = (source, separator, min = 1) =>
+        new RegExp(
+            source + "(?:" + separator + source + ")"
+            + (min === 1 ? "*" : min === 2 ? "+" : `{${min},}`)
+        )
+
+    static Regex = class {
+        static HexDigit = /[0-9a-fA-F]/
+        static InsideString = /(?:[^"\\]|\\.)*/
+        static InsideSingleQuotedString = /(?:[^'\\]|\\.)*/
+        static Integer = /[\-\+]?\d+(?!\d|\.)/
+        static Number = /[-\+]?(?:\d*\.)?\d+(?!\d|\.)/
+        static RealUnit = /\+?(?:0(?:\.\d+)?|1(?:\.0+)?)(?![\.\d])/ // A number between 0 and 1 included
+        static Word = Grammar.separatedBy("[a-zA-Z]", "_")
+        static Symbol = /[a-zA-Z_]\w*/
+        static DotSeparatedSymbols = Grammar.separatedBy(this.Symbol.source, "\\.")
+        static MultipleWordsSymbols = Grammar.separatedBy(this.Symbol.source, "(?:\\.|\\ +)")
+        static PathFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:]")
+        static PathSpaceFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:\\ ]")
+        static Path = new RegExp(`(?:\\/${this.PathFragment.source}){2,}`) // Multiple (2+) /PathFragment
+    }
+
+    /*   ---   Primitive   ---   */
+
+    static null = Parsernostrum.reg(/\(\s*\)/).map(() => null)
+    static true = Parsernostrum.reg(/true/i).map(() => true)
+    static false = Parsernostrum.reg(/false/i).map(() => false)
+    static number = Parsernostrum.regArray(
+        // @ts-expect-error
+        new RegExp(`(${Parsernostrum.number.getParser().parser.regexp.source})|(\\+?inf)|(-inf)`)
+    ).map(([_0, n, plusInf, minusInf]) => n ? Number(n) : plusInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY)
+    // @ts-expect-error
+    static bigInt = Parsernostrum.reg(new RegExp(Parsernostrum.number.getParser().parser.regexp.source)).map(BigInt)
+        .map(result =>
+            result[2] !== undefined
+                ? Number.POSITIVE_INFINITY
+                : result[3] !== undefined
+                    ? Number.NEGATIVE_INFINITY
+                    : Number(result[1])
+        )
+    static naturalNumber = Parsernostrum.lazy(() => Parsernostrum.reg(/\d+/).map(Number))
+    static string = Parsernostrum.doubleQuotedString.map(insideString => Utility.unescapeString(insideString))
+
+    /*   ---   Fragment   ---   */
+
+    static colorValue = Parsernostrum.numberByte
+    static word = Parsernostrum.reg(Grammar.Regex.Word)
+    static symbol = Parsernostrum.reg(Grammar.Regex.Symbol)
+    static symbolQuoted = Parsernostrum.reg(new RegExp('"(' + Grammar.Regex.Symbol.source + ')"'), 1)
+    static attributeName = Parsernostrum.reg(Grammar.Regex.DotSeparatedSymbols)
+    static attributeNameQuoted = Parsernostrum.reg(new RegExp('"(' + Grammar.Regex.InsideString.source + ')"'), 1)
+    static guid = Parsernostrum.reg(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
+    static commaSeparation = Parsernostrum.reg(/\s*,\s*(?!\))/)
+    static commaOrSpaceSeparation = Parsernostrum.reg(/\s*,\s*(?!\))|\s+/)
+    static equalSeparation = Parsernostrum.reg(/\s*=\s*/)
+    static hexColorChannel = Parsernostrum.reg(new RegExp(Grammar.Regex.HexDigit.source + "{2}"))
+
+    /*   ---   Factory   ---   */
+
+    /**
+     * @param {typeof IEntity} entityType
+     * @param {String[]} key
+     * @returns {typeof IEntity}
+     */
+    static getAttribute(entityType, [key, ...keys]) {
+        const attribute = entityType?.attributes?.[key];
+        if (!attribute) {
+            return
+        }
+        if (attribute.prototype instanceof AlternativesEntity) {
+            for (const alternative of /** @type {typeof AlternativesEntity} */(attribute).alternatives) {
+                const candidate = this.getAttribute(alternative, keys);
+                if (candidate) {
+                    return candidate
+                }
+            }
+        }
+        if (keys.length > 0) {
+            return this.getAttribute(attribute, keys)
+        }
+        return attribute
+    }
+
+    /** @param {typeof IEntity} entityType */
+    static createAttributeGrammar(
+        entityType,
+        attributeNameGrammar = this.attributeName,
+        valueSeparator = this.equalSeparation,
+        handleObjectSet = (values, attributeKey, attributeValue) => { },
+    ) {
+        return Parsernostrum.seq(
+            attributeNameGrammar,
+            valueSeparator,
+        ).chain(([attributeName, _1]) => {
+            const attributeKey = attributeName.split(Configuration.keysSeparator);
+            const attributeValue = this.getAttribute(entityType, attributeKey);
+            const grammar = attributeValue ? attributeValue.grammar : IEntity.unknownEntityGrammar;
+            return grammar.map(attributeValue =>
+                values => {
+                    Utility.objectSet(values, attributeKey, attributeValue);
+                    handleObjectSet(values, attributeKey, attributeValue);
+                }
+            )
+        })
+    }
+
+    /**
+     * @template {typeof IEntity & (new (...values: any) => InstanceType<T>)} T
+     * @param {T} entityType
+     * @return {Parsernostrum<InstanceType<T>>}
+     */
+    static createEntityGrammar(entityType, entriesSeparator = this.commaSeparation, complete = false, minKeys = 1) {
+        const lookbehind = entityType.lookbehind instanceof Array ? entityType.lookbehind.join("|") : entityType.lookbehind;
+        return Parsernostrum.seq(
+            Parsernostrum.reg(new RegExp(String.raw`(${lookbehind}\s*)\(\s*`), 1),
+            this.createAttributeGrammar(entityType).sepBy(entriesSeparator, minKeys),
+            Parsernostrum.reg(/\s*(,\s*)?\)/, 1), // optional trailing comma
+        )
+            .map(([lookbehind, attributes, trailing]) => {
+                let values = {};
+                if (lookbehind.length) {
+                    values["lookbehind"] = lookbehind;
+                }
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                values["trailing"] = trailing !== undefined;
+                return values
+            })
+            // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
+            .chain(values => {
+                if (entityType.lookbehind instanceof Array || entityType.lookbehind !== lookbehind) {
+                    entityType = entityType.withLookbehind(lookbehind);
+                }
+                const keys = Object.keys(values);
+                return complete
+                    ? Parsernostrum.success()
+                        .assert(v => Object.keys(entityType.attributes).every(k => keys.includes(k)))
+                        .map(() => new entityType(values))
+                    : Parsernostrum.success().map(() => new entityType(values))
+            })
+    }
+}
+
+class ColorChannelEntity extends IEntity {
+
+    static grammar = this.createGrammar()
+
+    constructor(value = 0) {
+        super();
+        this.value = value;
+    }
+
+    static createGrammar() {
+        return  /** @type {P<ColorChannelEntity>} */(
+            Parsernostrum.number.map(v => new this(v))
+        )
+    }
+
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+    ) {
+        let result = this.value.toFixed(6);
+        if (Self.serialized) {
+            result = `"${result}"`;
+        }
+        return result
+    }
+
+    valueOf() {
+        return this.value
+    }
+}
+
+class LinearColorEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        R: ColorChannelEntity.withDefault(),
+        G: ColorChannelEntity.withDefault(),
+        B: ColorChannelEntity.withDefault(),
+        A: ColorChannelEntity.withDefault(type => new type(1)),
+    }
+    static grammar = this.createGrammar()
+
+    #H = new ColorChannelEntity()
+    get H() {
+        return this.#H
+    }
+    set H(value) {
+        this.#H = value;
+    }
+
+    #S = new ColorChannelEntity()
+    get S() {
+        return this.#S
+    }
+    set S(value) {
+        this.#S = value;
+    }
+
+    #V = new ColorChannelEntity()
+    get V() {
+        return this.#V
+    }
+    set V(value) {
+        this.#V = value;
+    }
+
+    constructor(values) {
+        super(values);
+        if (values instanceof Array) {
+            values = {
+                R: values[0] ?? 0,
+                G: values[1] ?? 0,
+                B: values[2] ?? 0,
+                A: values[3] ?? 1,
+            };
+        }
+        /** @type {InstanceType<typeof LinearColorEntity.attributes.R>} */ this.R;
+        /** @type {InstanceType<typeof LinearColorEntity.attributes.G>} */ this.G;
+        /** @type {InstanceType<typeof LinearColorEntity.attributes.B>} */ this.B;
+        /** @type {InstanceType<typeof LinearColorEntity.attributes.A>} */ this.A;
+        this.#updateHSV();
+    }
+
+    static createGrammar() {
+        return /** @type {P<LinearColorEntity>} */(
+            Grammar.createEntityGrammar(this).label("LinearColorEntity")
+        )
+    }
+
+    /** @param {LinearColorEntity} value */
+    static printLinearColor(value) {
+        return `${Math.round(value.R.valueOf() * 255)}, ${Math.round(value.G.valueOf() * 255)}, ${Math.round(value.B.valueOf() * 255)}`
+    }
+
+    /** @param {Number} x */
+    static linearToSRGB(x) {
+        if (x <= 0) {
+            return 0
+        } else if (x >= 1) {
+            return 1
+        } else if (x < 0.0031308) {
+            return x * 12.92
+        } else {
+            return Math.pow(x, 1 / 2.4) * 1.055 - 0.055
+        }
+    }
+
+    /** @param {Number} x */
+    static sRGBtoLinear(x) {
+        if (x <= 0) {
+            return 0
+        } else if (x >= 1) {
+            return 1
+        } else if (x < 0.04045) {
+            return x / 12.92
+        } else {
+            return Math.pow((x + 0.055) / 1.055, 2.4)
+        }
+    }
+
+    static getWhite() {
+        return new LinearColorEntity({
+            R: new ColorChannelEntity(1),
+            G: new ColorChannelEntity(1),
+            B: new ColorChannelEntity(1),
+        })
+    }
+
+    static getLinearColorFromHexGrammar() {
+        const hexDigit = /[0-9a-fA-F]/;
+        return Parsernostrum.regArray(new RegExp(
+            "#(" + hexDigit.source + "{2})"
+            + "(" + hexDigit.source + "{2})"
+            + "(" + hexDigit.source + "{2})"
+            + "(" + hexDigit.source + "{2})?"
+        )).map(([m, R, G, B, A]) => new this({
+            R: parseInt(R, 16) / 255,
+            G: parseInt(G, 16) / 255,
+            B: parseInt(B, 16) / 255,
+            A: parseInt(A ?? "FF", 16) / 255,
+        }))
+    }
+
+    static getLinearColorRGBListGrammar() {
+        return Parsernostrum.seq(
+            Parsernostrum.numberByte,
+            Grammar.commaSeparation,
+            Parsernostrum.numberByte,
+            Grammar.commaSeparation,
+            Parsernostrum.numberByte,
+        ).map(([R, _1, G, _3, B]) => new this({
+            R: R / 255,
+            G: G / 255,
+            B: B / 255,
+            A: 1,
+        }))
+    }
+
+    static getLinearColorRGBGrammar() {
+        return Parsernostrum.seq(
+            Parsernostrum.reg(/rgb\s*\(\s*/),
+            this.getLinearColorRGBListGrammar(),
+            Parsernostrum.reg(/\s*\)/)
+        ).map(([_0, linearColor, _2]) => linearColor)
+    }
+
+    static getLinearColorRGBAGrammar() {
+        return Parsernostrum.seq(
+            Parsernostrum.reg(/rgba\s*\(\s*/),
+            this.getLinearColorRGBListGrammar(),
+            Parsernostrum.reg(/\s*\)/)
+        ).map(([_0, linearColor, _2]) => linearColor)
+    }
+
+    static getLinearColorFromAnyFormat() {
+        return Parsernostrum.alt(
+            this.getLinearColorFromHexGrammar(),
+            this.getLinearColorRGBAGrammar(),
+            this.getLinearColorRGBGrammar(),
+            this.getLinearColorRGBListGrammar(),
+        )
+    }
+
+    #updateHSV() {
+        const r = this.R.value;
+        const g = this.G.value;
+        const b = this.B.value;
+        if (Utility.approximatelyEqual(r, g) && Utility.approximatelyEqual(r, b) && Utility.approximatelyEqual(g, b)) {
+            this.S.value = 0;
+            this.V.value = r;
+            return
+        }
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const d = max - min;
+        let h;
+        switch (max) {
+            case min:
+                h = 0;
+                break
+            case r:
+                h = (g - b) / d + (g < b ? 6 : 0);
+                break
+            case g:
+                h = (b - r) / d + 2;
+                break
+            case b:
+                h = (r - g) / d + 4;
+                break
+        }
+        h /= 6;
+        this.H.value = h;
+        this.S.value = max == 0 ? 0 : d / max;
+        this.V.value = max;
+    }
+
+    /**
+     * @param {Number} r
+     * @param {Number} g
+     * @param {Number} b
+     * @param {Number} a
+     */
+    setFromRGBA(r, g, b, a = 1) {
+        this.R.value = r;
+        this.G.value = g;
+        this.B.value = b;
+        this.A.value = a;
+        this.#updateHSV();
+    }
+
+    /**
+     * @param {Number} h
+     * @param {Number} s
+     * @param {Number} v
+     * @param {Number} a
+     */
+    setFromHSVA(h, s, v, a = 1) {
+        const i = Math.floor(h * 6);
+        const f = h * 6 - i;
+        const p = v * (1 - s);
+        const q = v * (1 - f * s);
+        const t = v * (1 - (1 - f) * s);
+        const values = [v, q, p, p, t, v];
+        const [r, g, b] = [values[i % 6], values[(i + 4) % 6], values[(i + 2) % 6]];
+        this.R.value = r;
+        this.G.value = g;
+        this.B.value = b;
+        this.A.value = a;
+        this.H.value = h;
+        this.S.value = s;
+        this.V.value = v;
+    }
+
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     * @param {Number} v
+     * @param {Number} a
+     */
+    setFromWheelLocation(x, y, v, a) {
+        const [r, theta] = Utility.getPolarCoordinates(x, y, true);
+        this.setFromHSVA(1 - theta / (2 * Math.PI), r, v, a);
+    }
+
+    toDimmedColor(minV = 0) {
+        const result = new LinearColorEntity();
+        result.setFromRGBANumber(this.toNumber());
+        result.setFromHSVA(
+            result.H.value,
+            result.S.value * 0.6,
+            Math.pow(result.V.value + minV, 0.55) * 0.7
+        );
+        return result
+    }
+
+    toCSSRGBValues() {
+        const r = Math.round(this.R.value * 255);
+        const g = Math.round(this.G.value * 255);
+        const b = Math.round(this.B.value * 255);
+        return i$3`${r}, ${g}, ${b}`
+    }
+
+    toRGBA() {
+        return [
+            Math.round(this.R.value * 255),
+            Math.round(this.G.value * 255),
+            Math.round(this.B.value * 255),
+            Math.round(this.A.value * 255),
+        ]
+    }
+
+    toSRGBA() {
+        return [
+            Math.round(LinearColorEntity.linearToSRGB(this.R.value) * 255),
+            Math.round(LinearColorEntity.linearToSRGB(this.G.value) * 255),
+            Math.round(LinearColorEntity.linearToSRGB(this.B.value) * 255),
+            Math.round(this.A.value * 255),
+        ]
+    }
+
+    toRGBAString() {
+        return this
+            .toRGBA()
+            .map(v => v.toString(16).toUpperCase().padStart(2, "0"))
+            .join("")
+    }
+
+    toSRGBAString() {
+        return this
+            .toSRGBA()
+            .map(v => v.toString(16).toUpperCase().padStart(2, "0"))
+            .join("")
+    }
+
+    toHSVA() {
+        return [this.H.value, this.S.value, this.V.value, this.A.value]
+    }
+
+    toNumber() {
+        return (
+            Math.round(this.R.value * 0xff) << 24)
+            + (Math.round(this.G.value * 0xff) << 16)
+            + (Math.round(this.B.value * 0xff) << 8)
+            + Math.round(this.A.value * 0xff)
+    }
+
+    /** @returns {[Number, Number, Number, Number]} */
+    toArray() {
+        return [this.R.value, this.G.value, this.B.value, this.A.value]
+    }
+
+    /** @param {Number} number */
+    setFromRGBANumber(number) {
+        this.A.value = (number & 0xff) / 0xff;
+        this.B.value = ((number >> 8) & 0xff) / 0xff;
+        this.G.value = ((number >> 16) & 0xff) / 0xff;
+        this.R.value = ((number >> 24) & 0xff) / 0xff;
+        this.#updateHSV();
+    }
+
+    /** @param {Number} number */
+    setFromSRGBANumber(number) {
+        this.A.value = (number & 0xff) / 0xff;
+        this.B.value = LinearColorEntity.sRGBtoLinear(((number >> 8) & 0xff) / 0xff);
+        this.G.value = LinearColorEntity.sRGBtoLinear(((number >> 16) & 0xff) / 0xff);
+        this.R.value = LinearColorEntity.sRGBtoLinear(((number >> 24) & 0xff) / 0xff);
+        this.#updateHSV();
+    }
+
+    toString() {
+        return LinearColorEntity.printLinearColor(this)
+    }
+}
+
+/** @param {ObjectEntity} entity */
+function nodeColor(entity) {
+    switch (entity.getType()) {
+        case Configuration.paths.materialExpressionConstant2Vector:
+        case Configuration.paths.materialExpressionConstant3Vector:
+        case Configuration.paths.materialExpressionConstant4Vector:
+            return Configuration.nodeColors.yellow
+        case Configuration.paths.materialExpressionFunctionInput:
+        case Configuration.paths.materialExpressionTextureCoordinate:
+        case Configuration.paths.materialExpressionWorldPosition:
+        case Configuration.paths.pcgEditorGraphNodeInput:
+        case Configuration.paths.pcgEditorGraphNodeOutput:
+            return Configuration.nodeColors.red
+        case Configuration.paths.makeStruct:
+            return Configuration.nodeColors.darkBlue
+        case Configuration.paths.materialExpressionMaterialFunctionCall:
+            return Configuration.nodeColors.blue
+        case Configuration.paths.materialExpressionTextureSample:
+            return Configuration.nodeColors.darkTurquoise
+    }
+    switch (entity.getClass()) {
+        case Configuration.paths.callFunction:
+            return entity.bIsPureFunc?.valueOf()
+                ? Configuration.nodeColors.green
+                : Configuration.nodeColors.blue
+        case Configuration.paths.niagaraNodeFunctionCall:
+            return Configuration.nodeColors.darkerBlue
+        case Configuration.paths.dynamicCast:
+            return Configuration.nodeColors.turquoise
+        case Configuration.paths.inputDebugKey:
+        case Configuration.paths.inputKey:
+            return Configuration.nodeColors.red
+        case Configuration.paths.createDelegate:
+        case Configuration.paths.enumLiteral:
+        case Configuration.paths.makeArray:
+        case Configuration.paths.makeMap:
+        case Configuration.paths.materialGraphNode:
+        case Configuration.paths.select:
+            return Configuration.nodeColors.green
+        case Configuration.paths.executionSequence:
+        case Configuration.paths.ifThenElse:
+        case Configuration.paths.macro:
+        case Configuration.paths.multiGate:
+            return Configuration.nodeColors.gray
+        case Configuration.paths.functionEntry:
+        case Configuration.paths.functionResult:
+            return Configuration.nodeColors.violet
+        case Configuration.paths.timeline:
+            return Configuration.nodeColors.yellow
+    }
+    if (entity.switchTarget()) {
+        return Configuration.nodeColors.lime
+    }
+    if (entity.isEvent()) {
+        return Configuration.nodeColors.red
+    }
+    if (entity.isComment()) {
+        return (entity.CommentColor ? entity.CommentColor : LinearColorEntity.getWhite())
+            .toDimmedColor()
+            .toCSSRGBValues()
+    }
+    const pcgSubobject = entity.getPcgSubobject();
+    if (pcgSubobject) {
+        if (pcgSubobject.NodeTitleColor) {
+            return pcgSubobject.NodeTitleColor.toDimmedColor(0.1).toCSSRGBValues()
+        }
+        switch (entity.PCGNode?.getName(true)) {
+            case "Branch":
+            case "Select":
+                return Configuration.nodeColors.intenseGreen
+        }
+    }
+    if (entity.bIsPureFunc?.valueOf()) {
+        return Configuration.nodeColors.green
+    }
+    return Configuration.nodeColors.blue
+}
+
+/** @template {typeof IEntity} T */
+class MirroredEntity extends IEntity {
+
+    /** @type {typeof IEntity} */
+    static type
+
+    /** @param {() => InstanceType<T>} getter */
+    constructor(getter = null) {
+        super();
+        const self = /** @type {typeof MirroredEntity<T>} */(this.constructor);
+        getter ??= self.default !== undefined ? /** @type {MirroredEntity} */(self.default(self)).getter : getter;
+        this.getter = getter;
+    }
+
+    static createGrammar(elementGrammar = this.type?.grammar ?? Parsernostrum.lazy(() => this.unknownEntityGrammar)) {
+        return this.type?.grammar.map(v => new this(() => v))
+    }
+
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     * @param {(type: T) => (InstanceType<T> | NullEntity)} value
+     * @returns {T}
+     */
+    // @ts-expect-error
+    static withDefault(value = type => new type(() => new (type.type)())) {
+        // @ts-expect-error
+        return super.withDefault(value)
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @param {T} type
+     */
+    static of(type) {
+        const result = /** @type {{type: T, grammar: P<MirroredEntity<T>> } & typeof MirroredEntity<T>} */(
+            this.asUniqueClass()
+        );
+        result.type = type;
+        result.grammar = result.createGrammar();
+        return result
+    }
+
+    doSerialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof MirroredEntity<T>} */(this.constructor),
+        printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
+        wrap = Self.wrap,
+    ) {
+        const value = this.getter();
+        return value.serialize(insideString, indentation, Self.type, printKey, keySeparator, attributeSeparator, wrap)
+    }
+
+    /** @param {IEntity} other */
+    equals(other) {
+        if (other instanceof MirroredEntity) {
+            other = other.getter?.();
+        }
+        return this.getter?.().equals(other)
+    }
+
+    valueOf() {
+        this.valueOf = this.getter().valueOf.bind(this.getter());
+        return this.valueOf()
+    }
+
+    toString() {
+        this.toString = this.getter().toString.bind(this.getter());
+        return this.toString()
+    }
+}
+
+class NumberEntity extends IEntity {
+
+    static numberRegexSource = String.raw`${Grammar.numberRegexSource}(?<=(?:\.(\d*0+))?)`
+    static grammar = this.createGrammar()
+    /** @type {Number} */
+    static precision // Can override this.precision
+
+    #precision
+    get precision() {
+        return /** @type {typeof NumberEntity} */(this.constructor).precision ?? this.#precision
+    }
+    set precision(value) {
+        this.#precision = value;
+    }
+
+    /**
+     * @protected
+     * @type {Number}
+     */
+    _value
+    get value() {
+        return this._value
+    }
+    set value(value) {
+        if (value === -0) {
+            value = 0;
+        }
+        this._value = value;
+    }
+
+    constructor(value = 0, precision = null) {
+        super();
+        this.value = Number(value);
+        if (precision !== null) {
+            this.#precision = Number(precision);
+        }
+    }
+
+    static createGrammar() {
+        return /** @type {P<NumberEntity>} */(
+            Parsernostrum.regArray(
+                new RegExp(`(?<n>${this.numberRegexSource})|(?<posInf>\\+?inf)|(?<negInf>-inf)`)
+            ).map(({ 2: precision, groups: { n, posInf, negInf } }) => new this(
+                n ? Number(n) : posInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY,
+                precision?.length
+            )
+            ).label("NumberEntity")
+        )
+    }
+
+    /**
+     * @template {typeof NumberEntity} T
+     * @this {T}
+     * @returns {T}
+     */
+    static withPrecision(value = 0) {
+        const result = this.asUniqueClass();
+        result.precision = value;
+        return result
+    }
+
+    /** @param {Number} num */
+    static printNumber(num) {
+        if (num == Number.POSITIVE_INFINITY) {
+            return "inf"
+        } else if (num == Number.NEGATIVE_INFINITY) {
+            return "-inf"
+        }
+        return Utility.minDecimals(num)
+    }
+
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof NumberEntity} */(this.constructor),
+    ) {
+        if (this.value === Number.POSITIVE_INFINITY) {
+            return "+inf"
+        }
+        if (this.value === Number.NEGATIVE_INFINITY) {
+            return "-inf"
+        }
+        const precision = Self.precision ?? this.precision;
+        let result = precision !== undefined ? this.value.toFixed(precision) : this.value.toString();
+        if (Self.serialized) {
+            result = `"${result}"`;
+        }
+        return result
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value.toString()
+    }
+}
+
+class VectorEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        X: NumberEntity.withDefault(),
+        Y: NumberEntity.withDefault(),
+        Z: NumberEntity.withDefault(),
+    }
+    static grammar = this.createGrammar()
+
+    constructor(values) {
+        super(values);
+        /** @type {InstanceType<typeof VectorEntity.attributes.X>} */ this.X;
+        /** @type {InstanceType<typeof VectorEntity.attributes.Y>} */ this.Y;
+        /** @type {InstanceType<typeof VectorEntity.attributes.X>} */ this.Z;
+    }
+    c
+    static createGrammar() {
+        return /** @type {P<VectorEntity>} */(
+            Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("VectorEntity")
+        )
+    }
+
+    /** @returns {[Number, Number, Number]} */
+    toArray() {
+        return [this.X.valueOf(), this.Y.valueOf(), this.Z.valueOf()]
+    }
+}
+
 const sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/;
 const keyNameValue = {
     "A_AccentGrave": "à",
@@ -3943,43 +3963,63 @@ const keyNameValue = {
     "Tilde": "`",
 };
 
+/** @param {String} value */
+function numberFromText(value = "") {
+    value = value.toLowerCase();
+    switch (value) {
+        case "zero": return 0
+        case "one": return 1
+        case "two": return 2
+        case "three": return 3
+        case "four": return 4
+        case "five": return 5
+        case "six": return 6
+        case "seven": return 7
+        case "eight": return 8
+        case "nine": return 9
+    }
+}
+
 function keyName(value) {
     /** @type {String} */
     let result = keyNameValue[value];
     if (result) {
         return result
     }
-    result = Utility.numberFromText(value)?.toString();
+    result = numberFromText(value)?.toString();
     if (result) {
         return result
     }
     const match = value.match(/NumPad([a-zA-Z]+)/);
     if (match) {
-        result = Utility.numberFromText(match[1]).toString();
+        result = numberFromText(match[1]).toString();
         if (result) {
             return "Num " + result
         }
     }
 }
 
-/** @param {ObjectEntity} entity */
+/**
+ * @param {ObjectEntity} entity
+ * @returns {String}
+ */
 function nodeTitle(entity) {
     let input;
     switch (entity.getType()) {
         case Configuration.paths.asyncAction:
             if (entity.ProxyFactoryFunctionName) {
-                return Utility.formatStringName(entity.ProxyFactoryFunctionName)
+                return Utility.formatStringName(entity.ProxyFactoryFunctionName?.toString())
             }
         case Configuration.paths.actorBoundEvent:
         case Configuration.paths.componentBoundEvent:
-            return `${Utility.formatStringName(entity.DelegatePropertyName)} (${entity.ComponentPropertyName ?? "Unknown"})`
+            return `${Utility.formatStringName(entity.DelegatePropertyName?.toString())} (${entity.ComponentPropertyName?.toString() ?? "Unknown"})`
         case Configuration.paths.callDelegate:
-            return `Call ${entity.DelegateReference?.MemberName ?? "None"}`
+            return `Call ${entity.DelegateReference?.MemberName?.toString() ?? "None"}`
         case Configuration.paths.createDelegate:
             return "Create Event"
         case Configuration.paths.customEvent:
             if (entity.CustomFunctionName) {
-                return entity.CustomFunctionName
+                return entity.CustomFunctionName?.toString()
             }
         case Configuration.paths.dynamicCast:
             if (!entity.TargetType) {
@@ -3989,7 +4029,7 @@ function nodeTitle(entity) {
         case Configuration.paths.enumLiteral:
             return `Literal enum ${entity.Enum?.getName()}`
         case Configuration.paths.event:
-            return `Event ${(entity.EventReference?.MemberName ?? "").replace(/^Receive/, "")}`
+            return `Event ${(entity.EventReference?.MemberName?.toString() ?? "").replace(/^Receive/, "")}`
         case Configuration.paths.executionSequence:
             return "Sequence"
         case Configuration.paths.forEachElementInEnum:
@@ -3997,9 +4037,9 @@ function nodeTitle(entity) {
         case Configuration.paths.forEachLoopWithBreak:
             return "For Each Loop with Break"
         case Configuration.paths.functionEntry:
-            return entity.FunctionReference?.MemberName === "UserConstructionScript"
+            return entity.FunctionReference?.MemberName?.toString() === "UserConstructionScript"
                 ? "Construction Script"
-                : entity.FunctionReference?.MemberName
+                : entity.FunctionReference?.MemberName?.toString()
         case Configuration.paths.functionResult:
             return "Return Node"
         case Configuration.paths.ifThenElse:
@@ -4010,36 +4050,32 @@ function nodeTitle(entity) {
             }
         case Configuration.paths.materialExpressionComponentMask: {
             const materialObject = entity.getMaterialSubobject();
-            return `Mask ( ${Configuration.rgba
-                .filter(k => /** @type {MirroredEntity<any>} */(materialObject[k]).get() === true)
-                .map(v => v + " ")
-                .join("")})`
+            if (materialObject) {
+                return `Mask ( ${Configuration.rgba
+                    .filter(k => /** @type {MirroredEntity<typeof BooleanEntity>} */(materialObject[k]).getter().value === true)
+                    .map(v => v + " ")
+                    .join("")})`
+            }
         }
         case Configuration.paths.materialExpressionConstant:
-            input ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName == "Value")?.DefaultValue];
+            input ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName.toString() == "Value")?.DefaultValue];
         case Configuration.paths.materialExpressionConstant2Vector:
             input ??= [
-                entity.getCustomproperties().find(pinEntity => pinEntity.PinName == "X")?.DefaultValue,
-                entity.getCustomproperties().find(pinEntity => pinEntity.PinName == "Y")?.DefaultValue,
+                entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "X")?.DefaultValue,
+                entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "Y")?.DefaultValue,
             ];
         case Configuration.paths.materialExpressionConstant3Vector:
-            if (!input) {
-                /** @type {VectorEntity} */
-                const vector = entity.getCustomproperties()
-                    .find(pinEntity => pinEntity.PinName == "Constant")
-                    ?.DefaultValue;
-                input = [vector.X, vector.Y, vector.Z];
-            }
         case Configuration.paths.materialExpressionConstant4Vector:
             if (!input) {
-                /** @type {LinearColorEntity} */
                 const vector = entity.getCustomproperties()
-                    .find(pinEntity => pinEntity.PinName == "Constant")
+                    .find(pinEntity => pinEntity.PinName?.toString() == "Constant")
                     ?.DefaultValue;
-                input = [vector.R, vector.G, vector.B, vector.A].map(v => v.valueOf());
+                input = vector instanceof VectorEntity ? [vector.X, vector.Y, vector.Z].map(v => v.valueOf())
+                    : vector instanceof LinearColorEntity ? [vector.R, vector.G, vector.B, vector.A].map(v => v.valueOf())
+                        : /** @type {Number[]} */([]);
             }
             if (input.length > 0) {
-                return input.map(v => Utility.printExponential(v)).reduce((acc, cur) => acc + "," + cur)
+                return input.map(v => Utility.printExponential(v)).join(",")
             }
             break
         case Configuration.paths.materialExpressionFunctionInput: {
@@ -4062,6 +4098,11 @@ function nodeTitle(entity) {
             break
         case Configuration.paths.materialExpressionSquareRoot:
             return "Sqrt"
+        case Configuration.paths.materialExpressionSubtract:
+            const materialObject = entity.getMaterialSubobject();
+            if (materialObject) {
+                return `Subtract(${materialObject.ConstA ?? "1"},${materialObject.ConstB ?? "1"})`
+            }
         case Configuration.paths.metasoundEditorGraphExternalNode: {
             const name = entity["ClassName"]?.["Name"];
             if (name) {
@@ -4077,7 +4118,7 @@ function nodeTitle(entity) {
             return "Output"
         case Configuration.paths.spawnActorFromClass:
             let className = entity.getCustomproperties()
-                .find(pinEntity => pinEntity.PinName == "ReturnValue")
+                .find(pinEntity => pinEntity.PinName.toString() == "ReturnValue")
                 ?.PinType
                 ?.PinSubCategoryObject
                 ?.getName();
@@ -4102,7 +4143,7 @@ function nodeTitle(entity) {
         return `Switch on ${switchTarget}`
     }
     if (entity.isComment()) {
-        return entity.NodeComment
+        return entity.NodeComment.toString()
     }
     const keyNameSymbol = entity.getHIDAttribute();
     if (keyNameSymbol) {
@@ -4125,7 +4166,7 @@ function nodeTitle(entity) {
     }
     if (entity.isPcg() && entity.getPcgSubobject()) {
         let pcgSubobject = entity.getPcgSubobject();
-        let result = pcgSubobject.NodeTitle ? pcgSubobject.NodeTitle : nodeTitle(pcgSubobject);
+        let result = pcgSubobject.NodeTitle ? pcgSubobject.NodeTitle.toString() : nodeTitle(pcgSubobject);
         return result
     }
     const subgraphObject = entity.getSubgraphObject();
@@ -4144,7 +4185,7 @@ function nodeTitle(entity) {
             return Utility.formatStringName(settingsObject.BlueprintElementType.getName())
         }
         if (settingsObject.Operation) {
-            const match = settingsObject.Name.match(/PCGMetadata(\w+)Settings_\d+/);
+            const match = settingsObject.Name?.toString().match(/PCGMetadata(\w+)Settings_\d+/);
             if (match) {
                 return Utility.formatStringName(match[1] + ": " + settingsObject.Operation)
             }
@@ -4154,7 +4195,7 @@ function nodeTitle(entity) {
             return settingsSubgraphObject.Graph.getName()
         }
     }
-    let memberName = entity.FunctionReference?.MemberName;
+    let memberName = entity.FunctionReference?.MemberName?.toString();
     if (memberName) {
         const memberParent = entity.FunctionReference.MemberParent?.path ?? "";
         switch (memberName) {
@@ -4291,7 +4332,7 @@ function nodeTitle(entity) {
         return Utility.formatStringName(memberName)
     }
     if (entity.OpName) {
-        switch (entity.OpName) {
+        switch (entity.OpName.toString()) {
             case "Boolean::LogicAnd": return "Logic AND"
             case "Boolean::LogicEq": return "=="
             case "Boolean::LogicNEq": return "!="
@@ -4304,10 +4345,10 @@ function nodeTitle(entity) {
             case "Numeric::DistancePos": return "Distance"
             case "Numeric::Mul": return String.fromCharCode(0x2a2f)
         }
-        return Utility.formatStringName(entity.OpName).replaceAll("::", " ")
+        return Utility.formatStringName(entity.OpName.toString()).replaceAll("::", " ")
     }
     if (entity.FunctionDisplayName) {
-        return Utility.formatStringName(entity.FunctionDisplayName)
+        return Utility.formatStringName(entity.FunctionDisplayName.toString())
     }
     if (entity.ObjectRef) {
         return entity.ObjectRef.getName()
@@ -4390,8 +4431,112 @@ function nodeIcon(entity) {
     return SVGIcon.functionSymbol
 }
 
+/** @template {typeof IEntity} T */
+class ArrayEntity extends IEntity {
+
+    /** @type {typeof IEntity} */
+    static type
+    static grammar = this.createGrammar()
+
+    get length() {
+        return this.values.length
+    }
+
+    /** @param {(ExtractType<T>)[]} values */
+    constructor(values = []) {
+        super();
+        this.values = values;
+    }
+
+    /** @returns {P<ArrayEntity<typeof IEntity>>} */
+    static createGrammar(elementGrammar = this.type?.grammar ?? Parsernostrum.lazy(() => this.unknownEntityGrammar)) {
+        return this.inlined
+            ? elementGrammar
+            : Parsernostrum.seq(
+                Parsernostrum.reg(/\(\s*/),
+                elementGrammar.sepBy(Grammar.commaSeparation).opt(),
+                Parsernostrum.reg(/\s*(,\s*)?\)/, 1),
+            ).map(([_0, values, trailing]) => {
+                values = values instanceof Array ? values : [];
+                const result = new this(values);
+                result.trailing = trailing !== undefined;
+                return result
+            }).label(`ArrayEntity of ${this.type?.className() ?? "unknown values"}`)
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagInlined(value = true) {
+        const result = this.asUniqueClass();
+        result.inlined = value;
+        result.grammar = /** @type {P<ArrayEntity>} */(result.createGrammar());
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @param {T} type
+     */
+    static of(type) {
+        const result = /** @type {{type: T, grammar: P<ArrayEntity<T>> } & typeof ArrayEntity<T>} */(
+            this.asUniqueClass()
+        );
+        result.type = type;
+        result.grammar = /** @type {P<ArrayEntity>} */(result.createGrammar());
+        return result
+    }
+
+    doSerialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof ArrayEntity<T>} */(this.constructor),
+        printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
+        wrap = Self.wrap,
+    ) {
+        if (Self.inlined) {
+            return super.serialize.bind(
+                this.values,
+                insideString,
+                indentation,
+                Self,
+                printKey,
+                keySeparator,
+                attributeSeparator,
+                wrap
+            )()
+        }
+        let result = this.values.map(v => v?.serialize(insideString)).join(Self.attributeSeparator);
+        if (this.trailing) {
+            result += Self.attributeSeparator;
+        }
+        return `(${result})`
+    }
+
+    valueOf() {
+        return this.values
+    }
+
+    /** @param {IEntity} other */
+    equals(other) {
+        if (!(other instanceof ArrayEntity) || this.values.length !== other.values.length) {
+            return false
+        }
+        for (let i = 0; i < this.values.length; ++i) {
+            if (!this.values[i].equals(other.values[i])) {
+                return false
+            }
+        }
+        return true
+    }
+}
+
 var crypto;
 if (typeof window === "undefined") {
+    // When used in nodejs, mainly for test purpose
     import('crypto').then(mod => crypto = mod.default).catch();
 } else {
     crypto = window.crypto;
@@ -4399,175 +4544,39 @@ if (typeof window === "undefined") {
 
 class GuidEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: AttributeInfo.createValue(""),
-    }
     static grammar = this.createGrammar()
 
-    static createGrammar() {
-        return Grammar.guid.map(v => new this(v))
-    }
-
-    static generateGuid(random = true) {
+    static generateGuid() {
         let values = new Uint32Array(4);
-        if (random === true) {
-            crypto.getRandomValues(values);
-        }
+        crypto.getRandomValues(values);
         let guid = "";
         values.forEach(n => {
             guid += ("0".repeat(8) + n.toString(16).toUpperCase()).slice(-8);
         });
-        return new GuidEntity({ value: guid })
+        return guid
     }
 
-    constructor(values) {
-        if (!values) {
-            values = GuidEntity.generateGuid().value;
-        }
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            };
-        }
-        super(values);
-        /** @type {String} */ this.value;
-    }
-
-    valueOf() {
-        return this.value
-    }
-
-    toString() {
-        return this.value
-    }
-}
-
-class ObjectReferenceEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        type: new AttributeInfo({
-            default: "",
-            serialized: true,
-        }),
-        path: new AttributeInfo({
-            default: "",
-            serialized: true,
-        }),
-        _full: new AttributeInfo({
-            ignored: true,
-        }),
-    }
-    static quoted = Parsernostrum.regArray(new RegExp(
-        `'"(${Grammar.Regex.InsideString.source})"'`
-        + "|"
-        + `'(${Grammar.Regex.InsideSingleQuotedString.source})'`
-    )).map(([_0, a, b]) => a ?? b)
-    static path = this.quoted.getParser().parser.regexp.source + "|" + Grammar.Regex.Path.source
-    static typeReference = Parsernostrum.reg(
-        new RegExp(Grammar.Regex.Path.source + "|" + Grammar.symbol.getParser().regexp.source)
-    )
-    static fullReferenceGrammar = Parsernostrum.regArray(
-        new RegExp(
-            "(" + this.typeReference.getParser().regexp.source + ")"
-            + "(?:" + this.quoted.getParser().parser.regexp.source + ")"
-        )
-    ).map(([_full, type, ...path]) => new this({ type, path: path.find(v => v), _full }))
-    static fullReferenceSerializedGrammar = Parsernostrum.regArray(
-        new RegExp(
-            '"(' + Grammar.Regex.InsideString.source + "?)"
-            + "(?:'(" + Grammar.Regex.InsideSingleQuotedString.source + `?)')?"`
-        )
-    ).map(([_full, type, path]) => new this({ type, path, _full }))
-    static typeReferenceGrammar = this.typeReference.map(v => new this({ type: v, path: "", _full: v }))
-    static grammar = this.createGrammar()
-
-    constructor(values = {}) {
-        if (values.constructor === String) {
-            values = {
-                path: values
-            };
-        }
-        super(values);
-        if (!values._full || values._full.length === 0) {
-            this._full = `"${this.type + (this.path ? (`'${this.path}'`) : "")}"`;
-        }
-        /** @type {String} */ this.type;
-        /** @type {String} */ this.path;
+    constructor(value = GuidEntity.generateGuid()) {
+        super();
+        this.value = value;
     }
 
     static createGrammar() {
-        return Parsernostrum.alt(
-            this.fullReferenceSerializedGrammar,
-            this.fullReferenceGrammar,
-            this.typeReferenceGrammar,
+        return /** @type {P<GuidEntity>} */(
+            Parsernostrum.reg(/[0-9A-F]{32}/i).map(v => new this(v)).label("GuidEntity")
         )
     }
 
-    static createNoneInstance() {
-        return new ObjectReferenceEntity({ type: "None", path: "" })
-    }
-
-    getName(dropCounter = false) {
-        return Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
-    }
-
-    toString() {
-        return this._full
-    }
-}
-
-class FunctionReferenceEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        MemberParent: AttributeInfo.createType(ObjectReferenceEntity),
-        MemberName: AttributeInfo.createType(String),
-        MemberGuid: AttributeInfo.createType(GuidEntity),
-    }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this)
-    }
-
-    constructor(values) {
-        super(values);
-        /** @type {ObjectReferenceEntity} */ this.MemberParent;
-        /** @type {String} */ this.MemberName;
-        /** @type {GuidEntity} */ this.MemberGuid;
-    }
-}
-
-class IdentifierEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        value: AttributeInfo.createValue(""),
-    }
-    static attributeConverter = {
-        fromAttribute: (value, type) => new IdentifierEntity(value),
-        toAttribute: (value, type) => value.toString()
-    }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Grammar.symbol.map(v => new this(v))
-    }
-
-    constructor(values) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            };
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+    ) {
+        let result = this.value;
+        if (Self.serialized) {
+            result = `"${result}"`;
         }
-        super(values);
-        /** @type {String} */ this.value;
-    }
-
-    valueOf() {
-        return this.value
+        return result
     }
 
     toString() {
@@ -4575,78 +4584,44 @@ class IdentifierEntity extends IEntity {
     }
 }
 
-class IntegerEntity extends IEntity {
+class IntegerEntity extends NumberEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: new AttributeInfo({
-            default: 0,
-            predicate: v => v % 1 == 0 && v > 1 << 31 && v < -(1 << 31),
-        }),
-    }
     static grammar = this.createGrammar()
 
+    get value() {
+        return super.value
+    }
+    set value(value) {
+        value = Math.trunc(value);
+        if (value >= 1 << 31 && value < -(1 << 31)) {
+            value = Math.floor(value);
+            super.value = value;
+        }
+    }
+
     static createGrammar() {
-        return Parsernostrum.numberInteger.map(v => new this(v))
-    }
-
-    /** @param {Number | Object} values */
-    constructor(values = 0) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            };
-        }
-        values.value = Math.floor(values.value);
-        if (values.value === -0) {
-            values.value = 0;
-        }
-        super(values);
-        /** @type {Number} */ this.value;
-    }
-
-    valueOf() {
-        return this.value
-    }
-
-    toString() {
-        return this.value.toString()
+        return /** @type {P<IntegerEntity>} */(
+            Parsernostrum.numberInteger.map(v => new this(v))
+        )
     }
 }
 
-class MacroGraphReferenceEntity extends IEntity {
+class NaturalNumberEntity extends IntegerEntity {
 
-    static attributes = {
-        ...super.attributes,
-        MacroGraph: new AttributeInfo({
-            type: ObjectReferenceEntity,
-            default: () => new ObjectReferenceEntity(),
-        }),
-        GraphBlueprint: new AttributeInfo({
-            type: ObjectReferenceEntity,
-            default: () => new ObjectReferenceEntity(),
-        }),
-        GraphGuid: new AttributeInfo({
-            type: GuidEntity,
-            default: () => new GuidEntity(),
-        }),
-    }
     static grammar = this.createGrammar()
 
+    get value() {
+        return super.value
+    }
+    set value(value) {
+        value = Math.round(Utility.clamp(value, 0));
+        super.value = value;
+    }
+
     static createGrammar() {
-        return Grammar.createEntityGrammar(this)
-    }
-
-    constructor(values) {
-        super(values);
-        /** @type {ObjectReferenceEntity} */ this.MacroGraph;
-        /** @type {ObjectReferenceEntity} */ this.GraphBlueprint;
-        /** @type {GuidEntity} */ this.GuidEntity;
-    }
-
-    getMacroName() {
-        const colonIndex = this.MacroGraph.path.search(":");
-        return this.MacroGraph.path.substring(colonIndex + 1)
+        return /** @type {P<NaturalNumberEntity>} */(
+            Parsernostrum.numberNatural.map(v => new this(v))
+        )
     }
 }
 
@@ -4701,32 +4676,28 @@ const colors = {
 
 const pinColorMaterial = i$3`120, 120, 120`;
 
-/** @param {PinEntity} entity */
+/** @param {PinEntity<IEntity>} entity */
 function pinColor(entity) {
-    if (entity.PinType.PinCategory == "mask") {
+    if (entity.PinType.PinCategory?.toString() === "mask") {
         const result = colors[entity.PinType.PinSubCategory];
         if (result) {
             return result
         }
-    } else if (entity.PinType.PinCategory == "optional") {
+    } else if (entity.PinType.PinCategory?.toString() === "optional") {
         return pinColorMaterial
     }
     return colors[entity.getType()]
-        ?? colors[entity.PinType.PinCategory.toLowerCase()]
+        ?? colors[entity.PinType.PinCategory?.toString().toLowerCase()]
         ?? colors["default"]
 }
 
-/** @param {PinEntity} entity */
+/** @param {PinEntity<IEntity>} entity */
 function pinTitle(entity) {
     let result = entity.PinFriendlyName
         ? entity.PinFriendlyName.toString()
-        : Utility.formatStringName(entity.PinName ?? "");
+        : Utility.formatStringName(entity.PinName?.toString() ?? "");
     let match;
-    if (
-        entity.PinToolTip
-        // Match up until the first \n excluded or last character
-        && (match = entity.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
-    ) {
+    if (match = entity.PinToolTip?.toString().match(/\s*(.+?(?=\n)|.+\S)\s*/)) {
         if (match[1].toLowerCase() === result.toLowerCase()) {
             return match[1] // In case they match, then keep the case of the PinToolTip
         }
@@ -4736,49 +4707,115 @@ function pinTitle(entity) {
 
 class ByteEntity extends IntegerEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: new AttributeInfo({
-            ...super.attributes.value,
-            predicate: v => v % 1 == 0 && v >= 0 && v < 1 << 8,
-        }),
-    }
     static grammar = this.createGrammar()
 
-    static createGrammar() {
-        return Parsernostrum.numberByte.map(v => new this(v))
+    get value() {
+        return super.value
+    }
+    set value(value) {
+        value = Math.trunc(value);
+        if (value >= 0 && value < 1 << 8) {
+            super.value = value;
+        }
     }
 
-    constructor(values = 0) {
-        super(values);
+    createGrammar() {
+        return /** @type {P<ByteEntity>} */(
+            // @ts-expect-error
+            Parsernostrum.numberByte.map(v => new this(v))
+        )
+    }
+}
+
+class StringEntity extends IEntity {
+
+    static grammar = this.createGrammar()
+
+    constructor(value = "") {
+        super();
+        this.value = value;
+    }
+
+    static createGrammar() {
+        return /** @type {P<StringEntity>} */(
+            Parsernostrum.doubleQuotedString
+                .map(insideString => new this(Utility.unescapeString(insideString)))
+                .label("StringEntity")
+        )
+    }
+
+    doSerialize(insideString = false) {
+        let result = `"${Utility.escapeString(this.value)}"`;
+        if (insideString) {
+            result = Utility.escapeString(result, false);
+        }
+        return result
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value
+    }
+}
+
+class ComputedTypeEntity extends IEntity {
+
+    static grammar = this.createGrammar()
+    /** @type {(entity: IEntity) => typeof IEntity} */
+    static f
+
+    static createGrammar() {
+        return StringEntity.grammar
+    }
+
+    /**
+     * @template {typeof ComputedTypeEntity.f} T
+     * @param {T} producer
+     */
+    static from(producer) {
+        const result = /** @type {(typeof ComputedTypeEntity) & { f: T }} */(this.asUniqueClass());
+        result.f = producer;
+        return result
+    }
+
+    /** @param {IEntity} entity */
+    static compute(entity) {
+        return this.f(entity)
     }
 }
 
 class SymbolEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: AttributeInfo.createValue(""),
+    static attributeConverter = {
+        fromAttribute: (value, type) => new this(value),
+        toAttribute: (value, type) => value.toString()
     }
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Grammar.symbol.map(v => new this(v))
+        return /** @type {P<SymbolEntity>} */(
+            Grammar.symbol.map(v => new this(v)).label("SymbolEntity")
+        )
     }
 
-    /** @param {String | Object} values */
-    constructor(values) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            };
+    constructor(value = "") {
+        super();
+        this.value = value;
+    }
+
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+    ) {
+        let result = this.value;
+        if (Self.serialized) {
+            result = `"${result}"`;
         }
-        super(values);
-        /** @type {String} */ this.value;
-    }
-
-    valueOf() {
-        return this.value
+        return result
     }
 
     toString() {
@@ -4791,7 +4828,9 @@ class EnumEntity extends SymbolEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Grammar.symbol.map(v => new this(v))
+        return /** @type {P<EnumEntity>} */(
+            Grammar.symbol.map(v => new this(v))
+        )
     }
 }
 
@@ -4800,137 +4839,146 @@ class EnumDisplayValueEntity extends EnumEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsernostrum.reg(Grammar.Regex.InsideString).map(v => new this(v))
+        return /** @type {P<EnumDisplayValueEntity>} */(
+            Parsernostrum.reg(Grammar.Regex.InsideString).map(v => new this(v))
+        )
     }
 }
 
 class InvariantTextEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: AttributeInfo.createValue(""),
-        lookbehind: new AttributeInfo({
-            ...super.attributes.lookbehind,
-            default: "INVTEXT",
-        }),
-    }
+    static lookbehind = "INVTEXT"
+
     static grammar = this.createGrammar()
 
+    constructor(value = "") {
+        super();
+        this.value = value;
+    }
+
     static createGrammar() {
-        return Parsernostrum.alt(
-            Parsernostrum.seq(
-                Parsernostrum.reg(new RegExp(`${this.attributes.lookbehind.default}\\s*\\(`)),
-                Grammar.grammarFor(this.attributes.value),
-                Parsernostrum.reg(/\s*\)/)
+        return /** @type {P<InvariantTextEntity>} */(
+            Parsernostrum.alt(
+                Parsernostrum.seq(
+                    Parsernostrum.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
+                    Parsernostrum.doubleQuotedString,
+                    Parsernostrum.reg(/\s*\)/)
+                ).map(([_0, value, _2]) => Number(value)),
+                Parsernostrum.reg(new RegExp(this.lookbehind)).map(() => 0) // InvariantTextEntity can not have arguments
             )
-                .map(([_0, value, _2]) => value),
-            Parsernostrum.reg(new RegExp(this.attributes.lookbehind.default)) // InvariantTextEntity can not have arguments
-                .map(() => "")
-        ).map(value => new this(value))
+                .map(value => new this(value))
+                .label("InvariantTextEntity")
+        )
     }
 
-    constructor(values) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            };
-        }
-        super(values);
-        /** @type {String} */ this.value;
+    doSerialize() {
+        return this.lookbehind + "(" + this.value + ")"
     }
 
-    toString() {
+    valueOf() {
         return this.value
     }
 }
 
 class LocalizedTextEntity extends IEntity {
 
+    static attributeSeparator = ", "
+    static printKey = k => ""
+    static lookbehind = "NSLOCTEXT"
     static attributes = {
         ...super.attributes,
-        namespace: AttributeInfo.createValue(""),
-        key: AttributeInfo.createValue(""),
-        value: AttributeInfo.createValue(""),
-        lookbehind: new AttributeInfo({
-            ...super.attributes.lookbehind,
-            default: "NSLOCTEXT",
-        }),
+        namespace: StringEntity.withDefault(),
+        key: StringEntity.withDefault(),
+        value: StringEntity.withDefault(),
     }
     static grammar = this.createGrammar()
 
-    static createGrammar() {
-        return Parsernostrum.regArray(new RegExp(
-            String.raw`${this.attributes.lookbehind.default}\s*\(`
-            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
-            + String.raw`(?:,\s+)?`
-            + String.raw`\)`,
-            "m"
-        )).map(matchResult => new this({
-            namespace: Utility.unescapeString(matchResult[1]),
-            key: Utility.unescapeString(matchResult[2]),
-            value: Utility.unescapeString(matchResult[3]),
-        }))
+    constructor(values = {}) {
+        super(values);
+        /** @type {InstanceType<typeof LocalizedTextEntity.attributes.namespace>} */ this.namespace;
+        /** @type {InstanceType<typeof LocalizedTextEntity.attributes.key>} */ this.key;
+        /** @type {InstanceType<typeof LocalizedTextEntity.attributes.value>} */ this.value;
     }
 
-    constructor(values) {
-        super(values);
-        /** @type {String} */ this.namespace;
-        /** @type {String} */ this.key;
-        /** @type {String} */ this.value;
+    static createGrammar() {
+        return /** @type {P<LocalizedTextEntity>} */(
+            Parsernostrum.regArray(new RegExp(
+                String.raw`${LocalizedTextEntity.lookbehind}\s*\(`
+                + String.raw`\s*"(?<namespace>${Grammar.Regex.InsideString.source})"\s*,`
+                + String.raw`\s*"(?<key>${Grammar.Regex.InsideString.source})"\s*,`
+                + String.raw`\s*"(?<value>${Grammar.Regex.InsideString.source})"\s*`
+                + String.raw`(?<trailing>,\s+)?`
+                + String.raw`\)`,
+                "m"
+            )).map(({ groups: { namespace, key, value, trailing } }) => {
+                return new this({
+                    namespace: new (this.attributes.namespace)(Utility.unescapeString(namespace)),
+                    key: new (this.attributes.namespace)(Utility.unescapeString(key)),
+                    value: new (this.attributes.namespace)(Utility.unescapeString(value)),
+                    trailing: trailing !== undefined,
+                })
+            }).label("LocalizedTextEntity")
+        )
     }
 
     toString() {
-        return Utility.capitalFirstLetter(this.value)
+        return Utility.capitalFirstLetter(this.value.valueOf())
     }
 }
 
 class FormatTextEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: new AttributeInfo({
-            type: [new Union(String, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)],
-            default: [],
-        }),
-        lookbehind: /** @type {AttributeInfo<Union<String[]>>} */(new AttributeInfo({
-            ...super.attributes.lookbehind,
-            default: new Union("LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED"),
-        })),
-    }
+    static attributeSeparator = ", "
+    static lookbehind = ["LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED"]
     static grammar = this.createGrammar()
 
-    static createGrammar() {
-        return Parsernostrum.seq(
-            Parsernostrum.reg(
-                // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
-                new RegExp(`(${this.attributes.lookbehind.default.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
-                1
-            ),
-            Grammar.grammarFor(this.attributes.value)
-        )
-            .map(([lookbehind, values]) => {
-                const result = new this({
-                    value: values,
-                    lookbehind,
-                });
-                return result
-            })
+    /** @param {(StringEntity | LocalizedTextEntity | InvariantTextEntity | FormatTextEntity)[]} values */
+    constructor(values) {
+        super();
+        this.values = values;
     }
 
-    constructor(values) {
-        super(values);
-        /** @type {(String | LocalizedTextEntity | InvariantTextEntity | FormatTextEntity)[]} */ this.value;
+    /** @returns {P<FormatTextEntity>} */
+    static createGrammar() {
+        return Parsernostrum.lazy(() => Parsernostrum.seq(
+            // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
+            Parsernostrum.reg(new RegExp(String.raw`(${this.lookbehind.join("|")})\s*\(\s*`), 1),
+            Parsernostrum.alt(
+                ...[StringEntity, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity].map(type => type.grammar)
+            ).sepBy(Parsernostrum.reg(/\s*\,\s*/)),
+            Parsernostrum.reg(/\s*\)/)
+        )
+            .map(([lookbehind, values]) => {
+                const result = new this(values);
+                result.lookbehind = lookbehind;
+                return result
+            }))
+            .label("FormatTextEntity")
+    }
+
+    doSerialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof FormatTextEntity} */(this.constructor),
+        printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
+        wrap = Self.wrap,
+    ) {
+        const separator = Self.attributeSeparator;
+        return this.lookbehind + "("
+            + this.values.map(v => v.serialize(insideString)).join(separator)
+            + (Self.trailing ? separator : "")
+            + ")"
     }
 
     toString() {
-        const pattern = this.value?.[0]?.toString(); // The pattern is always the first element of the array
+        const pattern = this.values?.[0]?.toString(); // The pattern is always the first element of the array
         if (!pattern) {
             return ""
         }
-        const values = this.value.slice(1).map(v => v.toString());
-        return this.lookbehind == "LOCGEN_FORMAT_NAMED"
+        const values = this.values.slice(1).map(v => v?.valueOf());
+        let result = this.lookbehind == "LOCGEN_FORMAT_NAMED"
             ? pattern.replaceAll(/\{([a-zA-Z]\w*)\}/g, (substring, arg) => {
                 const argLocation = values.indexOf(arg) + 1;
                 return argLocation > 0 && argLocation < values.length
@@ -4944,37 +4992,51 @@ class FormatTextEntity extends IEntity {
                         ? values[argValue]
                         : substring
                 })
-                : ""
+                : "";
+        return result
     }
 }
 
 class Integer64Entity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: new AttributeInfo({
-            default: 0n,
-            predicate: v => v >= -(1n << 63n) && v < 1n << 63n,
-        }),
-    }
     static grammar = this.createGrammar()
 
-    static createGrammar() {
-        return Parsernostrum.numberBigInteger.map(v => new this(v))
+    /**
+     * @protected
+     * @type {bigint}
+     */
+    _value
+    get value() {
+        return this._value
+    }
+    set value(value) {
+        if (value >= -(1n << 63n) && value < 1n << 63n) {
+            this._value = value;
+        }
     }
 
-    /** @param {BigInt | Number | Object} values */
-    constructor(values = 0) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            };
+    /** @param {bigint | Number} value */
+    constructor(value = 0n) {
+        super();
+        this.value = BigInt(value);
+    }
+
+    static createGrammar() {
+        return /** @type {P<Integer64Entity>} */(
+            Parsernostrum.numberBigInteger.map(v => new this(v))
+        )
+    }
+
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+    ) {
+        let result = this.value.toString();
+        if (Self.serialized) {
+            result = `"${result}"`;
         }
-        if (values.value === -0) {
-            values.value = 0n;
-        }
-        super(values);
-        /** @type {BigInt} */ this.value;
+        return result
     }
 
     valueOf() {
@@ -4986,65 +5048,169 @@ class Integer64Entity extends IEntity {
     }
 }
 
-class PathSymbolEntity extends IEntity {
+class ObjectReferenceEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: new AttributeInfo({
-            default: "",
-        }),
-    }
+    /** @protected */
+    static _quotedParser = Parsernostrum.regArray(new RegExp(
+        `'"(${Grammar.Regex.InsideString.source})"'`
+        + "|"
+        + `'(${Grammar.Regex.InsideSingleQuotedString.source})'`
+    )).map(([_0, a, b]) => a ?? b)
+    static typeReference = Parsernostrum.reg(
+        // @ts-expect-error
+        new RegExp(Grammar.Regex.Path.source + "|" + Grammar.symbol.getParser().regexp.source)
+    )
+    static fullReferenceGrammar = this.createFullReferenceGrammar()
     static grammar = this.createGrammar()
 
+    #type
+    get type() {
+        return this.#type
+    }
+    set type(value) {
+        this.#type = value;
+    }
+
+    #path
+    get path() {
+        return this.#path
+    }
+    set path(value) {
+        this.#path = value;
+    }
+
+    #fullEscaped
+    /** @type {String} */
+    #full
+    get full() {
+        return this.#full
+    }
+    set full(value) {
+        this.#full = value;
+    }
+
+
+    constructor(type = "None", path = "", full = null) {
+        super();
+        this.#type = type;
+        this.#path = path;
+        this.#full = full ?? `"${this.type + (this.path ? (`'${this.path}'`) : "")}"`;
+    }
+
+    /** @returns {P<ObjectReferenceEntity>} */
     static createGrammar() {
-        return Grammar.symbol.map(v => new this(v))
+        return Parsernostrum.alt(
+            this.createFullReferenceSerializedGrammar(),
+            this.createFullReferenceGrammar(),
+            this.createTypeReferenceGrammar(),
+        ).label("ObjectReferenceEntity")
     }
 
-    constructor(values) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            };
+    /** @returns {P<ObjectReferenceEntity>} */
+    static createFullReferenceGrammar() {
+        return Parsernostrum.regArray(
+            new RegExp(
+                // @ts-expect-error
+                "(" + this.typeReference.getParser().regexp.source + ")"
+                // @ts-expect-error
+                + "(?:" + this._quotedParser.getParser().parser.regexp.source + ")"
+            )
+        ).map(([full, type, ...path]) => new this(type, path.find(v => v), full))
+    }
+
+    /** @returns {P<ObjectReferenceEntity>} */
+    static createFullReferenceSerializedGrammar() {
+        return Parsernostrum.regArray(
+            new RegExp(
+                '"(' + Grammar.Regex.InsideString.source + "?)"
+                + "(?:'(" + Grammar.Regex.InsideSingleQuotedString.source + `?)')?"`
+            )
+        ).map(([full, type, path]) => new this(type, path, full))
+    }
+
+    /** @returns {P<ObjectReferenceEntity>} */
+    static createTypeReferenceGrammar() {
+        return this.typeReference.map(v => new this(v, "", v))
+    }
+
+    static createNoneInstance() {
+        return new ObjectReferenceEntity("None")
+    }
+
+    getName(dropCounter = false) {
+        return Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
+    }
+
+    doSerialize(insideString = false) {
+        if (insideString) {
+            if (this.#fullEscaped === undefined) {
+                this.#fullEscaped = Utility.escapeString(this.#full, false);
+            }
+            return this.#fullEscaped
         }
-        super(values);
-        /** @type {String} */ this.value;
+        return this.full
     }
 
-    valueOf() {
-        return this.value
-    }
-
-    toString() {
-        return this.value
+    /** @param {IEntity} other */
+    equals(other) {
+        if (!(other instanceof ObjectReferenceEntity)) {
+            return false
+        }
+        return this.type == other.type && this.path == other.path
     }
 }
 
 class PinReferenceEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        objectName: AttributeInfo.createType(PathSymbolEntity),
-        pinGuid: AttributeInfo.createType(GuidEntity),
-    }
     static grammar = this.createGrammar()
 
+    /**
+     * @param {SymbolEntity} objectName
+     * @param {GuidEntity} pinGuid
+     */
+    constructor(objectName = null, pinGuid = null) {
+        super();
+        this.objectName = objectName;
+        this.pinGuid = pinGuid;
+    }
+
     static createGrammar() {
-        return Parsernostrum.seq(
-            PathSymbolEntity.grammar,
-            Parsernostrum.whitespace,
-            GuidEntity.grammar
-        ).map(
-            ([objectName, _1, pinGuid]) => new this({
-                objectName: objectName,
-                pinGuid: pinGuid,
-            })
+        return /** @type {P<PinReferenceEntity>} */(
+            Parsernostrum.seq(
+                SymbolEntity.grammar,
+                Parsernostrum.whitespace,
+                GuidEntity.grammar
+            )
+                .map(([objectName, _1, pinGuid]) => new this(objectName, pinGuid))
+                .label("PinReferenceEntity")
         )
     }
 
+    doSerialize() {
+        return this.objectName.serialize() + " " + this.pinGuid.serialize()
+    }
+}
+
+class FunctionReferenceEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        MemberParent: ObjectReferenceEntity,
+        MemberName: StringEntity,
+        MemberGuid: GuidEntity,
+    }
+    static grammar = this.createGrammar()
+
     constructor(values) {
         super(values);
-        /** @type {PathSymbolEntity} */ this.objectName;
-        /** @type {GuidEntity} */ this.pinGuid;
+        /** @type {InstanceType<typeof FunctionReferenceEntity.attributes.MemberParent>} */ this.MemberParent;
+        /** @type {InstanceType<typeof FunctionReferenceEntity.attributes.MemberName>} */ this.MemberName;
+        /** @type {InstanceType<typeof FunctionReferenceEntity.attributes.MemberGuid>} */ this.MemberGuid;
+    }
+
+    /** @returns {P<FunctionReferenceEntity>} */
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, false, 0)
     }
 }
 
@@ -5052,62 +5218,47 @@ class PinTypeEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        PinCategory: AttributeInfo.createValue(""),
-        PinSubCategory: AttributeInfo.createValue(""),
-        PinSubCategoryObject: new AttributeInfo({
-            type: ObjectReferenceEntity,
-            default: () => ObjectReferenceEntity.createNoneInstance(),
-        }),
-        PinSubCategoryMemberReference: new AttributeInfo({
-            type: FunctionReferenceEntity,
-            default: null,
-        }),
-        PinValueType: new AttributeInfo({
-            type: PinTypeEntity,
-            default: null,
-        }),
-        ContainerType: AttributeInfo.createType(PathSymbolEntity),
-        bIsReference: AttributeInfo.createValue(false),
-        bIsConst: AttributeInfo.createValue(false),
-        bIsWeakPointer: AttributeInfo.createValue(false),
-        bIsUObjectWrapper: AttributeInfo.createValue(false),
-        bSerializeAsSinglePrecisionFloat: AttributeInfo.createValue(false),
+        PinCategory: StringEntity.withDefault(),
+        PinSubCategory: StringEntity.withDefault(),
+        PinSubCategoryObject: ObjectReferenceEntity.withDefault(),
+        PinSubCategoryMemberReference: FunctionReferenceEntity.withDefault(),
+        ContainerType: SymbolEntity,
+        bIsReference: BooleanEntity.withDefault(),
+        bIsConst: BooleanEntity.withDefault(),
+        bIsWeakPointer: BooleanEntity.withDefault(),
+        bIsUObjectWrapper: BooleanEntity.withDefault(),
+        bSerializeAsSinglePrecisionFloat: BooleanEntity.withDefault(),
     }
     static grammar = this.createGrammar()
 
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this)
+    constructor(values = {}) {
+        super(values);
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.PinCategory>} */ this.PinCategory;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.PinSubCategory>} */ this.PinSubCategory;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.PinSubCategoryObject>} */ this.PinSubCategoryObject;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.PinSubCategoryMemberReference>} */ this.PinSubCategoryMemberReference;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.ContainerType>} */ this.ContainerType;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsReference>} */ this.bIsReference;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsConst>} */ this.bIsConst;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsWeakPointer>} */ this.bIsWeakPointer;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsUObjectWrapper>} */ this.bIsUObjectWrapper;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsUObjectWrapper>} */ this.bIsUObjectWrapper;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.bSerializeAsSinglePrecisionFloat>} */ this.bSerializeAsSinglePrecisionFloat;
     }
 
-    constructor(values = {}, suppressWarns = false) {
-        super(values, suppressWarns);
-        /** @type {String} */ this.PinCategory;
-        /** @type {String} */ this.PinSubCategory;
-        /** @type {ObjectReferenceEntity} */ this.PinSubCategoryObject;
-        /** @type {FunctionReferenceEntity} */ this.PinSubCategoryMemberReference;
-        /** @type {PinTypeEntity} */ this.PinValueType;
-        /** @type {PathSymbolEntity} */ this.ContainerType;
-        /** @type {Boolean} */ this.bIsReference;
-        /** @type {Boolean} */ this.bIsConst;
-        /** @type {Boolean} */ this.bIsWeakPointer;
-        /** @type {Boolean} */ this.bIsUObjectWrapper;
-        /** @type {Boolean} */ this.bIsUObjectWrapper;
-        /** @type {Boolean} */ this.bSerializeAsSinglePrecisionFloat;
+    static createGrammar() {
+        return /** @type {P<PinTypeEntity>} */(
+            Grammar.createEntityGrammar(this).label("PinTypeEntity")
+        )
     }
 
     /** @param {PinTypeEntity} other */
     copyTypeFrom(other) {
-        this.PinCategory = other.PinCategory;
-        this.PinSubCategory = other.PinSubCategory;
-        this.PinSubCategoryObject = other.PinSubCategoryObject;
-        this.PinSubCategoryMemberReference = other.PinSubCategoryMemberReference;
-        this.PinValueType = other.PinValueType;
-        this.ContainerType = other.ContainerType;
-        this.bIsReference = other.bIsReference;
-        this.bIsConst = other.bIsConst;
-        this.bIsWeakPointer = other.bIsWeakPointer;
-        this.bIsUObjectWrapper = other.bIsUObjectWrapper;
-        this.bSerializeAsSinglePrecisionFloat = other.bSerializeAsSinglePrecisionFloat;
+        for (const key of this.keys) {
+            if (other[key] !== undefined) {
+                this[key] = other[key];
+            }
+        }
     }
 }
 
@@ -5115,30 +5266,25 @@ class Vector2DEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        X: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-        Y: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
+        X: NumberEntity.withDefault(),
+        Y: NumberEntity.withDefault(),
     }
     static grammar = this.createGrammar()
 
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this, false)
-    }
-
     constructor(values) {
         super(values);
-        /** @type {Number} */ this.X;
-        /** @type {Number} */ this.Y;
+        /** @type {InstanceType<typeof Vector2DEntity.attributes.X>} */ this.X;
+        /** @type {InstanceType<typeof Vector2DEntity.attributes.Y>} */ this.Y;
+    }
+
+    /** @returns {P<Vector2DEntity>} */
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector2DEntity")
     }
 
     /** @returns {[Number, Number]} */
     toArray() {
-        return [this.X, this.Y]
+        return [this.X.valueOf(), this.Y.valueOf()]
     }
 }
 
@@ -5147,17 +5293,20 @@ class RBSerializationVector2DEntity extends Vector2DEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsernostrum.alt(
+        return /** @type {P<RBSerializationVector2DEntity>} */(Parsernostrum.alt(
             Parsernostrum.regArray(new RegExp(
-                /X\s*=\s*/.source + "(?<x>" + Parsernostrum.number.getParser().parser.regexp.source + ")"
+                /X\s*=\s*/.source + "(?<x>" + Grammar.numberRegexSource + ")"
                 + "\\s+"
-                + /Y\s*=\s*/.source + "(?<y>" + Parsernostrum.number.getParser().parser.regexp.source + ")"
+                + /Y\s*=\s*/.source + "(?<y>" + Grammar.numberRegexSource + ")"
             )).map(({ groups: { x, y } }) => new this({
-                X: Number(x),
-                Y: Number(y),
+                X: new (Vector2DEntity.attributes.X)(x),
+                Y: new (Vector2DEntity.attributes.Y)(y),
             })),
-            Vector2DEntity.grammar
-        )
+            Vector2DEntity.grammar.map(v => new this({
+                X: v.X,
+                Y: v.Y,
+            }))
+        ).label("RBSerializationVector2DEntity"))
     }
 }
 
@@ -5165,30 +5314,23 @@ class RotatorEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        R: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-        P: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-        Y: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
+        R: NumberEntity.withDefault(),
+        P: NumberEntity.withDefault(),
+        Y: NumberEntity.withDefault(),
     }
     static grammar = this.createGrammar()
 
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this, false)
-    }
-
     constructor(values) {
         super(values);
-        /** @type {Number} */ this.R;
-        /** @type {Number} */ this.P;
-        /** @type {Number} */ this.Y;
+        /** @type {InstanceType<typeof RotatorEntity.attributes.R>} */ this.R;
+        /** @type {InstanceType<typeof RotatorEntity.attributes.P>} */ this.P;
+        /** @type {InstanceType<typeof RotatorEntity.attributes.Y>} */ this.Y;
+    }
+
+    static createGrammar() {
+        return /** @type {P<RotatorEntity>} */(
+            Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("RotatorEntity")
+        )
     }
 
     getRoll() {
@@ -5206,44 +5348,72 @@ class RotatorEntity extends IEntity {
 
 class SimpleSerializationRotatorEntity extends RotatorEntity {
 
+    static attributeSeparator = ", "
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        const number = Parsernostrum.number.getParser().parser.regexp.source;
-        return Parsernostrum.alt(
-            Parsernostrum.regArray(new RegExp(
-                "(" + number + ")"
-                + "\\s*,\\s*"
-                + "(" + number + ")"
-                + "\\s*,\\s*"
-                + "(" + number + ")"
-            )).map(([_, p, y, r]) => new this({
-                R: Number(r),
-                P: Number(p),
-                Y: Number(y),
-            })),
-            RotatorEntity.grammar
+        return /** @type {P<SimpleSerializationRotatorEntity>} */(
+            Parsernostrum.alt(
+                Parsernostrum.regArray(new RegExp(
+                    `(${NumberEntity.numberRegexSource})`
+                    + String.raw`\s*,\s*`
+                    + `(${NumberEntity.numberRegexSource})`
+                    + String.raw`\s*,\s*`
+                    + `(${NumberEntity.numberRegexSource})`
+                )).map(([_, p, pPrecision, y, yPrecision, r, rPrecision]) => new this({
+                    R: new (RotatorEntity.attributes.R)(r, rPrecision?.length),
+                    P: new (RotatorEntity.attributes.P)(p, pPrecision?.length),
+                    Y: new (RotatorEntity.attributes.Y)(y, yPrecision?.length),
+                })),
+                RotatorEntity.grammar.map(v => new this({
+                    R: v.R,
+                    P: v.P,
+                    Y: v.Y,
+                }))
+            ).label("SimpleSerializationRotatorEntity")
         )
+    }
+
+    doSerialize() {
+        const attributeSeparator = /** @type {typeof SimpleSerializationRotatorEntity} */(
+            this.constructor
+        ).attributeSeparator;
+        return this.P.serialize() + attributeSeparator
+            + this.Y.serialize() + attributeSeparator
+            + this.R.serialize() + (this.trailing ? attributeSeparator : "")
     }
 }
 
 class SimpleSerializationVector2DEntity extends Vector2DEntity {
 
+    static attributeSeparator = ", "
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        const number = Parsernostrum.number.getParser().parser.regexp.source;
-        return Parsernostrum.alt(
-            Parsernostrum.regArray(new RegExp(
-                "(" + number + ")"
-                + "\\s*,\\s*"
-                + "(" + number + ")"
-            )).map(([_, x, y]) => new this({
-                X: Number(x),
-                Y: Number(y),
-            })),
-            Vector2DEntity.grammar
+        return   /** @type {P<SimpleSerializationVector2DEntity>} */(
+            Parsernostrum.alt(
+                Parsernostrum.regArray(new RegExp(
+                    `(${NumberEntity.numberRegexSource})`
+                    + String.raw`\s*,\s*`
+                    + `(${NumberEntity.numberRegexSource})`
+                )).map(([_, x, xPrecision, y, yPrecision]) => new this({
+                    X: new (Vector2DEntity.attributes.X)(x, xPrecision?.length),
+                    Y: new (Vector2DEntity.attributes.Y)(y, yPrecision?.length),
+                })),
+                Vector2DEntity.grammar.map(v => new this({
+                    X: v.X,
+                    Y: v.Y,
+                }))
+            ).label("SimpleSerializationVector2DEntity")
         )
+    }
+
+    doSerialize() {
+        const attributeSeparator = /** @type {typeof SimpleSerializationVector2DEntity} */(
+            this.constructor
+        ).attributeSeparator;
+        return this.X.serialize() + attributeSeparator
+            + this.Y.serialize() + (this.trailing ? attributeSeparator : "")
     }
 }
 
@@ -5251,40 +5421,30 @@ class Vector4DEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        X: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-        Y: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-        Z: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-        W: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
+        X: NumberEntity.withDefault(),
+        Y: NumberEntity.withDefault(),
+        Z: NumberEntity.withDefault(),
+        W: NumberEntity.withDefault(),
     }
     static grammar = this.createGrammar()
 
-    static createGrammar() {
-        return Grammar.createEntityGrammar(Vector4DEntity, false)
-    }
-
     constructor(values) {
         super(values);
-        /** @type {Number} */ this.X;
-        /** @type {Number} */ this.Y;
-        /** @type {Number} */ this.Z;
-        /** @type {Number} */ this.W;
+        /** @type {InstanceType<typeof Vector4DEntity.attributes.X>} */ this.X;
+        /** @type {InstanceType<typeof Vector4DEntity.attributes.Y>} */ this.Y;
+        /** @type {InstanceType<typeof Vector4DEntity.attributes.Z>} */ this.Z;
+        /** @type {InstanceType<typeof Vector4DEntity.attributes.W>} */ this.W;
+    }
+
+    static createGrammar() {
+        return /** @type {P<Vector4DEntity>} */(
+            Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector4DEntity")
+        )
     }
 
     /** @returns {[Number, Number, Number, Number]} */
     toArray() {
-        return [this.X, this.Y, this.Z, this.W]
+        return [this.X.valueOf(), this.Y.valueOf(), this.Z.valueOf(), this.W.valueOf()]
     }
 }
 
@@ -5292,111 +5452,111 @@ class SimpleSerializationVector4DEntity extends Vector4DEntity {
 
     static grammar = this.createGrammar()
 
+    /** @returns {P<SimpleSerializationVector4DEntity> } */
     static createGrammar() {
-        const number = Parsernostrum.number.getParser().parser.regexp.source;
         return Parsernostrum.alt(
             Parsernostrum.regArray(new RegExp(
-                "(" + number + ")"
-                + "\\s*,\\s*"
-                + "(" + number + ")"
-                + "\\s*,\\s*"
-                + "(" + number + ")"
-                + "\\s*,\\s*"
-                + "(" + number + ")"
+                `(${Grammar.numberRegexSource})`
+                + String.raw`\s*,\s*`
+                + `(${Grammar.numberRegexSource})`
+                + String.raw`\s*,\s*`
+                + `(${Grammar.numberRegexSource})`
+                + String.raw`\s*,\s*`
+                + `(${Grammar.numberRegexSource})`
             ))
                 .map(([_0, x, y, z, w]) => new this({
-                    X: Number(x),
-                    Y: Number(y),
-                    Z: Number(z),
-                    W: Number(w),
+                    X: new (Vector4DEntity.attributes.X)(x),
+                    Y: new (Vector4DEntity.attributes.Y)(y),
+                    Z: new (Vector4DEntity.attributes.Z)(z),
+                    W: new (Vector4DEntity.attributes.W)(w),
                 })),
             Vector4DEntity.grammar
         )
     }
 }
 
-class VectorEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        X: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-        Y: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-        Z: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-    }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Grammar.createEntityGrammar(VectorEntity, false)
-    }
-
-    constructor(values) {
-        super(values);
-        /** @type {Number} */ this.X;
-        /** @type {Number} */ this.Y;
-        /** @type {Number} */ this.Z;
-    }
-
-    /** @returns {[Number, Number, Number]} */
-    toArray() {
-        return [this.X, this.Y, this.Z]
-    }
-}
-
 class SimpleSerializationVectorEntity extends VectorEntity {
 
+    static allowShortSerialization = false
+    static attributeSeparator = ", "
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        const number = Parsernostrum.number.getParser().parser.regexp.source;
-        return Parsernostrum.alt(
-            Parsernostrum.regArray(new RegExp(
-                "(" + number + ")"
-                + "\\s*,\\s*"
-                + "(" + number + ")"
-                + "\\s*,\\s*"
-                + "(" + number + ")"
-            ))
-                .map(([_0, x, y, z]) => new this({
-                    X: Number(x),
-                    Y: Number(y),
-                    Z: Number(z),
-                })),
-            VectorEntity.grammar
+        return /** @type {P<SimpleSerializationVectorEntity>} */(
+            Parsernostrum.alt(
+                Parsernostrum.regArray(new RegExp(
+                    `(${NumberEntity.numberRegexSource})`
+                    // If allow simple serialization then it can parse only a single number ...
+                    + (this.allowShortSerialization ? `(?:` : "")
+                    + String.raw`\s*,\s*`
+                    + `(${NumberEntity.numberRegexSource})`
+                    + String.raw`\s*,\s*`
+                    + `(${NumberEntity.numberRegexSource})`
+                    // ... that will be assigned to X and the rest is optional and set to 0
+                    + (this.allowShortSerialization ? `)?` : "")
+                ))
+                    .map(([_, x, xPrecision, y, yPrecision, z, zPrecision]) => new this({
+                        X: new (VectorEntity.attributes.X)(x, xPrecision?.length),
+                        Y: new (VectorEntity.attributes.Y)(y, yPrecision?.length),
+                        Z: new (VectorEntity.attributes.Z)(z, zPrecision?.length),
+                    })),
+                VectorEntity.grammar.map(v => new this({
+                    X: v.X,
+                    Y: v.Y,
+                    Z: v.Z,
+                }))
+            )
         )
+    }
+
+    /**
+     * @template {typeof SimpleSerializationVectorEntity} T
+     * @this {T}
+     */
+    static flagAllowShortSerialization(value = true) {
+        const result = this.asUniqueClass();
+        if (value !== result.allowShortSerialization) {
+            result.allowShortSerialization = value;
+            result.grammar = result.createGrammar();
+        }
+        return result
+    }
+
+    doSerialize() {
+        const attributeSeparator = /** @type {typeof SimpleSerializationVectorEntity} */(
+            this.constructor
+        ).attributeSeparator;
+        return this.X.serialize() + attributeSeparator
+            + this.Y.serialize() + attributeSeparator
+            + this.Z.serialize() + (this.trailing ? attributeSeparator : "")
     }
 }
 
-/** @template {TerminalAttribute} T */
+/** @template {IEntity} T */
 class PinEntity extends IEntity {
 
+    static lookbehind = "Pin"
     static #typeEntityMap = {
+        "bool": BooleanEntity,
+        "byte": ByteEntity,
+        "enum": EnumEntity,
+        "exec": StringEntity,
+        "int": IntegerEntity,
+        "int64": Integer64Entity,
+        "name": StringEntity,
+        "real": NumberEntity,
+        "string": StringEntity,
         [Configuration.paths.linearColor]: LinearColorEntity,
+        [Configuration.paths.niagaraPosition]: VectorEntity,
         [Configuration.paths.rotator]: RotatorEntity,
         [Configuration.paths.vector]: VectorEntity,
         [Configuration.paths.vector2D]: Vector2DEntity,
         [Configuration.paths.vector4f]: Vector4DEntity,
-        "bool": Boolean,
-        "byte": ByteEntity,
-        "enum": EnumEntity,
-        "exec": String,
-        "int": IntegerEntity,
-        "int64": Integer64Entity,
-        "name": String,
-        "real": Number,
-        "string": String,
     }
     static #alternativeTypeEntityMap = {
         "enum": EnumDisplayValueEntity,
         "rg": RBSerializationVector2DEntity,
+        [Configuration.paths.niagaraPosition]: SimpleSerializationVectorEntity.flagAllowShortSerialization(),
         [Configuration.paths.rotator]: SimpleSerializationRotatorEntity,
         [Configuration.paths.vector]: SimpleSerializationVectorEntity,
         [Configuration.paths.vector2D]: SimpleSerializationVector2DEntity,
@@ -5404,50 +5564,34 @@ class PinEntity extends IEntity {
         [Configuration.paths.vector4f]: SimpleSerializationVector4DEntity,
     }
     static attributes = {
-        ...super.attributes,
-        lookbehind: new AttributeInfo({
-            default: "Pin",
-            ignored: true,
-        }),
-        objectEntity: new AttributeInfo({
-            ignored: true,
-        }),
-        pinIndex: new AttributeInfo({
-            type: Number,
-            ignored: true,
-        }),
-        PinId: new AttributeInfo({
-            type: GuidEntity,
-            default: () => new GuidEntity()
-        }),
-        PinName: AttributeInfo.createValue(""),
-        PinFriendlyName: AttributeInfo.createType(new Union(LocalizedTextEntity, FormatTextEntity, InvariantTextEntity, String)),
-        PinToolTip: AttributeInfo.createType(String),
-        Direction: AttributeInfo.createType(String),
-        PinType: new AttributeInfo({
-            type: PinTypeEntity,
-            default: () => new PinTypeEntity(),
-            inlined: true,
-        }),
-        LinkedTo: AttributeInfo.createType([PinReferenceEntity]),
-        SubPins: AttributeInfo.createType([PinReferenceEntity]),
-        ParentPin: AttributeInfo.createType(PinReferenceEntity),
-        DefaultValue: new AttributeInfo({
-            type: new ComputedType(
+        PinId: GuidEntity.withDefault(),
+        PinName: StringEntity.withDefault(),
+        PinFriendlyName: AlternativesEntity.accepting(
+            LocalizedTextEntity,
+            FormatTextEntity,
+            InvariantTextEntity,
+            StringEntity
+        ),
+        PinToolTip: StringEntity,
+        Direction: StringEntity,
+        PinType: PinTypeEntity.withDefault().flagInlined(),
+        LinkedTo: ArrayEntity.of(PinReferenceEntity).withDefault().flagSilent(),
+        SubPins: ArrayEntity.of(PinReferenceEntity),
+        ParentPin: PinReferenceEntity,
+        DefaultValue:
+            ComputedTypeEntity.from(
                 /** @param {PinEntity} pinEntity */
-                pinEntity => pinEntity.getEntityType(true) ?? String
+                pinEntity => pinEntity.getEntityType(true)?.flagSerialized() ?? StringEntity
             ),
-            serialized: true,
-        }),
-        AutogeneratedDefaultValue: AttributeInfo.createType(String),
-        DefaultObject: AttributeInfo.createType(ObjectReferenceEntity),
-        PersistentGuid: AttributeInfo.createType(GuidEntity),
-        bHidden: AttributeInfo.createValue(false),
-        bNotConnectable: AttributeInfo.createValue(false),
-        bDefaultValueIsReadOnly: AttributeInfo.createValue(false),
-        bDefaultValueIsIgnored: AttributeInfo.createValue(false),
-        bAdvancedView: AttributeInfo.createValue(false),
-        bOrphanedPin: AttributeInfo.createValue(false),
+        AutogeneratedDefaultValue: StringEntity,
+        DefaultObject: ObjectReferenceEntity,
+        PersistentGuid: GuidEntity,
+        bHidden: BooleanEntity.withDefault(),
+        bNotConnectable: BooleanEntity.withDefault(),
+        bDefaultValueIsReadOnly: BooleanEntity.withDefault(),
+        bDefaultValueIsIgnored: BooleanEntity.withDefault(),
+        bAdvancedView: BooleanEntity.withDefault(),
+        bOrphanedPin: BooleanEntity.withDefault(),
     }
     static grammar = this.createGrammar()
 
@@ -5459,42 +5603,76 @@ class PinEntity extends IEntity {
         return this.#recomputesNodeTitleOnChange
     }
 
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this)
+    /** @type {ObjectEntity} */
+    #objectEntity = null
+    get objectEntity() {
+        try {
+            /*
+             * Why inside a try block ?
+             * It is because of this issue: https://stackoverflow.com/questions/61237153/access-private-method-in-an-overriden-method-called-from-the-base-class-construc
+             * super(values) will call IEntity constructor while this instance is not yet fully constructed
+             * IEntity will call computedEntity.compute(this) to initialize DefaultValue from this class
+             * Which in turn calls pinEntity.getEntityType(true)
+             * Which calls this.getType()
+             * Which calls this.objectEntity?.isPcg()
+             * Which would access #objectEntity through get objectEntity()
+             * And this would violate the private access rule (because this class is not yet constructed)
+             * If this issue in the future will be fixed in all the major browsers, please remove this try catch
+             */
+            return this.#objectEntity
+        } catch (e) {
+            return null
+        }
+    }
+    set objectEntity(value) {
+        this.#objectEntity = value;
     }
 
-    constructor(values = {}, suppressWarns = false) {
-        super(values, suppressWarns);
-        /** @type {ObjectEntity} */ this.objectEntity;
-        /** @type {Number} */ this.pinIndex;
-        /** @type {GuidEntity} */ this.PinId;
-        /** @type {String} */ this.PinName;
-        /** @type {LocalizedTextEntity | String} */ this.PinFriendlyName;
-        /** @type {String} */ this.PinToolTip;
-        /** @type {String} */ this.Direction;
-        /** @type {PinTypeEntity} */ this.PinType;
-        /** @type {PinReferenceEntity[]} */ this.LinkedTo;
+    #pinIndex
+    get pinIndex() {
+        return this.#pinIndex
+    }
+    set pinIndex(value) {
+        this.#pinIndex = value;
+    }
+
+    constructor(values = {}) {
+        super(values);
+        /** @type {InstanceType<typeof PinEntity.attributes.PinId>} */ this.PinId;
+        /** @type {InstanceType<typeof PinEntity.attributes.PinName>} */ this.PinName;
+        /** @type {InstanceType<typeof PinEntity.attributes.PinFriendlyName>} */ this.PinFriendlyName;
+        /** @type {InstanceType<typeof PinEntity.attributes.PinToolTip>} */ this.PinToolTip;
+        /** @type {InstanceType<typeof PinEntity.attributes.Direction>} */ this.Direction;
+        /** @type {InstanceType<typeof PinEntity.attributes.PinType>} */ this.PinType;
+        /** @type {InstanceType<typeof PinEntity.attributes.LinkedTo>} */ this.LinkedTo;
         /** @type {T} */ this.DefaultValue;
-        /** @type {String} */ this.AutogeneratedDefaultValue;
-        /** @type {ObjectReferenceEntity} */ this.DefaultObject;
-        /** @type {GuidEntity} */ this.PersistentGuid;
-        /** @type {Boolean} */ this.bHidden;
-        /** @type {Boolean} */ this.bNotConnectable;
-        /** @type {Boolean} */ this.bDefaultValueIsReadOnly;
-        /** @type {Boolean} */ this.bDefaultValueIsIgnored;
-        /** @type {Boolean} */ this.bAdvancedView;
-        /** @type {Boolean} */ this.bOrphanedPin;
+        /** @type {InstanceType<typeof PinEntity.attributes.AutogeneratedDefaultValue>} */ this.AutogeneratedDefaultValue;
+        /** @type {InstanceType<typeof PinEntity.attributes.DefaultObject>} */ this.DefaultObject;
+        /** @type {InstanceType<typeof PinEntity.attributes.PersistentGuid>} */ this.PersistentGuid;
+        /** @type {InstanceType<typeof PinEntity.attributes.bHidden>} */ this.bHidden;
+        /** @type {InstanceType<typeof PinEntity.attributes.bNotConnectable>} */ this.bNotConnectable;
+        /** @type {InstanceType<typeof PinEntity.attributes.bDefaultValueIsReadOnly>} */ this.bDefaultValueIsReadOnly;
+        /** @type {InstanceType<typeof PinEntity.attributes.bDefaultValueIsIgnored>} */ this.bDefaultValueIsIgnored;
+        /** @type {InstanceType<typeof PinEntity.attributes.bAdvancedView>} */ this.bAdvancedView;
+        /** @type {InstanceType<typeof PinEntity.attributes.bOrphanedPin>} */ this.bOrphanedPin;
+        /** @type {ObjectEntity} */ this.objectEntity;
+    }
+
+    static createGrammar() {
+        return /** @type {P<PinEntity>} */(
+            Grammar.createEntityGrammar(this)
+        )
     }
 
     /** @param {ObjectEntity} objectEntity */
     static fromLegacyObject(objectEntity) {
-        return new PinEntity(objectEntity, true)
+        return new PinEntity(objectEntity)
     }
 
     getType() {
-        const category = this.PinType.PinCategory.toLocaleLowerCase();
+        const category = this.PinType.PinCategory?.toString().toLocaleLowerCase();
         if (category === "struct" || category === "class" || category === "object" || category === "type") {
-            return this.PinType.PinSubCategoryObject.path
+            return this.PinType.PinSubCategoryObject?.path
         }
         if (this.isEnum()) {
             return "enum"
@@ -5502,8 +5680,8 @@ class PinEntity extends IEntity {
         if (this.objectEntity?.isPcg()) {
             const pcgSuboject = this.objectEntity.getPcgSubobject();
             const pinObjectReference = this.isInput()
-                ? pcgSuboject.InputPins?.[this.pinIndex]
-                : pcgSuboject.OutputPins?.[this.pinIndex];
+                ? pcgSuboject.InputPins?.valueOf()[this.pinIndex]
+                : pcgSuboject.OutputPins?.valueOf()[this.pinIndex];
             if (pinObjectReference) {
                 /** @type {ObjectEntity} */
                 const pinObject = pcgSuboject[Configuration.subObjectAttributeNameFromReference(pinObjectReference, true)];
@@ -5516,8 +5694,8 @@ class PinEntity extends IEntity {
                 }
                 if (allowedTypes) {
                     if (
-                        pinObject.Properties.bAllowMultipleData !== false
-                        && pinObject.Properties.bAllowMultipleConnections !== false
+                        pinObject.Properties.bAllowMultipleData?.valueOf() !== false
+                        && pinObject.Properties.bAllowMultipleConnections?.valueOf() !== false
                     ) {
                         allowedTypes += "[]";
                     }
@@ -5526,7 +5704,8 @@ class PinEntity extends IEntity {
             }
         }
         if (category === "optional") {
-            switch (this.PinType.PinSubCategory) {
+            const subCategory = this.PinType.PinSubCategory?.toString();
+            switch (subCategory) {
                 case "red":
                     return "real"
                 case "rg":
@@ -5536,16 +5715,17 @@ class PinEntity extends IEntity {
                 case "rgba":
                     return Configuration.paths.linearColor
                 default:
-                    return this.PinType.PinSubCategory
+                    return subCategory
             }
         }
         return category
     }
 
+    /** @returns {typeof IEntity} */
     getEntityType(alternative = false) {
-        const typeString = this.getType();
-        const entity = PinEntity.#typeEntityMap[typeString];
-        const alternativeEntity = PinEntity.#alternativeTypeEntityMap[typeString];
+        const type = this.getType();
+        const entity = PinEntity.#typeEntityMap[type];
+        const alternativeEntity = PinEntity.#alternativeTypeEntityMap[type];
         return alternative && alternativeEntity !== undefined
             ? alternativeEntity
             : entity
@@ -5557,48 +5737,37 @@ class PinEntity extends IEntity {
 
     /** @param {PinEntity} other */
     copyTypeFrom(other) {
-        this.PinType.PinCategory = other.PinType.PinCategory;
-        this.PinType.PinSubCategory = other.PinType.PinSubCategory;
-        this.PinType.PinSubCategoryObject = other.PinType.PinSubCategoryObject;
-        this.PinType.PinSubCategoryMemberReference = other.PinType.PinSubCategoryMemberReference;
-        this.PinType.PinValueType = other.PinType.PinValueType;
-        this.PinType.ContainerType = other.PinType.ContainerType;
-        this.PinType.bIsReference = other.PinType.bIsReference;
-        this.PinType.bIsConst = other.PinType.bIsConst;
-        this.PinType.bIsWeakPointer = other.PinType.bIsWeakPointer;
-        this.PinType.bIsUObjectWrapper = other.PinType.bIsUObjectWrapper;
-        this.PinType.bSerializeAsSinglePrecisionFloat = other.PinType.bSerializeAsSinglePrecisionFloat;
+        this.PinType = other.PinType;
     }
 
     getDefaultValue(maybeCreate = false) {
         if (this.DefaultValue === undefined && maybeCreate) {
-            // @ts-expect-error
-            this.DefaultValue = new (this.getEntityType(true))();
+            this.DefaultValue = /** @type {T} */(new (this.getEntityType(true))());
         }
         return this.DefaultValue
     }
 
     isEnum() {
-        const type = this.PinType.PinSubCategoryObject.type;
+        const type = this.PinType.PinSubCategoryObject?.type;
         return type === Configuration.paths.enum
             || type === Configuration.paths.userDefinedEnum
-            || type.toLowerCase() === "enum"
+            || type?.toLowerCase() === "enum"
     }
 
     isExecution() {
-        return this.PinType.PinCategory === "exec"
+        return this.PinType.PinCategory.toString() === "exec"
     }
 
     isHidden() {
-        return this.bHidden
+        return this.bHidden?.valueOf()
     }
 
     isInput() {
-        return !this.bHidden && this.Direction != "EGPD_Output"
+        return !this.isHidden() && this.Direction?.toString() != "EGPD_Output"
     }
 
     isOutput() {
-        return !this.bHidden && this.Direction == "EGPD_Output"
+        return !this.isHidden() && this.Direction?.toString() == "EGPD_Output"
     }
 
     isLinked() {
@@ -5611,15 +5780,12 @@ class PinEntity extends IEntity {
      * @returns true if it was not already linked to the tarket
      */
     linkTo(targetObjectName, targetPinEntity) {
-        const linkFound = this.LinkedTo?.some(pinReferenceEntity =>
+        const linkFound = this.LinkedTo.values?.some(pinReferenceEntity =>
             pinReferenceEntity.objectName.toString() == targetObjectName
-            && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
+            && pinReferenceEntity.pinGuid.toString() == targetPinEntity.PinId.toString()
         );
         if (!linkFound) {
-            (this.LinkedTo ??= []).push(new PinReferenceEntity({
-                objectName: targetObjectName,
-                pinGuid: targetPinEntity.PinId,
-            }));
+            this.LinkedTo.values.push(new PinReferenceEntity(new SymbolEntity(targetObjectName), targetPinEntity.PinId));
             return true
         }
         return false // Already linked
@@ -5631,14 +5797,14 @@ class PinEntity extends IEntity {
      * @returns true if it was linked to the target
      */
     unlinkFrom(targetObjectName, targetPinEntity) {
-        const indexElement = this.LinkedTo?.findIndex(pinReferenceEntity => {
+        const indexElement = this.LinkedTo.values?.findIndex(pinReferenceEntity => {
             return pinReferenceEntity.objectName.toString() == targetObjectName
-                && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
+                && pinReferenceEntity.pinGuid.toString() == targetPinEntity.PinId.toString()
         });
         if (indexElement >= 0) {
-            this.LinkedTo.splice(indexElement, 1);
+            this.LinkedTo.values.splice(indexElement, 1);
             if (this.LinkedTo.length === 0 && PinEntity.attributes.LinkedTo.default === undefined) {
-                this.LinkedTo = undefined;
+                this.LinkedTo.values = [];
             }
             return true
         }
@@ -5654,80 +5820,9 @@ class PinEntity extends IEntity {
     }
 }
 
-class ScriptVariableEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        ScriptVariable: AttributeInfo.createType(ObjectReferenceEntity),
-        OriginalChangeId: AttributeInfo.createType(GuidEntity),
-    }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this)
-    }
-
-    constructor(values = {}, suppressWarns = false) {
-        super(values, suppressWarns);
-        /** @type {ObjectReferenceEntity} */ this.ScriptVariable;
-        /** @type {GuidEntity} */ this.OriginalChangeId;
-    }
-}
-
-class UnknownPinEntity extends PinEntity {
-
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Parsernostrum.seq(
-            Parsernostrum.reg(
-                new RegExp(`(${Grammar.Regex.Symbol.source})\\s*\\(\\s*`),
-                1
-            ),
-            Grammar.createAttributeGrammar(this).sepBy(Grammar.commaSeparation),
-            Parsernostrum.reg(/\s*(?:,\s*)?\)/)
-        ).map(([lookbehind, attributes, _2]) => {
-            lookbehind ??= "";
-            let values = {};
-            if (lookbehind.length) {
-                values.lookbehind = lookbehind;
-            }
-            attributes.forEach(attributeSetter => attributeSetter(values));
-            return new this(values)
-        })
-    }
-
-    constructor(values = {}) {
-        super(values, true);
-    }
-}
-
-class VariableReferenceEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        MemberScope: AttributeInfo.createType(String),
-        MemberName: AttributeInfo.createValue(""),
-        MemberGuid: AttributeInfo.createType(GuidEntity),
-        bSelfContext: AttributeInfo.createType(Boolean),
-    }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this)
-    }
-
-    constructor(values) {
-        super(values);
-        /** @type {String} */ this.MemberName;
-        /** @type {GuidEntity} */ this.GuidEntity;
-        /** @type {Boolean} */ this.bSelfContext;
-    }
-}
-
 /** @param {PinEntity} pinEntity */
 const indexFromUpperCaseLetterName = pinEntity =>
-    pinEntity.PinName.match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0);
+    pinEntity.PinName?.toString().match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0);
 
 /** @param {ObjectEntity} entity */
 function nodeVariadic(entity) {
@@ -5738,11 +5833,12 @@ function nodeVariadic(entity) {
     /** @type {(newPinIndex: Number, minIndex: Number, maxIndex: Number, newPin: PinEntity) => String} */
     let pinNameFromIndex;
     const type = entity.getType();
+    let prefix;
     let name;
     switch (type) {
         case Configuration.paths.commutativeAssociativeBinaryOperator:
         case Configuration.paths.promotableOperator:
-            name = entity.FunctionReference?.MemberName;
+            name = entity.FunctionReference?.MemberName?.toString();
             switch (name) {
                 default:
                     if (
@@ -5773,17 +5869,22 @@ function nodeVariadic(entity) {
                     pinIndexFromEntity ??= indexFromUpperCaseLetterName;
                     pinNameFromIndex ??= (index, min = -1, max = -1) => {
                         const result = String.fromCharCode(index >= 0 ? index : max + "A".charCodeAt(0) + 1);
-                        entity.NumAdditionalInputs = pinEntities().length - 1;
+                        entity.NumAdditionalInputs = new NaturalNumberEntity(pinEntities().length - 1);
                         return result
                     };
                     break
             }
             break
+        case Configuration.paths.executionSequence:
+            prefix ??= "Then";
         case Configuration.paths.multiGate:
+            prefix ??= "Out";
             pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput());
-            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Out[_\s]+(\d+)\s*$/i)?.[1]);
+            pinIndexFromEntity ??= pinEntity => Number(
+                pinEntity.PinName?.toString().match(new RegExp(String.raw`^\s*${prefix}[_\s]+(\d+)\s*$`, "i"))?.[1]
+            );
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) =>
-                `Out ${index >= 0 ? index : min > 0 ? "Out 0" : max + 1}`;
+                `${prefix} ${index >= 0 ? index : min > 0 ? `${prefix} 0` : max + 1}`;
             break
         // case Configuration.paths.niagaraNodeOp:
         //     pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isInput())
@@ -5797,26 +5898,26 @@ function nodeVariadic(entity) {
         //     break
         case Configuration.paths.switchInteger:
             pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput());
-            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*(\d+)\s*$/)?.[1]);
+            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName?.toString().match(/^\s*(\d+)\s*$/)?.[1]);
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => (index < 0 ? max + 1 : index).toString();
             break
         case Configuration.paths.switchGameplayTag:
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
                 const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`;
-                entity.PinNames ??= [];
-                entity.PinNames.push(result);
-                delete entity.PinTags[entity.PinTags.length - 1];
-                entity.PinTags[entity.PinTags.length] = null;
+                entity.PinNames ??= new ArrayEntity();
+                entity.PinNames.valueOf().push(new StringEntity(result));
+                delete entity.PinTags.valueOf()[entity.PinTags.length - 1];
+                entity.PinTags.valueOf()[entity.PinTags.length] = null;
                 return result
             };
         case Configuration.paths.switchName:
         case Configuration.paths.switchString:
             pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput());
-            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Case[_\s]+(\d+)\s*$/i)?.[1]);
+            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.toString().match(/^\s*Case[_\s]+(\d+)\s*$/i)?.[1]);
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
                 const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`;
-                entity.PinNames ??= [];
-                entity.PinNames.push(result);
+                entity.PinNames ??= new ArrayEntity();
+                entity.PinNames.valueOf().push(new StringEntity(result));
                 return result
             };
             break
@@ -5861,333 +5962,400 @@ function nodeVariadic(entity) {
                 }
             );
             const newPin = new PinEntity(modelPin);
-            newPin.PinId = GuidEntity.generateGuid();
-            newPin.PinName = pinNameFromIndex(index, min, max, newPin);
+            newPin.PinId = new GuidEntity();
+            newPin.PinName = new StringEntity(pinNameFromIndex(index, min, max, newPin));
             newPin.PinToolTip = undefined;
+            if (newPin.DefaultValue) {
+                // @ts-expect-error
+                newPin.DefaultValue = new (newPin.DefaultValue.constructor)();
+            }
             entity.getCustomproperties(true).push(newPin);
             return newPin
         }
     }
 }
 
-class ObjectEntity extends IEntity {
+class MacroGraphReferenceEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        isExported: new AttributeInfo({
-            type: Boolean,
-            ignored: true,
-        }),
-        Class: AttributeInfo.createType(ObjectReferenceEntity),
-        Name: AttributeInfo.createType(String),
-        Archetype: AttributeInfo.createType(ObjectReferenceEntity),
-        ExportPath: AttributeInfo.createType(ObjectReferenceEntity),
-        ObjectRef: AttributeInfo.createType(ObjectReferenceEntity),
-        BlueprintElementType: AttributeInfo.createType(ObjectReferenceEntity),
-        BlueprintElementInstance: AttributeInfo.createType(ObjectReferenceEntity),
-        PinTags: new AttributeInfo({
-            type: [null],
-            inlined: true,
-        }),
-        PinNames: new AttributeInfo({
-            type: [String],
-            inlined: true,
-        }),
-        AxisKey: AttributeInfo.createType(SymbolEntity),
-        InputAxisKey: AttributeInfo.createType(SymbolEntity),
-        InputName: AttributeInfo.createType(String),
-        InputType: AttributeInfo.createType(SymbolEntity),
-        NumAdditionalInputs: AttributeInfo.createType(Number),
-        bIsPureFunc: AttributeInfo.createType(Boolean),
-        bIsConstFunc: AttributeInfo.createType(Boolean),
-        bIsCaseSensitive: AttributeInfo.createType(Boolean),
-        VariableReference: AttributeInfo.createType(VariableReferenceEntity),
-        SelfContextInfo: AttributeInfo.createType(SymbolEntity),
-        DelegatePropertyName: AttributeInfo.createType(String),
-        DelegateOwnerClass: AttributeInfo.createType(ObjectReferenceEntity),
-        ComponentPropertyName: AttributeInfo.createType(String),
-        EventReference: AttributeInfo.createType(FunctionReferenceEntity),
-        FunctionReference: AttributeInfo.createType(FunctionReferenceEntity),
-        FunctionScript: AttributeInfo.createType(ObjectReferenceEntity),
-        CustomFunctionName: AttributeInfo.createType(String),
-        TargetType: AttributeInfo.createType(ObjectReferenceEntity),
-        MacroGraphReference: AttributeInfo.createType(MacroGraphReferenceEntity),
-        Enum: AttributeInfo.createType(ObjectReferenceEntity),
-        EnumEntries: new AttributeInfo({
-            type: [String],
-            inlined: true,
-        }),
-        InputKey: AttributeInfo.createType(SymbolEntity),
-        OpName: AttributeInfo.createType(String),
-        CachedChangeId: AttributeInfo.createType(GuidEntity),
-        FunctionDisplayName: AttributeInfo.createType(String),
-        AddedPins: new AttributeInfo({
-            type: [UnknownPinEntity],
-            default: () => [],
-            inlined: true,
-            silent: true,
-        }),
-        ChangeId: AttributeInfo.createType(GuidEntity),
-        MaterialFunction: AttributeInfo.createType(ObjectReferenceEntity),
-        bOverrideFunction: AttributeInfo.createType(Boolean),
-        bInternalEvent: AttributeInfo.createType(Boolean),
-        bConsumeInput: AttributeInfo.createType(Boolean),
-        bExecuteWhenPaused: AttributeInfo.createType(Boolean),
-        bOverrideParentBinding: AttributeInfo.createType(Boolean),
-        bControl: AttributeInfo.createType(Boolean),
-        bAlt: AttributeInfo.createType(Boolean),
-        bShift: AttributeInfo.createType(Boolean),
-        bCommand: AttributeInfo.createType(Boolean),
-        CommentColor: AttributeInfo.createType(LinearColorEntity),
-        bCommentBubbleVisible_InDetailsPanel: AttributeInfo.createType(Boolean),
-        bColorCommentBubble: AttributeInfo.createType(Boolean),
-        ProxyFactoryFunctionName: AttributeInfo.createType(String),
-        ProxyFactoryClass: AttributeInfo.createType(ObjectReferenceEntity),
-        ProxyClass: AttributeInfo.createType(ObjectReferenceEntity),
-        StructType: AttributeInfo.createType(ObjectReferenceEntity),
-        MaterialExpression: AttributeInfo.createType(ObjectReferenceEntity),
-        MaterialExpressionComment: AttributeInfo.createType(ObjectReferenceEntity),
-        MoveMode: AttributeInfo.createType(SymbolEntity),
-        TimelineName: AttributeInfo.createType(String),
-        TimelineGuid: AttributeInfo.createType(GuidEntity),
-        SizeX: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        SizeY: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        Text: AttributeInfo.createType(new MirroredEntity(String)),
-        MaterialExpressionEditorX: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        MaterialExpressionEditorY: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        NodeTitle: AttributeInfo.createType(String),
-        NodeTitleColor: AttributeInfo.createType(LinearColorEntity),
-        PositionX: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        PositionY: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        SettingsInterface: AttributeInfo.createType(ObjectReferenceEntity),
-        PCGNode: AttributeInfo.createType(ObjectReferenceEntity),
-        HiGenGridSize: AttributeInfo.createType(SymbolEntity),
-        Operation: AttributeInfo.createType(SymbolEntity),
-        NodePosX: AttributeInfo.createType(IntegerEntity),
-        NodePosY: AttributeInfo.createType(IntegerEntity),
-        NodeHeight: AttributeInfo.createType(IntegerEntity),
-        NodeWidth: AttributeInfo.createType(IntegerEntity),
-        Graph: AttributeInfo.createType(ObjectReferenceEntity),
-        SubgraphInstance: AttributeInfo.createType(String),
-        InputPins: new AttributeInfo({
-            type: [ObjectReferenceEntity],
-            inlined: true,
-        }),
-        OutputPins: new AttributeInfo({
-            type: [ObjectReferenceEntity],
-            inlined: true,
-        }),
-        bExposeToLibrary: AttributeInfo.createType(Boolean),
-        bCanRenameNode: AttributeInfo.createType(Boolean),
-        bCommentBubblePinned: AttributeInfo.createType(Boolean),
-        bCommentBubbleVisible: AttributeInfo.createType(Boolean),
-        NodeComment: AttributeInfo.createType(String),
-        AdvancedPinDisplay: AttributeInfo.createType(IdentifierEntity),
-        DelegateReference: AttributeInfo.createType(VariableReferenceEntity),
-        EnabledState: AttributeInfo.createType(IdentifierEntity),
-        NodeGuid: AttributeInfo.createType(GuidEntity),
-        ErrorType: AttributeInfo.createType(IntegerEntity),
-        ErrorMsg: AttributeInfo.createType(String),
-        ScriptVariables: new AttributeInfo({
-            type: [ScriptVariableEntity],
-            inlined: true,
-        }),
-        Node: AttributeInfo.createType(new MirroredEntity(ObjectReferenceEntity)),
-        ExportedNodes: AttributeInfo.createType(String),
-        CustomProperties: AttributeInfo.createType([new Union(PinEntity, UnknownPinEntity)]),
+        MacroGraph: ObjectReferenceEntity,
+        GraphBlueprint: ObjectReferenceEntity,
+        GraphGuid: GuidEntity,
     }
-    static nameRegex = /^(\w+?)(?:_(\d+))?$/
+    static grammar = this.createGrammar()
+
+    constructor(values) {
+        super(values);
+        /** @type {InstanceType<typeof MacroGraphReferenceEntity.attributes.MacroGraph>} */ this.MacroGraph;
+        /** @type {InstanceType<typeof MacroGraphReferenceEntity.attributes.GraphBlueprint>} */ this.GraphBlueprint;
+        /** @type {InstanceType<typeof MacroGraphReferenceEntity.attributes.GraphGuid>} */ this.GraphGuid;
+    }
+
+    static createGrammar() {
+        return /** @type {P<MacroGraphReferenceEntity>} */(
+            Grammar.createEntityGrammar(this)
+        )
+    }
+
+    getMacroName() {
+        const colonIndex = this.MacroGraph.path.search(":");
+        return this.MacroGraph.path.substring(colonIndex + 1)
+    }
+}
+
+class NullEntity extends IEntity {
+
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return /** @type {P<NullEntity>} */(
+            // @ts-expect-error
+            Parsernostrum.reg(new RegExp(String.raw`\(${Parsernostrum.whitespaceInlineOpt.getParser().regexp.source}\)`))
+                .map(v => new this())
+        )
+    }
+
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor)
+    ) {
+        let result = "()";
+        if (Self.serialized) {
+            result = `"${result}"`;
+        }
+        return result
+    }
+}
+
+class ScriptVariableEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        ScriptVariable: ObjectReferenceEntity,
+        OriginalChangeId: GuidEntity,
+    }
+    static grammar = this.createGrammar()
+
+    constructor(values = {}) {
+        super(values);
+        /** @type {InstanceType<typeof ScriptVariableEntity.attributes.ScriptVariable>} */ this.ScriptVariable;
+        /** @type {InstanceType<typeof ScriptVariableEntity.attributes.OriginalChangeId>} */ this.OriginalChangeId;
+    }
+
+    static createGrammar() {
+        return /** @type {P<ScriptVariableEntity>} */(
+            Grammar.createEntityGrammar(this).label("ScriptVariableEntity")
+        )
+    }
+}
+
+class UnknownPinEntity extends PinEntity {
+
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return /** @type {P<UnknownPinEntity>} */(
+            Parsernostrum.seq(
+                Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Symbol.source})\\s*\\(\\s*`), 1),
+                Grammar.createAttributeGrammar(this).sepBy(Grammar.commaSeparation),
+                Parsernostrum.reg(/\s*(?:,\s*)?\)/)
+            ).map(([lookbehind, attributes, _2]) => {
+                lookbehind ??= "";
+                let values = {};
+                if (lookbehind.length) {
+                    values.lookbehind = lookbehind;
+                }
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                return new this(values)
+            }).label("UnknownPinEntity")
+        )
+    }
+}
+
+class VariableReferenceEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        MemberScope: StringEntity,
+        MemberName: StringEntity.withDefault(),
+        MemberGuid: GuidEntity,
+        bSelfContext: BooleanEntity,
+    }
+    static grammar = this.createGrammar()
+
+    constructor(values) {
+        super(values);
+        /** @type {InstanceType<typeof VariableReferenceEntity.attributes.MemberScope>} */ this.MemberScope;
+        /** @type {InstanceType<typeof VariableReferenceEntity.attributes.MemberName>} */ this.MemberName;
+        /** @type {InstanceType<typeof VariableReferenceEntity.attributes.MemberGuid>} */ this.MemberGuid;
+        /** @type {InstanceType<typeof VariableReferenceEntity.attributes.bSelfContext>} */ this.bSelfContext;
+    }
+
+    static createGrammar() {
+        return /** @type {P<VariableReferenceEntity>} */(
+            Grammar.createEntityGrammar(this).label("VariableReferenceEntity")
+        )
+    }
+}
+
+class ObjectEntity extends IEntity {
+
+    #exported = false
+    get exported() {
+        return this.#exported
+    }
+    set exported(value) {
+        this.#exported = value;
+    }
+
+    static #nameRegex = /^(\w+?)(?:_(\d+))?$/
+    /** @type {(k: String) => String} */
+    static printKey = k => !k.startsWith(Configuration.subObjectAttributeNamePrefix) ? k : ""
+    static attributeSeparator = "\n"
+    static wrap = this.notWrapped
+    static trailing = true
+    static attributes = {
+        ...super.attributes,
+        Class: ObjectReferenceEntity,
+        Name: StringEntity,
+        Archetype: ObjectReferenceEntity,
+        ExportPath: ObjectReferenceEntity,
+        ObjectRef: ObjectReferenceEntity,
+        BlueprintElementType: ObjectReferenceEntity,
+        BlueprintElementInstance: ObjectReferenceEntity,
+        ConstA: MirroredEntity.of(NumberEntity),
+        ConstB: MirroredEntity.of(NumberEntity),
+        PinTags: ArrayEntity.of(NullEntity).flagInlined(),
+        PinNames: ArrayEntity.of(StringEntity).flagInlined(),
+        AxisKey: SymbolEntity,
+        InputAxisKey: SymbolEntity,
+        InputName: StringEntity,
+        InputType: SymbolEntity,
+        NumAdditionalInputs: NaturalNumberEntity,
+        bIsPureFunc: BooleanEntity,
+        bIsConstFunc: BooleanEntity,
+        bIsCaseSensitive: BooleanEntity,
+        VariableReference: VariableReferenceEntity,
+        SelfContextInfo: SymbolEntity,
+        DelegatePropertyName: StringEntity,
+        DelegateOwnerClass: ObjectReferenceEntity,
+        ComponentPropertyName: StringEntity,
+        EventReference: FunctionReferenceEntity,
+        FunctionReference: FunctionReferenceEntity,
+        FunctionScript: ObjectReferenceEntity,
+        CustomFunctionName: StringEntity,
+        TargetType: ObjectReferenceEntity,
+        MacroGraphReference: MacroGraphReferenceEntity,
+        Enum: ObjectReferenceEntity,
+        EnumEntries: ArrayEntity.of(StringEntity).flagInlined(),
+        InputKey: SymbolEntity,
+        OpName: StringEntity,
+        CachedChangeId: GuidEntity,
+        FunctionDisplayName: StringEntity,
+        AddedPins: ArrayEntity.of(UnknownPinEntity).withDefault().flagInlined().flagSilent(),
+        ChangeId: GuidEntity,
+        MaterialFunction: ObjectReferenceEntity,
+        bOverrideFunction: BooleanEntity,
+        bInternalEvent: BooleanEntity,
+        bConsumeInput: BooleanEntity,
+        bExecuteWhenPaused: BooleanEntity,
+        bOverrideParentBinding: BooleanEntity,
+        bControl: BooleanEntity,
+        bAlt: BooleanEntity,
+        bShift: BooleanEntity,
+        bCommand: BooleanEntity,
+        CommentColor: LinearColorEntity,
+        bCommentBubbleVisible_InDetailsPanel: BooleanEntity,
+        bColorCommentBubble: BooleanEntity,
+        ProxyFactoryFunctionName: StringEntity,
+        ProxyFactoryClass: ObjectReferenceEntity,
+        ProxyClass: ObjectReferenceEntity,
+        StructType: ObjectReferenceEntity,
+        MaterialExpression: ObjectReferenceEntity,
+        MaterialExpressionComment: ObjectReferenceEntity,
+        MoveMode: SymbolEntity,
+        TimelineName: StringEntity,
+        TimelineGuid: GuidEntity,
+        SizeX: MirroredEntity.of(IntegerEntity),
+        SizeY: MirroredEntity.of(IntegerEntity),
+        Text: MirroredEntity.of(StringEntity),
+        MaterialExpressionEditorX: MirroredEntity.of(IntegerEntity),
+        MaterialExpressionEditorY: MirroredEntity.of(IntegerEntity),
+        NodeTitle: StringEntity,
+        NodeTitleColor: LinearColorEntity,
+        PositionX: MirroredEntity.of(IntegerEntity),
+        PositionY: MirroredEntity.of(IntegerEntity),
+        SettingsInterface: ObjectReferenceEntity,
+        PCGNode: ObjectReferenceEntity,
+        HiGenGridSize: SymbolEntity,
+        Operation: SymbolEntity,
+        NodePosX: IntegerEntity,
+        NodePosY: IntegerEntity,
+        NodeHeight: IntegerEntity,
+        NodeWidth: IntegerEntity,
+        Graph: ObjectReferenceEntity,
+        SubgraphInstance: StringEntity,
+        InputPins: ArrayEntity.of(ObjectReferenceEntity).flagInlined(),
+        OutputPins: ArrayEntity.of(ObjectReferenceEntity).flagInlined(),
+        bExposeToLibrary: BooleanEntity,
+        bCanRenameNode: BooleanEntity,
+        bCommentBubblePinned: BooleanEntity,
+        bCommentBubbleVisible: BooleanEntity,
+        NodeComment: StringEntity,
+        AdvancedPinDisplay: SymbolEntity,
+        DelegateReference: VariableReferenceEntity,
+        EnabledState: SymbolEntity,
+        NodeGuid: GuidEntity,
+        ErrorType: IntegerEntity,
+        ErrorMsg: StringEntity,
+        ScriptVariables: ArrayEntity.of(ScriptVariableEntity),
+        Node: MirroredEntity.of(ObjectReferenceEntity),
+        ExportedNodes: StringEntity,
+        CustomProperties: ArrayEntity.of(AlternativesEntity.accepting(PinEntity, UnknownPinEntity)).withDefault().flagSilent(),
+    }
     static customPropertyGrammar = Parsernostrum.seq(
         Parsernostrum.reg(/CustomProperties\s+/),
-        Grammar.grammarFor(
-            undefined,
-            this.attributes.CustomProperties.type[0]
-        ),
+        this.attributes.CustomProperties.type.grammar,
     ).map(([_0, pin]) => values => {
-        if (!values.CustomProperties) {
-            values.CustomProperties = [];
-        }
-        values.CustomProperties.push(pin);
+        /** @type {InstanceType<typeof this.attributes.CustomProperties>} */(
+            values.CustomProperties ??= new (this.attributes.CustomProperties)()
+        ).values.push(pin);
     })
     static inlinedArrayEntryGrammar = Parsernostrum.seq(
         Parsernostrum.alt(
             Grammar.symbolQuoted.map(v => [v, true]),
             Grammar.symbol.map(v => [v, false]),
         ),
-        Parsernostrum.reg(
-            new RegExp(`\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\=\\s*`),
-            1
-        ).map(Number)
+        Parsernostrum.reg(new RegExp(String.raw`\s*\(\s*(\d+)\s*\)\s*\=\s*`), 1).map(Number)
     )
         .chain(
-            /** @param {[[String, Boolean], Number]} param */
+            /** @param {[[keyof ObjectEntity.attributes, Boolean], Number]} param */
             ([[symbol, quoted], index]) =>
-                Grammar.grammarFor(this.attributes[symbol])
-                    .map(currentValue =>
-                        values => {
-                            (values[symbol] ??= [])[index] = currentValue;
-                            Utility.objectSet(values, ["attributes", symbol, "quoted"], quoted);
-                            if (!this.attributes[symbol]?.inlined) {
-                                if (!values.attributes) {
-                                    IEntity.defineAttributes(values, {});
-                                }
-                                Utility.objectSet(values, ["attributes", symbol, "type"], [currentValue.constructor]);
-                                Utility.objectSet(values, ["attributes", symbol, "inlined"], true);
+                (this.attributes[symbol]?.grammar ?? IEntity.unknownEntityGrammar).map(currentValue =>
+                    values => {
+                        if (values[symbol] === undefined) {
+                            let arrayEntity = ArrayEntity;
+                            if (quoted != arrayEntity.quoted) {
+                                arrayEntity = arrayEntity.flagQuoted(quoted);
                             }
+                            if (!arrayEntity.inlined) {
+                                arrayEntity = arrayEntity.flagInlined();
+                            }
+                            values[symbol] = new arrayEntity();
                         }
-                    )
+                        /** @type {ArrayEntity} */
+                        const target = values[symbol];
+                        target.values[index] = currentValue;
+                    }
+                )
         )
     static grammar = this.createGrammar()
-
-    static createSubObjectGrammar() {
-        return Parsernostrum.lazy(() => this.grammar)
-            .map(object =>
-                values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
-            )
-    }
-
-    static createGrammar() {
-        return Parsernostrum.seq(
-            Parsernostrum.reg(/Begin +Object/),
-            Parsernostrum.seq(
-                Parsernostrum.whitespace,
-                Parsernostrum.alt(
-                    this.createSubObjectGrammar(),
-                    this.customPropertyGrammar,
-                    Grammar.createAttributeGrammar(this, Parsernostrum.reg(Grammar.Regex.MultipleWordsSymbols)),
-                    Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
-                        Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
-                    ),
-                    this.inlinedArrayEntryGrammar,
-                )
-            )
-                .map(([_0, entry]) => entry)
-                .many(),
-            Parsernostrum.reg(/\s+End +Object/),
-        )
-            .map(([_0, attributes, _2]) => {
-                const values = {};
-                attributes.forEach(attributeSetter => attributeSetter(values));
-                return new this(values)
-            })
-    }
-
-    static getMultipleObjectsGrammar() {
-        return Parsernostrum.seq(
-            Parsernostrum.whitespaceOpt,
+    static grammarMultipleObjects = Parsernostrum.seq(
+        Parsernostrum.whitespaceOpt,
+        this.grammar,
+        Parsernostrum.seq(
+            Parsernostrum.whitespace,
             this.grammar,
-            Parsernostrum.seq(
-                Parsernostrum.whitespace,
-                this.grammar,
-            )
-                .map(([_0, object]) => object)
-                .many(),
-            Parsernostrum.whitespaceOpt
         )
-            .map(([_0, first, remaining, _4]) => [first, ...remaining])
-    }
+            .map(([_0, object]) => object)
+            .many(),
+        Parsernostrum.whitespaceOpt
+    ).map(([_0, first, remaining, _4]) => [first, ...remaining])
 
-    /** @type {String} */
-    #class
-
-    constructor(values = {}, suppressWarns = false) {
-        if ("NodePosX" in values !== "NodePosY" in values) {
+    constructor(values = {}) {
+        if (("NodePosX" in values) !== ("NodePosY" in values)) {
             const entries = Object.entries(values);
             const [key, position] = "NodePosX" in values
                 ? ["NodePosY", Object.keys(values).indexOf("NodePosX") + 1]
                 : ["NodePosX", Object.keys(values).indexOf("NodePosY")];
-            const entry = [key, new (AttributeInfo.getAttribute(values, key, "type", ObjectEntity))()];
-            entries.splice(position, 0, entry);
+            entries.splice(position, 0, [key, new IntegerEntity(0)]);
             values = Object.fromEntries(entries);
         }
-        super(values, suppressWarns);
-
-        // Attributes not assigned a strong type in attributes because the names are too generic
-        /** @type {Number | MirroredEntity<Boolean>} */ this.R;
-        /** @type {Number | MirroredEntity<Boolean>} */ this.G;
-        /** @type {Number | MirroredEntity<Boolean>} */ this.B;
-        /** @type {Number | MirroredEntity<Boolean>} */ this.A;
+        super(values);
 
         // Attributes
-        /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties;
-        /** @type {Boolean} */ this.bIsPureFunc;
-        /** @type {Boolean} */ this.isExported;
-        /** @type {FunctionReferenceEntity} */ this.ComponentPropertyName;
-        /** @type {FunctionReferenceEntity} */ this.EventReference;
-        /** @type {FunctionReferenceEntity} */ this.FunctionReference;
-        /** @type {IdentifierEntity} */ this.AdvancedPinDisplay;
-        /** @type {IdentifierEntity} */ this.EnabledState;
-        /** @type {IntegerEntity} */ this.NodeHeight;
-        /** @type {IntegerEntity} */ this.NodePosX;
-        /** @type {IntegerEntity} */ this.NodePosY;
-        /** @type {IntegerEntity} */ this.NodeWidth;
-        /** @type {LinearColorEntity} */ this.CommentColor;
-        /** @type {LinearColorEntity} */ this.NodeTitleColor;
-        /** @type {MacroGraphReferenceEntity} */ this.MacroGraphReference;
-        /** @type {MirroredEntity} */ this.MaterialExpressionEditorX;
-        /** @type {MirroredEntity} */ this.MaterialExpressionEditorY;
-        /** @type {MirroredEntity} */ this.SizeX;
-        /** @type {MirroredEntity} */ this.SizeY;
-        /** @type {MirroredEntity} */ this.Text;
-        /** @type {MirroredEntity<IntegerEntity>} */ this.PositionX;
-        /** @type {MirroredEntity<IntegerEntity>} */ this.PositionY;
-        /** @type {MirroredEntity<ObjectReferenceEntity>} */ this.Node;
-        /** @type {null[]} */ this.PinTags;
-        /** @type {Number} */ this.NumAdditionalInputs;
-        /** @type {ObjectReferenceEntity[]} */ this.InputPins;
-        /** @type {ObjectReferenceEntity[]} */ this.OutputPins;
-        /** @type {ObjectReferenceEntity} */ this.Archetype;
-        /** @type {ObjectReferenceEntity} */ this.BlueprintElementInstance;
-        /** @type {ObjectReferenceEntity} */ this.BlueprintElementType;
-        /** @type {ObjectReferenceEntity} */ this.Class;
-        /** @type {ObjectReferenceEntity} */ this.Enum;
-        /** @type {ObjectReferenceEntity} */ this.ExportPath;
-        /** @type {ObjectReferenceEntity} */ this.FunctionScript;
-        /** @type {ObjectReferenceEntity} */ this.Graph;
-        /** @type {ObjectReferenceEntity} */ this.MaterialExpression;
-        /** @type {ObjectReferenceEntity} */ this.MaterialExpressionComment;
-        /** @type {ObjectReferenceEntity} */ this.MaterialFunction;
-        /** @type {ObjectReferenceEntity} */ this.ObjectRef;
-        /** @type {ObjectReferenceEntity} */ this.PCGNode;
-        /** @type {ObjectReferenceEntity} */ this.SettingsInterface;
-        /** @type {ObjectReferenceEntity} */ this.StructType;
-        /** @type {ObjectReferenceEntity} */ this.TargetType;
-        /** @type {ScriptVariableEntity[]} */ this.ScriptVariables;
-        /** @type {String[]} */ this.EnumEntries;
-        /** @type {String[]} */ this.PinNames;
-        /** @type {String} */ this.CustomFunctionName;
-        /** @type {String} */ this.DelegatePropertyName;
-        /** @type {String} */ this.ExportedNodes;
-        /** @type {String} */ this.FunctionDisplayName;
-        /** @type {String} */ this.InputName;
-        /** @type {String} */ this.Name;
-        /** @type {String} */ this.NodeComment;
-        /** @type {String} */ this.NodeTitle;
-        /** @type {String} */ this.Operation;
-        /** @type {String} */ this.OpName;
-        /** @type {String} */ this.ProxyFactoryFunctionName;
-        /** @type {String} */ this.SubgraphInstance;
-        /** @type {String} */ this.Text;
-        /** @type {SymbolEntity} */ this.AxisKey;
-        /** @type {SymbolEntity} */ this.HiGenGridSize;
-        /** @type {SymbolEntity} */ this.InputAxisKey;
-        /** @type {SymbolEntity} */ this.InputKey;
-        /** @type {SymbolEntity} */ this.InputType;
-        /** @type {UnknownPinEntity[]} */ this.AddedPins;
-        /** @type {VariableReferenceEntity} */ this.DelegateReference;
-        /** @type {VariableReferenceEntity} */ this.VariableReference;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.AddedPins>} */ this.AddedPins;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.AdvancedPinDisplay>} */ this.AdvancedPinDisplay;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Archetype>} */ this.Archetype;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.AxisKey>} */ this.AxisKey;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.bIsPureFunc>} */ this.bIsPureFunc;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementInstance>} */ this.BlueprintElementInstance;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstA>} */ this.ConstA;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstB>} */ this.ConstB;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementType>} */ this.BlueprintElementType;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Class>} */ this.Class;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.CommentColor>} */ this.CommentColor;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ComponentPropertyName>} */ this.ComponentPropertyName;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.CustomFunctionName>} */ this.CustomFunctionName;
+        /** @type {ArrayEntity<typeof PinEntity | typeof UnknownPinEntity>} */ this.CustomProperties;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.DelegatePropertyName>} */ this.DelegatePropertyName;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.DelegateReference>} */ this.DelegateReference;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.EnabledState>} */ this.EnabledState;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Enum>} */ this.Enum;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.EnumEntries>} */ this.EnumEntries;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.EventReference>} */ this.EventReference;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ExportedNodes>} */ this.ExportedNodes;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ExportPath>} */ this.ExportPath;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.FunctionDisplayName>} */ this.FunctionDisplayName;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.FunctionReference>} */ this.FunctionReference;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.FunctionScript>} */ this.FunctionScript;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Graph>} */ this.Graph;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.HiGenGridSize>} */ this.HiGenGridSize;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.InputAxisKey>} */ this.InputAxisKey;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.InputKey>} */ this.InputKey;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.InputName>} */ this.InputName;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.InputPins>} */ this.InputPins;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.InputType>} */ this.InputType;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.MacroGraphReference>} */ this.MacroGraphReference;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.MaterialExpression>} */ this.MaterialExpression;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.MaterialExpressionComment>} */ this.MaterialExpressionComment;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.MaterialExpressionEditorX>} */ this.MaterialExpressionEditorX;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.MaterialExpressionEditorY>} */ this.MaterialExpressionEditorY;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.MaterialFunction>} */ this.MaterialFunction;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Name>} */ this.Name;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Node>} */ this.Node;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodeComment>} */ this.NodeComment;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodeHeight>} */ this.NodeHeight;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodePosX>} */ this.NodePosX;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodePosY>} */ this.NodePosY;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodeTitle>} */ this.NodeTitle;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodeTitleColor>} */ this.NodeTitleColor;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodeWidth>} */ this.NodeWidth;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NumAdditionalInputs>} */ this.NumAdditionalInputs;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ObjectRef>} */ this.ObjectRef;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Operation>} */ this.Operation;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.OpName>} */ this.OpName;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.OutputPins>} */ this.OutputPins;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PCGNode>} */ this.PCGNode;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PinTags>} */ this.PinTags;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PinNames>} */ this.PinNames;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PositionX>} */ this.PositionX;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PositionY>} */ this.PositionY;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ProxyFactoryFunctionName>} */ this.ProxyFactoryFunctionName;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ScriptVariables>} */ this.ScriptVariables;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.SettingsInterface>} */ this.SettingsInterface;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.SizeX>} */ this.SizeX;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.SizeY>} */ this.SizeY;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.StructType>} */ this.StructType;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.SubgraphInstance>} */ this.SubgraphInstance;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.TargetType>} */ this.TargetType;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Text>} */ this.Text;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Text>} */ this.Text;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.VariableReference>} */ this.VariableReference;
 
         // Legacy nodes pins
-        if (this["Pins"] instanceof Array) {
-            this["Pins"].forEach(
+        if (this["Pins"] instanceof ArrayEntity) {
+            this["Pins"].valueOf().forEach(
                 /** @param {ObjectReferenceEntity} objectReference */
                 objectReference => {
                     const pinObject = this[Configuration.subObjectAttributeNameFromReference(objectReference, true)];
                     if (pinObject) {
                         const pinEntity = PinEntity.fromLegacyObject(pinObject);
-                        pinEntity.LinkedTo = [];
+                        pinEntity.LinkedTo = new (PinEntity.attributes.LinkedTo)();
                         this.getCustomproperties(true).push(pinEntity);
-                        Utility.objectSet(this, ["attributes", "CustomProperties", "ignored"], true);
+                        this.CustomProperties.ignored = true;
                     }
                 }
             );
@@ -6202,23 +6370,37 @@ class ObjectEntity extends IEntity {
             obj.MaterialExpressionEditorX && (obj.MaterialExpressionEditorX.getter = () => this.NodePosX);
             obj.MaterialExpressionEditorY && (obj.MaterialExpressionEditorY.getter = () => this.NodePosY);
             if (this.getType() === Configuration.paths.materialExpressionComponentMask) {
-                // The following attributes are too generic therefore not assigned a MirroredEntity
-                const rgbaPins = Configuration.rgba.map(pinName =>
-                    this.getPinEntities().find(pin => pin.PinName === pinName && (pin.recomputesNodeTitleOnChange = true))
-                );
-                obj.R = new MirroredEntity(Boolean, () => rgbaPins[0].DefaultValue);
-                obj.G = new MirroredEntity(Boolean, () => rgbaPins[1].DefaultValue);
-                obj.B = new MirroredEntity(Boolean, () => rgbaPins[2].DefaultValue);
-                obj.A = new MirroredEntity(Boolean, () => rgbaPins[3].DefaultValue);
-                Utility.objectSet(obj, ["attributes", "R", "default"], false);
-                Utility.objectSet(obj, ["attributes", "R", "silent"], true);
-                Utility.objectSet(obj, ["attributes", "G", "default"], false);
-                Utility.objectSet(obj, ["attributes", "G", "silent"], true);
-                Utility.objectSet(obj, ["attributes", "B", "default"], false);
-                Utility.objectSet(obj, ["attributes", "B", "silent"], true);
-                Utility.objectSet(obj, ["attributes", "A", "default"], false);
-                Utility.objectSet(obj, ["attributes", "A", "silent"], true);
-                obj._keys = [...Configuration.rgba, ...Object.keys(obj).filter(k => !Configuration.rgba.includes(k))];
+                const rgbaPins = Configuration.rgba.map(pinName => {
+                    const result = this.getPinEntities().find(pin => pin.PinName.toString() === pinName);
+                    result.recomputesNodeTitleOnChange = true;
+                    return result
+                });
+                // Reorder keys so that the added ones stay first
+                obj.keys = [...Configuration.rgba, ...obj.keys];
+                const silentBool = MirroredEntity.of(BooleanEntity).withDefault().flagSilent();
+                obj["R"] = new silentBool(() => rgbaPins[0].DefaultValue);
+                obj["G"] = new silentBool(() => rgbaPins[1].DefaultValue);
+                obj["B"] = new silentBool(() => rgbaPins[2].DefaultValue);
+                obj["A"] = new silentBool(() => rgbaPins[3].DefaultValue);
+            } else if (this.getType() === Configuration.paths.materialExpressionSubtract) {
+                const silentNumber = MirroredEntity
+                    .of(NumberEntity.withPrecision(6))
+                    .withDefault(() => new MirroredEntity(() => new NumberEntity(1)))
+                    .flagSilent();
+                const pinA = this.getCustomproperties().find(pin => pin.PinName?.toString() === "A");
+                const pinB = this.getCustomproperties().find(pin => pin.PinName?.toString() === "B");
+                if (pinA || pinB) {
+                    // Reorder keys so that the added ones stay first
+                    obj.keys = ["ConstA", "ConstB", ...obj.keys];
+                    if (pinA) {
+                        pinA.recomputesNodeTitleOnChange = true;
+                        obj.ConstA = new silentNumber(() => pinA.DefaultValue);
+                    }
+                    if (pinB) {
+                        pinB.recomputesNodeTitleOnChange = true;
+                        obj.ConstB = new silentNumber(() => pinB.DefaultValue);
+                    }
+                }
             }
         }
         /** @type {ObjectEntity} */
@@ -6230,15 +6412,15 @@ class ObjectEntity extends IEntity {
                 /** @param {ObjectEntity} obj */
                 obj => {
                     if (obj.Node !== undefined) {
-                        const nodeRef = obj.Node.get();
+                        const nodeRef = obj.Node.getter();
                         if (
                             nodeRef.type === this.PCGNode.type
                             && nodeRef.path === `${this.Name}.${this.PCGNode.path}`
                         ) {
-                            obj.Node.getter = () => new ObjectReferenceEntity({
-                                type: this.PCGNode.type,
-                                path: `${this.Name}.${this.PCGNode.path}`,
-                            });
+                            obj.Node.getter = () => new ObjectReferenceEntity(
+                                this.PCGNode.type,
+                                `${this.Name}.${this.PCGNode.path}`,
+                            );
                         }
                     }
                 }
@@ -6247,7 +6429,7 @@ class ObjectEntity extends IEntity {
         }
         let inputIndex = 0;
         let outputIndex = 0;
-        this.CustomProperties?.forEach((pinEntity, i) => {
+        this.getCustomproperties().forEach((pinEntity, i) => {
             pinEntity.objectEntity = this;
             pinEntity.pinIndex = pinEntity.isInput()
                 ? inputIndex++
@@ -6257,10 +6439,55 @@ class ObjectEntity extends IEntity {
         });
     }
 
+    /** @returns {P<ObjectEntity>} */
+    static createGrammar() {
+        return Parsernostrum.seq(
+            Parsernostrum.reg(/Begin +Object/),
+            Parsernostrum.seq(
+                Parsernostrum.whitespace,
+                Parsernostrum.alt(
+                    this.createSubObjectGrammar(),
+                    this.customPropertyGrammar,
+                    Grammar.createAttributeGrammar(this, Parsernostrum.reg(Grammar.Regex.MultipleWordsSymbols)),
+                    Grammar.createAttributeGrammar(
+                        this,
+                        Grammar.attributeNameQuoted,
+                        undefined,
+                        (values, attributeKey, attributeValue) => {
+                            Utility.objectSet(values, [...attributeKey, "quoted"], true);
+                        },
+                    ),
+                    this.inlinedArrayEntryGrammar,
+                )
+            )
+                .map(([_0, entry]) => entry)
+                .many(),
+            Parsernostrum.reg(/\s+End +Object/),
+        )
+            .map(([_0, attributes, _2]) => {
+                const values = {};
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                return new this(values)
+            })
+            .label("ObjectEntity")
+    }
+
+    static createSubObjectGrammar() {
+        return Parsernostrum.lazy(() => this.grammar)
+            .map(object =>
+                values => {
+                    object.trailing = false;
+                    values[Configuration.subObjectAttributeNameFromEntity(object)] = object;
+                }
+            )
+    }
+
+    /** @type {String} */
+    #class
     getClass() {
         if (!this.#class) {
             this.#class = (this.Class?.path ? this.Class.path : this.Class?.type)
-                ?? (this.ExportPath?.path ? this.ExportPath.path : this.ExportPath?.type)
+                ?? this.ExportPath.type
                 ?? "";
             if (this.#class && !this.#class.startsWith("/")) {
                 // Old path names did not start with /Script or /Engine, check tests/resources/LegacyNodes.js
@@ -6288,12 +6515,12 @@ class ObjectEntity extends IEntity {
         if (dropCounter) {
             return this.getNameAndCounter()[0]
         }
-        return this.Name
+        return this.Name.toString()
     }
 
     /** @returns {[String, Number]} */
     getNameAndCounter() {
-        const result = this.getObjectName().match(ObjectEntity.nameRegex);
+        const result = this.getObjectName().match(ObjectEntity.#nameRegex);
         return result
             ? [result[1] ?? "", parseInt(result[2] ?? "0")]
             : ["", 0]
@@ -6354,10 +6581,7 @@ class ObjectEntity extends IEntity {
     }
 
     getCustomproperties(canCreate = false) {
-        if (canCreate && !this.CustomProperties) {
-            this.CustomProperties = [];
-        }
-        return this.CustomProperties ?? []
+        return this.CustomProperties.values
     }
 
     /** @returns {PinEntity[]} */
@@ -6432,7 +6656,7 @@ class ObjectEntity extends IEntity {
 
     isPcg() {
         return this.getClass() === Configuration.paths.pcgEditorGraphNode
-            || this.getPcgSubobject()
+            || this.getPcgSubobject() != null
     }
 
     isNiagara() {
@@ -6474,7 +6698,7 @@ class ObjectEntity extends IEntity {
     }
 
     getDelegatePin() {
-        return this.getCustomproperties().find(pin => pin.PinType.PinCategory === "delegate")
+        return this.getCustomproperties().find(pin => pin.PinType.PinCategory.toString() === "delegate")
     }
 
     nodeColor() {
@@ -6488,6 +6712,72 @@ class ObjectEntity extends IEntity {
     additionalPinInserter() {
         return nodeVariadic(this)
     }
+
+    /** @param {String} key */
+    showProperty(key) {
+        switch (key) {
+            case "Class":
+            case "Name":
+            case "Archetype":
+            case "ExportPath":
+            case "CustomProperties":
+                // Serielized separately, check doWrite()
+                return false
+        }
+        return super.showProperty(key)
+    }
+
+    /** @param {typeof ObjectEntity} Self */
+    doSerialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof ObjectEntity} */(this.constructor),
+        printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
+        wrap = Self.wrap,
+    ) {
+        const deeperIndentation = indentation + Configuration.indentation;
+        const content = super.doSerialize(insideString, deeperIndentation, Self, printKey, keySeparator, attributeSeparator, wrap);
+        let result = indentation + "Begin Object"
+            + ((this.Class?.type || this.Class?.path)
+                // && Self.attributes.Class.ignored !== true
+                // && this.Class.ignored !== true
+                ? ` Class${keySeparator}${this.Class.serialize(insideString)}`
+                : ""
+            )
+            + (this.Name
+                // && Self.attributes.Name.ignored !== true
+                // && this.Name.ignored !== true
+                ? ` Name${keySeparator}${this.Name.serialize(insideString)}`
+                : ""
+            )
+            + (this.Archetype
+                // && Self.attributes.Archetype.ignored !== true
+                // && this.Archetype.ignored !== true
+                ? ` Archetype${keySeparator}${this.Archetype.serialize(insideString)}`
+                : ""
+            )
+            + ((this.ExportPath?.type || this.ExportPath?.path)
+                // && Self.attributes.ExportPath.ignored !== true
+                // && this.ExportPath.ignored !== true
+                ? ` ExportPath${keySeparator}${this.ExportPath.serialize(insideString)}`
+                : ""
+            )
+            + (content ? attributeSeparator + content : "")
+            + (Self.attributes.CustomProperties.ignored !== true && this.CustomProperties.ignored !== true
+                ? this.getCustomproperties().map(pin =>
+                    deeperIndentation
+                    + printKey("CustomProperties ")
+                    + pin.serialize(insideString)
+                ).join(Self.attributeSeparator)
+                : ""
+            )
+            + attributeSeparator
+            + indentation + "End Object"
+            + (this.trailing ? attributeSeparator : "");
+        return result
+    }
 }
 
 class KnotEntity extends ObjectEntity {
@@ -6498,24 +6788,22 @@ class KnotEntity extends ObjectEntity {
      */
     constructor(values = {}, pinReferenceForType = undefined) {
         values.Class = new ObjectReferenceEntity(Configuration.paths.knot);
-        values.Name = "K2Node_Knot";
+        values.Name = new (ObjectEntity.attributes.Name)("K2Node_Knot");
         const inputPinEntity = new PinEntity(
-            { PinName: "InputPin" },
-            true
+            { PinName: new (PinEntity.attributes.PinName)("InputPin") },
         );
         const outputPinEntity = new PinEntity(
             {
-                PinName: "OutputPin",
-                Direction: "EGPD_Output",
+                PinName: new (PinEntity.attributes.PinName)("OutputPin"),
+                Direction: new (PinEntity.attributes.Direction)("EGPD_Output"),
             },
-            true
         );
         if (pinReferenceForType) {
             inputPinEntity.copyTypeFrom(pinReferenceForType);
             outputPinEntity.copyTypeFrom(pinReferenceForType);
         }
-        values["CustomProperties"] = [inputPinEntity, outputPinEntity];
-        super(values, true);
+        values["CustomProperties"] = new (ObjectEntity.attributes.CustomProperties)([inputPinEntity, outputPinEntity]);
+        super(values);
     }
 }
 
@@ -6600,32 +6888,32 @@ class KeyBindingEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        ActionName: AttributeInfo.createValue(""),
-        bShift: AttributeInfo.createValue(false),
-        bCtrl: AttributeInfo.createValue(false),
-        bAlt: AttributeInfo.createValue(false),
-        bCmd: AttributeInfo.createValue(false),
-        Key: AttributeInfo.createType(IdentifierEntity),
+        ActionName: StringEntity,
+        bShift: BooleanEntity,
+        bCtrl: BooleanEntity,
+        bAlt: BooleanEntity,
+        bCmd: BooleanEntity,
+        Key: SymbolEntity,
     }
     static grammar = this.createGrammar()
 
-    static createGrammar() {
-        return Parsernostrum.alt(
-            IdentifierEntity.grammar.map(identifier => new this({
-                Key: identifier
-            })),
-            Grammar.createEntityGrammar(this)
-        )
+    constructor(values) {
+        super(values);
+        /** @type {InstanceType<typeof KeyBindingEntity.attributes.ActionName>} */ this.ActionName;
+        /** @type {InstanceType<typeof KeyBindingEntity.attributes.bShift>} */ this.bShift;
+        /** @type {InstanceType<typeof KeyBindingEntity.attributes.bCtrl>} */ this.bCtrl;
+        /** @type {InstanceType<typeof KeyBindingEntity.attributes.bAlt>} */ this.bAlt;
+        /** @type {InstanceType<typeof KeyBindingEntity.attributes.bCmd>} */ this.bCmd;
+        /** @type {InstanceType<typeof KeyBindingEntity.attributes.Key>} */ this.Key;
     }
 
-    constructor(values = {}) {
-        super(values, true);
-        /** @type {String} */ this.ActionName;
-        /** @type {Boolean} */ this.bShift;
-        /** @type {Boolean} */ this.bCtrl;
-        /** @type {Boolean} */ this.bAlt;
-        /** @type {Boolean} */ this.bCmd;
-        /** @type {IdentifierEntity} */ this.Key;
+    static createGrammar() {
+        return /** @type {P<KeyBindingEntity>} */(
+            Parsernostrum.alt(
+                SymbolEntity.grammar.map(identifier => new this({ Key: identifier })),
+                Grammar.createEntityGrammar(this)
+            )
+        )
     }
 }
 
@@ -6691,9 +6979,12 @@ class KeyboardShortcut extends IInput {
 
         this.#activationKeys = this.options.activationKeys ?? [];
 
-        const wantsShift = keyEntry => keyEntry.bShift || keyEntry.Key == "LeftShift" || keyEntry.Key == "RightShift";
-        const wantsCtrl = keyEntry => keyEntry.bCtrl || keyEntry.Key == "LeftControl" || keyEntry.Key == "RightControl";
-        const wantsAlt = keyEntry => keyEntry.bAlt || keyEntry.Key == "LeftAlt" || keyEntry.Key == "RightAlt";
+        /** @param {KeyBindingEntity} keyEntry */
+        const wantsShift = keyEntry => keyEntry.bShift?.valueOf() || keyEntry.Key.valueOf() == "LeftShift" || keyEntry.Key.valueOf() == "RightShift";
+        /** @param {KeyBindingEntity} keyEntry */
+        const wantsCtrl = keyEntry => keyEntry.bCtrl?.valueOf() || keyEntry.Key.valueOf() == "LeftControl" || keyEntry.Key.valueOf() == "RightControl";
+        /** @param {KeyBindingEntity} keyEntry */
+        const wantsAlt = keyEntry => keyEntry.bAlt?.valueOf() || keyEntry.Key.valueOf() == "LeftAlt" || keyEntry.Key.valueOf() == "RightAlt";
 
         let self = this;
         /** @param {KeyboardEvent} e */
@@ -6721,10 +7012,10 @@ class KeyboardShortcut extends IInput {
         this.keyUpHandler = e => {
             if (
                 self.#activationKeys.some(keyEntry =>
-                    keyEntry.bShift && e.key == "Shift"
-                    || keyEntry.bCtrl && e.key == "Control"
-                    || keyEntry.bAlt && e.key == "Alt"
-                    || keyEntry.bCmd && e.key == "Meta"
+                    keyEntry.bShift?.valueOf() && e.key == "Shift"
+                    || keyEntry.bCtrl?.valueOf() && e.key == "Control"
+                    || keyEntry.bAlt?.valueOf() && e.key == "Alt"
+                    || keyEntry.bCmd?.valueOf() && e.key == "Meta"
                     || Configuration.Keys[keyEntry.Key.value] == e.code
                 )
             ) {
@@ -6994,6 +7285,14 @@ class MouseDbClick extends IPointing {
     }
 }
 
+class Shortcuts {
+    static deleteNodes = "Delete"
+    static duplicateNodes = "(bCtrl=True,Key=D)"
+    static enableLinkDelete = "LeftAlt"
+    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 1:1 zoom
+    static selectAllNodes = "(bCtrl=True,Key=A)"
+}
+
 /** @template {IElement} ElementT */
 class ITemplate {
 
@@ -7086,6 +7385,11 @@ class IFromToPositionedTemplate extends ITemplate {
 
 /** @extends {IFromToPositionedTemplate<LinkElement>} */
 class LinkTemplate extends IFromToPositionedTemplate {
+
+    /** @param {Number} x */
+    static sigmoidPositive(x, curvature = 3.7, length = 1.1) {
+        return 1 - Math.exp(-((x / length) ** curvature))
+    }
 
     /**
      * Returns a function providing the inverse multiplication y = a / x + q. The value of a and q are calculated using
@@ -7232,7 +7536,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
         const aspectRatio = dy / Math.max(30, dx);
         const c2 =
             LinkTemplate.c2Clamped(dx)
-            * Utility.sigmoidPositive(fillRatio * 1.2 + aspectRatio * 0.5, 1.5, 1.8)
+            * LinkTemplate.sigmoidPositive(fillRatio * 1.2 + aspectRatio * 0.5, 1.5, 1.8)
             + this.element.startPercentage;
         this.element.svgPathD = Configuration.linkRightSVGPath(this.element.startPercentage, c1, c2);
     }
@@ -7243,9 +7547,9 @@ class LinkTemplate extends IFromToPositionedTemplate {
         if (changedProperties.has("originatesFromInput")) {
             this.element.style.setProperty("--ueb-from-input", this.element.originatesFromInput ? "1" : "0");
         }
-        const referencePin = this.element.source ?? this.element.destination;
+        const referencePin = this.element.getOutputPin(true);
         if (referencePin) {
-            this.element.style.setProperty("--ueb-link-color-rgb", Utility.printLinearColor(referencePin.color));
+            this.element.style.setProperty("--ueb-link-color-rgb", LinearColorEntity.printLinearColor(referencePin.color));
         }
         this.element.style.setProperty("--ueb-y-reflected", `${this.element.fromY > this.element.toY ? 1 : 0}`);
         this.element.style.setProperty("--ueb-start-percentage", `${Math.round(this.element.startPercentage)}%`);
@@ -7273,6 +7577,68 @@ class LinkTemplate extends IFromToPositionedTemplate {
     }
 }
 
+/**
+ * @template {IEntity} EntityT
+ * @template {ITemplate} TemplateT
+ * @extends {IElement<EntityT, TemplateT>}
+ */
+class IFromToPositionedElement extends IElement {
+
+    static properties = {
+        ...super.properties,
+        fromX: {
+            type: Number,
+            attribute: false,
+        },
+        fromY: {
+            type: Number,
+            attribute: false,
+        },
+        toX: {
+            type: Number,
+            attribute: false,
+        },
+        toY: {
+            type: Number,
+            attribute: false,
+        },
+    }
+
+    constructor() {
+        super();
+        this.fromX = 0;
+        this.fromY = 0;
+        this.toX = 0;
+        this.toY = 0;
+    }
+
+    /** @param {Coordinates} param0 */
+    setBothLocations([x, y]) {
+        this.fromX = x;
+        this.fromY = y;
+        this.toX = x;
+        this.toY = y;
+    }
+
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    addSourceLocation(x, y) {
+        this.fromX += x;
+        this.fromY += y;
+    }
+
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    addDestinationLocation(x, y) {
+        this.toX += x;
+        this.toY += y;
+    }
+}
+
 /** @extends {IFromToPositionedElement<Object, LinkTemplate>} */
 class LinkElement extends IFromToPositionedElement {
 
@@ -7281,7 +7647,7 @@ class LinkElement extends IFromToPositionedElement {
         dragging: {
             type: Boolean,
             attribute: "data-dragging",
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
             reflect: true,
         },
         originatesFromInput: {
@@ -7473,11 +7839,16 @@ class LinkElement extends IFromToPositionedElement {
         this.toY = location[1];
     }
 
-    getInputPin() {
+    getInputPin(getSomething = false) {
         if (this.source?.isInput()) {
             return this.source
         }
-        return this.destination
+        if (this.destination?.isInput()) {
+            return this.destination
+        }
+        if (getSomething) {
+            return this.source ?? this.destination
+        }
     }
 
     /** @param {PinElement} pin */
@@ -7488,11 +7859,16 @@ class LinkElement extends IFromToPositionedElement {
         this.destination = pin;
     }
 
-    getOutputPin() {
+    getOutputPin(getSomething = false) {
+        if (this.source?.isOutput()) {
+            return this.source
+        }
         if (this.destination?.isOutput()) {
             return this.destination
         }
-        return this.source
+        if (getSomething) {
+            return this.source ?? this.destination
+        }
     }
 
     /** @param {PinElement} pin */
@@ -8190,7 +8566,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
 
     #hasSubtitle = false
 
-    /** @type {() => PinEntity} */
+    /** @type {() => PinEntity<IEntity>} */
     pinInserter
 
     /** @type {HTMLElement} */
@@ -8220,7 +8596,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         this.element.updateComplete.then(() => this.element.acknowledgeReflow());
     }
 
-    /** @param {PinEntity} pinEntity */
+    /** @param {PinEntity<IEntity>} pinEntity */
     createPinElement(pinEntity) {
         const pinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
             .newObject(pinEntity, undefined, this.element);
@@ -8344,7 +8720,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
             .filter(v => !v.isHidden())
             .map(pinEntity => {
                 this.#hasSubtitle = this.#hasSubtitle
-                    || pinEntity.PinName === "self" && pinEntity.pinTitle() === "Target";
+                    || pinEntity.PinName.toString() === "self" && pinEntity.pinTitle() === "Target";
                 return this.createPinElement(pinEntity)
             })
     }
@@ -8536,7 +8912,7 @@ class CommentNodeTemplate extends IResizeableTemplate {
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
                     <div class="ueb-node-top"
-                        .innerText="${Utility.encodeHTMLWhitespace(this.element.entity.NodeComment)}">
+                        .innerText="${Utility.encodeHTMLWhitespace(this.element.entity.NodeComment?.toString())}">
                     </div>
                 </div>
             </div>
@@ -8650,7 +9026,7 @@ class MouseCreateLink extends IMouseClickDrag {
                 this.link.setMessageReplaceOutputLink();
                 this.linkValid = true;
             } else if (
-                (a.entity.PinType.PinCategory != "object" || b.entity.PinType.PinCategory != "object")
+                (a.entity.PinType.PinCategory.valueOf() != "object" || b.entity.PinType.PinCategory.valueOf() != "object")
                 && a.pinType != b.pinType
             ) {
                 this.link.setMessageTypesIncompatible(a, b);
@@ -8720,6 +9096,7 @@ class MouseCreateLink extends IMouseClickDrag {
         });
         this.#listenedPins = null;
         if (this.enteredPin && this.linkValid) {
+            // Knot can use wither the input or output (by default) part indifferently, check if a switch is needed
             if (this.#knotPin) {
                 const otherPin = this.#knotPin !== this.link.source ? this.link.source : this.enteredPin;
                 // Knot pin direction correction
@@ -8732,7 +9109,11 @@ class MouseCreateLink extends IMouseClickDrag {
                     }
                 }
             } else if (this.enteredPin.nodeElement.getType() === Configuration.paths.knot) {
-                this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).getOppositePin();
+                this.#knotPin = this.enteredPin;
+                if (this.link.source.isOutput()) {
+                    // Knot uses by default the output pin, let's switch to keep it coherent with the source node we have
+                    this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).getOppositePin();
+                }
             }
             if (!this.link.source.getLinks().find(ref => ref.equals(this.enteredPin.createPinReference()))) {
                 this.blueprint.addGraphElement(this.link);
@@ -8821,12 +9202,12 @@ class VariableOperationNodeTemplate extends VariableManagementNodeTemplate {
 }
 
 /**
- * @template {TerminalAttribute} T
+ * @template {IEntity} T
  * @typedef {import("../../element/PinElement.js").default<T>} PinElement
  */
 
 /**
- * @template {TerminalAttribute} T
+ * @template {IEntity} T
  * @extends ITemplate<PinElement<T>>
  */
 class PinTemplate extends ITemplate {
@@ -8922,12 +9303,12 @@ class PinTemplate extends ITemplate {
                     return SVGIcon.pcgStackPin
             }
         }
-        switch (this.element.entity.PinType?.ContainerType?.toString()) {
+        switch (this.element.entity.PinType?.ContainerType?.serialize()) {
             case "Array": return SVGIcon.arrayPin
             case "Set": return SVGIcon.setPin
             case "Map": return SVGIcon.mapPin
         }
-        if (this.element.entity.PinType?.PinCategory?.toLocaleLowerCase() === "delegate") {
+        if (this.element.entity.PinType?.PinCategory?.toString().toLocaleLowerCase() === "delegate") {
             return SVGIcon.delegate
         }
         if (this.element.nodeElement?.template instanceof VariableOperationNodeTemplate) {
@@ -8953,8 +9334,8 @@ class PinTemplate extends ITemplate {
 
     isInputRendered() {
         return this.element.isInput()
-            && !this.element.entity.bDefaultValueIsIgnored
-            && !this.element.entity.PinType.bIsReference
+            && !this.element.entity.bDefaultValueIsIgnored?.valueOf()
+            && !this.element.entity.PinType.bIsReference?.valueOf()
     }
 
     renderInput() {
@@ -8982,6 +9363,7 @@ class PinTemplate extends ITemplate {
 
     getLinkLocation() {
         const rect = this.iconElement.getBoundingClientRect();
+        /** @type {[Number, Number]} */
         const boundingLocation = [this.element.isInput() ? rect.left : rect.right + 1, (rect.top + rect.bottom) / 2];
         const location = Utility.convertLocation(boundingLocation, this.blueprint.template.gridElement);
         return this.blueprint.compensateTranslation(location[0], location[1])
@@ -8993,7 +9375,7 @@ class PinTemplate extends ITemplate {
 }
 
 /**
- * @template {TerminalAttribute} T
+ * @template {IEntity} T
  * @extends PinTemplate<T>
  */
 class MinimalPinTemplate extends PinTemplate {
@@ -9043,7 +9425,7 @@ class EventNodeTemplate extends NodeTemplate {
 
     createDelegatePinElement() {
         const pin = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin")).newObject(
-            this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory === "delegate"),
+            this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory?.toString() === "delegate"),
             new MinimalPinTemplate(),
             this.element
         );
@@ -9053,7 +9435,7 @@ class EventNodeTemplate extends NodeTemplate {
 
     createPinElements() {
         return this.element.getPinEntities()
-            .filter(v => !v.isHidden() && v.PinType.PinCategory !== "delegate")
+            .filter(v => !v.isHidden() && v.PinType.PinCategory?.toString() !== "delegate")
             .map(pinEntity => /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
                 .newObject(pinEntity, undefined, this.element)
             )
@@ -9206,7 +9588,7 @@ function nodeTemplateClass(nodeEntity) {
         || nodeEntity.getClass() === Configuration.paths.callArrayFunction
     ) {
         const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? "";
-        const memberName = nodeEntity.FunctionReference?.MemberName;
+        const memberName = nodeEntity.FunctionReference?.MemberName?.toString();
         if (
             memberName && (
                 memberParent === Configuration.paths.kismetMathLibrary
@@ -9282,13 +9664,15 @@ function nodeTemplateClass(nodeEntity) {
             }
             return MetasoundNodeTemplate
         case Configuration.paths.niagaraNodeOp:
-            if ([
-                "Boolean::LogicEq",
-                "Boolean::LogicNEq",
-                "Numeric::Abs",
-                "Numeric::Add",
-                "Numeric::Mul",
-            ].includes(nodeEntity.OpName)) {
+            if (
+                [
+                    "Boolean::LogicEq",
+                    "Boolean::LogicNEq",
+                    "Numeric::Abs",
+                    "Numeric::Add",
+                    "Numeric::Mul",
+                ].includes(nodeEntity.OpName?.toString())
+            ) {
                 return VariableOperationNodeTemplate
             }
             break
@@ -9321,7 +9705,7 @@ class ISelectableDraggableElement extends IDraggableElement {
             type: Boolean,
             attribute: "data-selected",
             reflect: true,
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
         },
     }
 
@@ -9376,7 +9760,7 @@ class NodeElement extends ISelectableDraggableElement {
         advancedPinDisplay: {
             type: String,
             attribute: "data-advanced-display",
-            converter: IdentifierEntity.attributeConverter,
+            converter: SymbolEntity.attributeConverter,
             reflect: true,
         },
         enabledState: {
@@ -9390,7 +9774,7 @@ class NodeElement extends ISelectableDraggableElement {
         },
         pureFunction: {
             type: Boolean,
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
             attribute: "data-pure-function",
             reflect: true,
         },
@@ -9434,7 +9818,7 @@ class NodeElement extends ISelectableDraggableElement {
     /** @param {String} str */
     static fromSerializedObject(str) {
         str = str.trim();
-        let entity = SerializerFactory.getSerializer(ObjectEntity).read(str);
+        let entity = ObjectEntity.grammar.parse(str);
         return NodeElement.newObject(/** @type {ObjectEntity} */(entity))
     }
 
@@ -9448,13 +9832,17 @@ class NodeElement extends ISelectableDraggableElement {
         return result
     }
 
+    /** @param {String} name */
     #redirectLinksAfterRename(name) {
         for (let sourcePinElement of this.getPinElements()) {
             for (let targetPinReference of sourcePinElement.getLinks()) {
-                this.blueprint.getPin(targetPinReference).redirectLink(sourcePinElement, new PinReferenceEntity({
-                    objectName: name,
-                    pinGuid: sourcePinElement.entity.PinId,
-                }));
+                this.blueprint.getPin(targetPinReference).redirectLink(
+                    sourcePinElement,
+                    new PinReferenceEntity(
+                        new SymbolEntity(name),
+                        sourcePinElement.entity.PinId,
+                    )
+                );
             }
         }
     }
@@ -9465,7 +9853,7 @@ class NodeElement extends ISelectableDraggableElement {
         this.advancedPinDisplay = entity.AdvancedPinDisplay?.toString();
         this.enabledState = entity.EnabledState;
         this.nodeDisplayName = nodeTitle(entity);
-        this.pureFunction = entity.bIsPureFunc;
+        this.pureFunction = entity.bIsPureFunc?.valueOf();
         this.dragLinkObjects = [];
         super.initialize(entity, template);
         this.#pins = this.template.createPinElements();
@@ -9476,11 +9864,15 @@ class NodeElement extends ISelectableDraggableElement {
         } else {
             this.updateComplete.then(() => this.computeSizes());
         }
-        entity.listenAttribute("Name", name => {
-            this.nodeTitle = entity.Name;
-            this.nodeDisplayName = nodeTitle(entity);
-            this.#redirectLinksAfterRename(name);
-        });
+        entity.listenAttribute(
+            "Name",
+            /** @param {InstanceType<typeof ObjectEntity.attributes.Name>} newName */
+            newName => {
+                this.nodeTitle = newName.value;
+                this.nodeDisplayName = nodeTitle(entity);
+                this.#redirectLinksAfterRename(newName.value);
+            }
+        );
     }
 
     async getUpdateComplete() {
@@ -9571,7 +9963,7 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     setShowAdvancedPinDisplay(value) {
-        this.entity.AdvancedPinDisplay = new IdentifierEntity(value ? "Shown" : "Hidden");
+        this.entity.AdvancedPinDisplay = new SymbolEntity(value ? "Shown" : "Hidden");
         this.advancedPinDisplay = this.entity.AdvancedPinDisplay;
     }
 
@@ -9641,8 +10033,8 @@ class BlueprintEntity extends ObjectEntity {
             this.ScriptVariables = entity.ScriptVariables;
         }
         let scriptVariables = Utility.mergeArrays(
-            this.ScriptVariables,
-            entity.ScriptVariables,
+            this.ScriptVariables.valueOf(),
+            entity.ScriptVariables.valueOf(),
             (l, r) => l.OriginalChangeId.value == r.OriginalChangeId.value
         );
         if (scriptVariables.length === this.ScriptVariables.length) {
@@ -9665,266 +10057,6 @@ class BlueprintEntity extends ObjectEntity {
     }
 }
 
-/** @template {AttributeConstructor<Attribute>} T */
-class Serializer {
-
-    /** @type {(v: String) => String} */
-    static same = v => v
-
-    /** @type {(entity: Attribute, serialized: String) => String} */
-    static notWrapped = (entity, serialized) => serialized
-
-    /** @type {(entity: Attribute, serialized: String) => String} */
-    static bracketsWrapped = (entity, serialized) => `(${serialized})`
-
-    /** @param {T} entityType */
-    constructor(
-        entityType,
-        /** @type {(entity: ConstructedType<T>, serialized: String) => String} */
-        wrap = (entity, serialized) => serialized,
-        attributeSeparator = ",",
-        trailingSeparator = false,
-        attributeValueConjunctionSign = "=",
-        attributeKeyPrinter = Serializer.same
-    ) {
-        this.entityType = entityType;
-        this.wrap = wrap;
-        this.attributeSeparator = attributeSeparator;
-        this.trailingSeparator = trailingSeparator;
-        this.attributeValueConjunctionSign = attributeValueConjunctionSign;
-        this.attributeKeyPrinter = attributeKeyPrinter;
-    }
-
-    /**
-     * @param {String} value
-     * @returns {ConstructedType<T>}
-     */
-    read(value) {
-        return this.doRead(value.trim())
-    }
-
-    /** @param {ConstructedType<T>} value */
-    write(value, insideString = false) {
-        return this.doWrite(value, insideString)
-    }
-
-    /**
-     * @param {String} value
-     * @returns {ConstructedType<T>}
-     */
-    doRead(value) {
-        let grammar = Grammar.grammarFor(undefined, this.entityType);
-        const parseResult = grammar.run(value);
-        if (!parseResult.status) {
-            throw new Error(
-                this.entityType
-                    ? `Error when trying to parse the entity ${this.entityType.prototype.constructor.name}`
-                    : "Error when trying to parse null"
-            )
-        }
-        return parseResult.value
-    }
-
-    /**
-     * @param {ConstructedType<T>} entity
-     * @param {Boolean} insideString
-     * @returns {String}
-     */
-    doWrite(
-        entity,
-        insideString = false,
-        indentation = "",
-        wrap = this.wrap,
-        attributeSeparator = this.attributeSeparator,
-        trailingSeparator = this.trailingSeparator,
-        attributeValueConjunctionSign = this.attributeValueConjunctionSign,
-        attributeKeyPrinter = this.attributeKeyPrinter
-    ) {
-        let result = "";
-        const keys = entity._keys ?? Object.keys(entity);
-        let first = true;
-        for (const key of keys) {
-            const value = entity[key];
-            if (value !== undefined && this.showProperty(entity, key)) {
-                let keyValue = entity instanceof Array ? `(${key})` : key;
-                if (AttributeInfo.getAttribute(entity, key, "quoted")) {
-                    keyValue = `"${keyValue}"`;
-                }
-                const isSerialized = AttributeInfo.getAttribute(entity, key, "serialized");
-                if (first) {
-                    first = false;
-                } else {
-                    result += attributeSeparator;
-                }
-                if (AttributeInfo.getAttribute(entity, key, "inlined")) {
-                    result += this.doWrite(
-                        value,
-                        insideString,
-                        indentation,
-                        Serializer.notWrapped,
-                        attributeSeparator,
-                        false,
-                        attributeValueConjunctionSign,
-                        AttributeInfo.getAttribute(entity, key, "type") instanceof Array
-                            ? k => attributeKeyPrinter(`${keyValue}${k}`)
-                            : k => attributeKeyPrinter(`${keyValue}.${k}`)
-                    );
-                    continue
-                }
-                const keyPrinted = attributeKeyPrinter(keyValue);
-                const indentationPrinted = attributeSeparator.includes("\n") ? indentation : "";
-                result += (
-                    keyPrinted.length
-                        ? (indentationPrinted + keyPrinted + this.attributeValueConjunctionSign)
-                        : ""
-                )
-                    + (
-                        isSerialized
-                            ? `"${this.doWriteValue(value, true, indentation)}"`
-                            : this.doWriteValue(value, insideString, indentation)
-                    );
-            }
-        }
-        if (trailingSeparator && result.length) {
-            // append separator at the end if asked and there was printed content
-            result += attributeSeparator;
-        }
-        return wrap(entity, result)
-    }
-
-    /** @param {Boolean} insideString */
-    doWriteValue(value, insideString, indentation = "") {
-        const type = Utility.getType(value);
-        const serializer = SerializerFactory.getSerializer(type);
-        if (!serializer) {
-            throw new Error(
-                `Unknown value type "${type.name}", a serializer must be registered in the SerializerFactory class, `
-                + "check initializeSerializerFactory.js"
-            )
-        }
-        return serializer.doWrite(value, insideString, indentation)
-    }
-
-    /**
-     * @param {IEntity} entity
-     * @param {String} key
-     */
-    showProperty(entity, key) {
-        if (entity instanceof IEntity) {
-            if (AttributeInfo.getAttribute(entity, key, "ignored")) {
-                return false
-            }
-            if (AttributeInfo.getAttribute(entity, key, "silent")) {
-                let defaultValue = AttributeInfo.getAttribute(entity, key, "default");
-                if (defaultValue instanceof Function) {
-                    defaultValue = defaultValue(entity);
-                }
-                if (Utility.equals(entity[key], defaultValue)) {
-                    return false
-                }
-            }
-        }
-        return true
-    }
-}
-
-/** @extends Serializer<ObjectEntityConstructor> */
-class ObjectSerializer extends Serializer {
-
-    constructor(entityType = ObjectEntity) {
-        super(entityType, undefined, "\n", true, undefined, Serializer.same);
-    }
-
-    showProperty(entity, key) {
-        switch (key) {
-            case "Class":
-            case "Name":
-            case "Archetype":
-            case "ExportPath":
-            case "CustomProperties":
-                // Serielized separately, check doWrite()
-                return false
-        }
-        return super.showProperty(entity, key)
-    }
-
-    /** @param {ObjectEntity} value */
-    write(value, insideString = false) {
-        return this.doWrite(value, insideString) + "\n"
-    }
-
-    /** @param {String} value */
-    doRead(value) {
-        return Grammar.grammarFor(undefined, this.entityType).parse(value)
-    }
-
-    /**
-     * @param {String} value
-     * @returns {ObjectEntity[]}
-     */
-    readMultiple(value) {
-        return ObjectEntity.getMultipleObjectsGrammar().parse(value)
-    }
-
-    /**
-     * @param {ObjectEntity} entity
-     * @param {Boolean} insideString
-     * @returns {String}
-     */
-    doWrite(
-        entity,
-        insideString,
-        indentation = "",
-        wrap = this.wrap,
-        attributeSeparator = this.attributeSeparator,
-        trailingSeparator = this.trailingSeparator,
-        attributeValueConjunctionSign = this.attributeValueConjunctionSign,
-        attributeKeyPrinter = this.attributeKeyPrinter,
-    ) {
-        const moreIndentation = indentation + Configuration.indentation;
-        if (!(entity instanceof ObjectEntity)) {
-            return super.doWrite(
-                entity,
-                insideString,
-                indentation,
-                wrap,
-                attributeSeparator,
-                trailingSeparator,
-                attributeValueConjunctionSign,
-                // @ts-expect-error
-                key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
-            )
-        }
-        let result = indentation + "Begin Object"
-            + (entity.Class?.type || entity.Class?.path ? ` Class=${this.doWriteValue(entity.Class, insideString)}` : "")
-            + (entity.Name ? ` Name=${this.doWriteValue(entity.Name, insideString)}` : "")
-            + (entity.Archetype ? ` Archetype=${this.doWriteValue(entity.Archetype, insideString)}` : "")
-            + (entity.ExportPath?.type || entity.ExportPath?.path ? ` ExportPath=${this.doWriteValue(entity.ExportPath, insideString)}` : "")
-            + "\n"
-            + super.doWrite(
-                entity,
-                insideString,
-                moreIndentation,
-                wrap,
-                attributeSeparator,
-                true,
-                attributeValueConjunctionSign,
-                key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
-            )
-            + (!AttributeInfo.getAttribute(entity, "CustomProperties", "ignored")
-                ? entity.getCustomproperties().map(pin =>
-                    moreIndentation
-                    + attributeKeyPrinter("CustomProperties ")
-                    + SerializerFactory.getSerializer(PinEntity).doWrite(pin, insideString)
-                    + this.attributeSeparator
-                ).join("")
-                : ""
-            )
-            + indentation + "End Object";
-        return result
-    }
-}
-
 /**
  * @typedef {import("../IInput.js").Options & {
  *     listenOnFocus?: Boolean,
@@ -9933,8 +10065,6 @@ class ObjectSerializer extends Serializer {
  */
 
 class Copy extends IInput {
-
-    static #serializer = new ObjectSerializer()
 
     /** @type {(e: ClipboardEvent) => void} */
     #copyHandler
@@ -9957,11 +10087,11 @@ class Copy extends IInput {
 
     getSerializedText() {
         const allNodes = this.blueprint.getNodes(true).map(n => n.entity);
-        const exported = allNodes.filter(n => n.isExported).map(n => Copy.#serializer.write(n, false));
-        const result = allNodes.filter(n => !n.isExported).map(n => Copy.#serializer.write(n, false));
+        const exported = allNodes.filter(n => n.exported).map(n => n.serialize());
+        const result = allNodes.filter(n => !n.exported).map(n => n.serialize());
         if (exported.length) {
-            this.blueprint.entity.ExportedNodes = btoa(exported.join(""));
-            result.splice(0, 0, Copy.#serializer.write(this.blueprint.entity, false));
+            this.blueprint.entity.ExportedNodes.value = btoa(exported.join(""));
+            result.splice(0, 0, this.blueprint.entity.serialize(false));
             delete this.blueprint.entity.ExportedNodes;
         }
         return result.join("")
@@ -9982,8 +10112,6 @@ class Copy extends IInput {
  */
 
 class Cut extends IInput {
-
-    static #serializer = new ObjectSerializer()
 
     /** @type {(e: ClipboardEvent) => void} */
     #cutHandler
@@ -10012,7 +10140,7 @@ class Cut extends IInput {
     getSerializedText() {
         return this.blueprint
             .getNodes(true)
-            .map(node => Cut.#serializer.write(node.entity, false))
+            .map(node => node.entity.serialize())
             .join("")
     }
 
@@ -10030,8 +10158,6 @@ class Cut extends IInput {
  */
 
 class Paste extends IInput {
-
-    static #serializer = new ObjectSerializer()
 
     /** @type {(e: ClipboardEvent) => void} */
     #pasteHandle
@@ -10062,7 +10188,7 @@ class Paste extends IInput {
         let top = 0;
         let left = 0;
         let count = 0;
-        let nodes = Paste.#serializer.readMultiple(value).map(entity => {
+        let nodes = ObjectEntity.grammarMultipleObjects.parse(value).map(entity => {
             let node = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
                 .newObject(entity);
             top += node.locationY;
@@ -10676,19 +10802,19 @@ class Blueprint extends IElement {
             type: Boolean,
             attribute: "data-selecting",
             reflect: true,
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
         },
         scrolling: {
             type: Boolean,
             attribute: "data-scrolling",
             reflect: true,
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
         },
         focused: {
             type: Boolean,
             attribute: "data-focused",
             reflect: true,
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
         },
         zoom: {
             type: Number,
@@ -11073,15 +11199,16 @@ class Blueprint extends IElement {
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
                 if (element.getType() == Configuration.paths.niagaraClipboardContent) {
                     this.entity = this.entity.mergeWith(element.entity);
-                    const additionalSerialization = atob(element.entity.ExportedNodes);
+                    const additionalSerialization = atob(element.entity.ExportedNodes.toString());
                     this.template.getPasteInputObject().pasted(additionalSerialization)
-                        .forEach(node => node.entity.isExported = true);
+                        .forEach(node => node.entity._exported = true);
                     continue
                 }
                 const name = element.entity.getObjectName();
                 const homonym = this.entity.getHomonymObjectEntity(element.entity);
                 if (homonym) {
-                    homonym.Name = this.entity.takeFreeName(name);
+                    homonym.Name.value = this.entity.takeFreeName(name);
+                    homonym.Name = homonym.Name;
                 }
                 this.nodes.push(element);
                 this.entity.addObjectEntity(element.entity);
@@ -11471,19 +11598,19 @@ class InputElement extends IElement {
         singleLine: {
             type: Boolean,
             attribute: "data-single-line",
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
             reflect: true,
         },
         selectOnFocus: {
             type: Boolean,
             attribute: "data-select-focus",
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
             reflect: true,
         },
         blurOnEnter: {
             type: Boolean,
             attribute: "data-blur-enter",
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
             reflect: true,
         },
     }
@@ -11505,13 +11632,17 @@ class InputElement extends IElement {
     }
 }
 
-/** @extends PinTemplate<Boolean> */
+/** @extends PinTemplate<BooleanEntity> */
 class BoolPinTemplate extends PinTemplate {
 
     /** @type {HTMLInputElement?} */
     #input
 
-    #onChangeHandler = () => this.element.setDefaultValue(this.#input.checked)
+    #onChangeHandler = () => {
+        const entity = this.element.getDefaultValue();
+        entity.value = this.#input.checked;
+        this.element.setDefaultValue(entity);
+    }
 
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
@@ -11538,13 +11669,13 @@ class BoolPinTemplate extends PinTemplate {
 
     renderInput() {
         return x`
-            <input type="checkbox" class="ueb-pin-input-wrapper ueb-pin-input" ?checked="${this.element.defaultValue === true}" />
+            <input type="checkbox" class="ueb-pin-input-wrapper ueb-pin-input" ?checked="${this.element.defaultValue?.valueOf() === true}" />
         `
     }
 }
 
 /**
- * @template {TerminalAttribute} T
+ * @template {IEntity} T
  * @extends PinTemplate<T>
  */
 class IInputPinTemplate extends PinTemplate {
@@ -11581,6 +11712,10 @@ class IInputPinTemplate extends PinTemplate {
 
     /** @param {HTMLElement}  inputElement*/
     #updateWrapClass(inputElement) {
+        if (this.element.querySelector(".ueb-pin-name")?.getBoundingClientRect().width < 20) {
+            // Do not wrap if the pin name is just a letter (like A, B, V, ...)
+            return
+        }
         const width = this.blueprint.scaleCorrect(this.#inputWrapper.getBoundingClientRect().width) + this.nameWidth;
         const inputWrapped = this.element.classList.contains("ueb-pin-input-wrap");
         if (!inputWrapped && width > Configuration.pinInputWrapWidth) {
@@ -11684,11 +11819,11 @@ class EnumPinTemplate extends IInputPinTemplate {
 
     setup() {
         super.setup();
-        const enumEntries = this.element.nodeElement.entity.EnumEntries;
+        const enumEntries = this.element.nodeElement.entity.EnumEntries?.valueOf();
         this.#dropdownEntries =
             enumEntries?.map(k => {
-                if (k === "") {
-                    k = "None";
+                if (k.valueOf() === "") {
+                    k = new StringEntity("None");
                 }
                 return [
                     k,
@@ -11711,12 +11846,11 @@ class EnumPinTemplate extends IInputPinTemplate {
     }
 
     renderInput() {
-        this.element.nodeElement.entity;
         return x`
             <ueb-dropdown
                 class="ueb-pin-input-wrapper ueb-pin-input"
                 .options="${this.#dropdownEntries}"
-                .selectedOption="${this.element.defaultValue.value}"
+                .selectedOption="${this.element.defaultValue}"
             >
             </ueb-dropdown>
         `
@@ -11731,6 +11865,18 @@ class EnumPinTemplate extends IInputPinTemplate {
     getInputs() {
         return [this.#dropdownElement.getValue()]
     }
+
+    /**
+     * @this {EnumPinTemplate}
+     * @param {String[]} values
+     * @param {String[]} rawValues
+     */
+    setDefaultValue(values = [], rawValues) {
+        const value = this.element.getDefaultValue();
+        value.value = values[0];
+        this.element.setDefaultValue(value);
+        this.element.requestUpdate();
+    }
 }
 
 class ExecPinTemplate extends PinTemplate {
@@ -11740,7 +11886,7 @@ class ExecPinTemplate extends PinTemplate {
     }
 
     renderName() {
-        let pinName = this.element.entity.PinName;
+        let pinName = this.element.entity.PinName?.toString();
         if (this.element.entity.PinFriendlyName) {
             pinName = this.element.entity.PinFriendlyName.toString();
         } else if (pinName === "execute" || pinName === "then") {
@@ -11751,14 +11897,17 @@ class ExecPinTemplate extends PinTemplate {
 }
 
 /**
- * @template {TerminalAttribute} T
+ * @template {IEntity} T
  * @extends IInputPinTemplate<T>
  */
 class INumericPinTemplate extends IInputPinTemplate {
 
     static singleLineInput = true
 
-    /** @param {String[]} values */
+    /**
+     * @this {INumericPinTemplate<NumberEntity>}
+     * @param {String[]} values
+     */
     setInputs(values = [], updateDefaultValue = false) {
         if (!values || values.length == 0) {
             values = [this.getInput()];
@@ -11779,11 +11928,14 @@ class INumericPinTemplate extends IInputPinTemplate {
     }
 
     /**
+     * @this {INumericPinTemplate<NumberEntity>}
      * @param {Number[]} values
      * @param {String[]} rawValues
      */
     setDefaultValue(values = [], rawValues) {
-        this.element.setDefaultValue(/** @type {T} */(values[0]));
+        const value = this.element.getDefaultValue();
+        value.value = values[0];
+        this.element.setDefaultValue(value);
         this.element.requestUpdate();
     }
 }
@@ -11796,7 +11948,9 @@ class Int64PinTemplate extends INumericPinTemplate {
      * @param {String[]} rawValues
      */
     setDefaultValue(values = [], rawValues) {
-        this.element.setDefaultValue(new Integer64Entity(values[0]));
+        const value = this.element.getDefaultValue();
+        value.value = BigInt(values[0]);
+        this.element.setDefaultValue(value);
         this.element.requestUpdate();
     }
 
@@ -11812,15 +11966,6 @@ class Int64PinTemplate extends INumericPinTemplate {
 
 /** @extends INumericPinTemplate<IntegerEntity> */
 class IntPinTemplate extends INumericPinTemplate {
-
-    /**
-     * @param {Number[]} values
-     * @param {String[]} rawValues
-     */
-    setDefaultValue(values = [], rawValues) {
-        this.element.setDefaultValue(new IntegerEntity(values[0]));
-        this.element.requestUpdate();
-    }
 
     renderInput() {
         return x`
@@ -12154,7 +12299,7 @@ class ColorPickerWindowTemplate extends WindowTemplate {
                 <div>
                     <div class="ueb-horizontal-slider">
                         <span class="ueb-horizontal-slider-text"
-                            .innerText="${Utility.printNumber(Utility.roundDecimals(channelValue, 3))}">
+                            .innerText="${NumberEntity.printNumber(Utility.roundDecimals(channelValue, 3))}">
                         </span>
                         <ueb-ui-slider></ueb-ui-slider>
                     </div>
@@ -12319,20 +12464,16 @@ class NamePinTemplate extends IInputPinTemplate {
 }
 
 /**
- * @template {Number} T
+ * @template {NumberEntity} T
  * @extends INumericPinTemplate<T>
  */
 class RealPinTemplate extends INumericPinTemplate {
-
-    setDefaultValue(values = [], rawValues = values) {
-        this.element.setDefaultValue(values[0]);
-    }
 
     renderInput() {
         return x`
             <div class="ueb-pin-input-wrapper ueb-pin-input">
                 <ueb-input .singleLine="${true}"
-                    .innerText="${Utility.printNumber(this.element.getDefaultValue() ?? 0)}">
+                    .innerText="${NumberEntity.printNumber(this.element.getDefaultValue()?.valueOf() ?? 0)}">
                 </ueb-input>
             </div>
         `
@@ -12350,15 +12491,15 @@ class ReferencePinTemplate extends PinTemplate {
 class RotatorPinTemplate extends INumericPinTemplate {
 
     #getR() {
-        return Utility.printNumber(this.element.getDefaultValue()?.R ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.R.valueOf() ?? 0)
     }
 
     #getP() {
-        return Utility.printNumber(this.element.getDefaultValue()?.P ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.P.valueOf() ?? 0)
     }
 
     #getY() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Y ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.Y.valueOf() ?? 0)
     }
 
     setDefaultValue(values = [], rawValues = values) {
@@ -12366,9 +12507,9 @@ class RotatorPinTemplate extends INumericPinTemplate {
         if (!(rotator instanceof RotatorEntity)) {
             throw new TypeError("Expected DefaultValue to be a RotatorEntity")
         }
-        rotator.R = values[0]; // Roll
-        rotator.P = values[1]; // Pitch
-        rotator.Y = values[2]; // Yaw
+        rotator.R.value = values[0]; // Roll
+        rotator.P.value = values[1]; // Pitch
+        rotator.Y.value = values[2]; // Yaw
         this.element.requestUpdate("DefaultValue", rotator);
     }
 
@@ -12392,7 +12533,7 @@ class RotatorPinTemplate extends INumericPinTemplate {
     }
 }
 
-/** @extends IInputPinTemplate<String> */
+/** @extends IInputPinTemplate<StringEntity> */
 class StringPinTemplate extends IInputPinTemplate {
 }
 
@@ -12402,11 +12543,11 @@ class StringPinTemplate extends IInputPinTemplate {
 class Vector2DPinTemplate extends INumericPinTemplate {
 
     #getX() {
-        return Utility.printNumber(this.element.getDefaultValue()?.X ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.X.valueOf() ?? 0)
     }
 
     #getY() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Y ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.Y.valueOf() ?? 0)
     }
 
     /**
@@ -12415,12 +12556,9 @@ class Vector2DPinTemplate extends INumericPinTemplate {
      */
     setDefaultValue(values, rawValues) {
         const vector = this.element.getDefaultValue(true);
-        if (!(vector instanceof Vector2DEntity)) {
-            throw new TypeError("Expected DefaultValue to be a Vector2DEntity")
-        }
-        vector.X = values[0];
-        vector.Y = values[1];
-        this.element.requestUpdate("DefaultValue", vector);
+        vector.X.value = values[0];
+        vector.Y.value = values[1];
+        this.element.setDefaultValue(vector);
     }
 
     renderInput() {
@@ -12443,19 +12581,19 @@ class Vector2DPinTemplate extends INumericPinTemplate {
 class Vector4DPinTemplate extends INumericPinTemplate {
 
     #getX() {
-        return Utility.printNumber(this.element.getDefaultValue()?.X ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.X.valueOf() ?? 0)
     }
 
     #getY() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Y ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.Y.valueOf() ?? 0)
     }
 
     #getZ() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Z ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.Z.valueOf() ?? 0)
     }
 
     #getW() {
-        return Utility.printNumber(this.element.getDefaultValue()?.W ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.W.valueOf() ?? 0)
     }
 
     /**
@@ -12467,10 +12605,10 @@ class Vector4DPinTemplate extends INumericPinTemplate {
         if (!(vector instanceof Vector4DEntity)) {
             throw new TypeError("Expected DefaultValue to be a Vector4DEntity")
         }
-        vector.X = values[0];
-        vector.Y = values[1];
-        vector.Z = values[2];
-        vector.W = values[3];
+        vector.X.value = values[0];
+        vector.Y.value = values[1];
+        vector.Z.value = values[2];
+        vector.W.value = values[3];
         this.element.requestUpdate("DefaultValue", vector);
     }
 
@@ -12502,15 +12640,15 @@ class Vector4DPinTemplate extends INumericPinTemplate {
 class VectorPinTemplate extends INumericPinTemplate {
 
     #getX() {
-        return Utility.printNumber(this.element.getDefaultValue()?.X ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.X.valueOf() ?? 0)
     }
 
     #getY() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Y ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.Y.valueOf() ?? 0)
     }
 
     #getZ() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Z ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.Z.valueOf() ?? 0)
     }
 
     /**
@@ -12522,9 +12660,9 @@ class VectorPinTemplate extends INumericPinTemplate {
         if (!(vector instanceof VectorEntity)) {
             throw new TypeError("Expected DefaultValue to be a VectorEntity")
         }
-        vector.X = values[0];
-        vector.Y = values[1];
-        vector.Z = values[2];
+        vector.X.value = values[0];
+        vector.Y.value = values[1];
+        vector.Z.value = values[2];
         this.element.requestUpdate("DefaultValue", vector);
     }
 
@@ -12549,6 +12687,16 @@ class VectorPinTemplate extends INumericPinTemplate {
 }
 
 const inputPinTemplates = {
+    "bool": BoolPinTemplate,
+    "byte": IntPinTemplate,
+    "enum": EnumPinTemplate,
+    "int": IntPinTemplate,
+    "int64": Int64PinTemplate,
+    "MUTABLE_REFERENCE": ReferencePinTemplate,
+    "name": NamePinTemplate,
+    "real": RealPinTemplate,
+    "rg": Vector2DPinTemplate,
+    "string": StringPinTemplate,
     [Configuration.paths.linearColor]: LinearColorPinTemplate,
     [Configuration.paths.niagaraBool]: BoolPinTemplate,
     [Configuration.paths.niagaraPosition]: VectorPinTemplate,
@@ -12557,34 +12705,25 @@ const inputPinTemplates = {
     [Configuration.paths.vector2D]: Vector2DPinTemplate,
     [Configuration.paths.vector3f]: VectorPinTemplate,
     [Configuration.paths.vector4f]: Vector4DPinTemplate,
-    "bool": BoolPinTemplate,
-    "byte": IntPinTemplate,
-    "enum": EnumPinTemplate,
-    "int": IntPinTemplate,
-    "int64": Int64PinTemplate,
-    "MUTABLE_REFERENCE": ReferencePinTemplate,
-    "name": NamePinTemplate,
-    "rg": Vector2DPinTemplate,
-    "real": RealPinTemplate,
-    "string": StringPinTemplate,
 };
 
-/** @param {PinEntity} entity */
+/** @param {PinEntity<IEntity>} entity */
 function pinTemplate(entity) {
     if (entity.PinType.ContainerType?.toString() === "Array") {
         return PinTemplate
     }
-    if (entity.PinType.bIsReference && !entity.PinType.bIsConst) {
+    if (entity.PinType.bIsReference?.valueOf() && !entity.PinType.bIsConst?.valueOf()) {
         return inputPinTemplates["MUTABLE_REFERENCE"]
     }
-    if (entity.getType() === "exec") {
+    const type = entity.getType();
+    if (type === "exec") {
         return ExecPinTemplate
     }
-    return (entity.isInput() ? inputPinTemplates[entity.getType()] : PinTemplate) ?? PinTemplate
+    return (entity.isInput() ? inputPinTemplates[type] : PinTemplate) ?? PinTemplate
 }
 
 /**
- * @template {TerminalAttribute} T
+ * @template {IEntity} T
  * @extends {IElement<PinEntity<T>, PinTemplate>}
  */
 class PinElement extends IElement {
@@ -12617,7 +12756,7 @@ class PinElement extends IElement {
                 fromAttribute: (value, type) => value
                     ? LinearColorEntity.getLinearColorFromAnyFormat().parse(value)
                     : null,
-                toAttribute: (value, type) => value ? Utility.printLinearColor(value) : null,
+                toAttribute: (value, type) => value ? LinearColorEntity.printLinearColor(value) : null,
             },
             attribute: "data-color",
             reflect: true,
@@ -12628,7 +12767,7 @@ class PinElement extends IElement {
         },
         isLinked: {
             type: Boolean,
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
             attribute: "data-linked",
             reflect: true,
         },
@@ -12639,7 +12778,7 @@ class PinElement extends IElement {
         },
         connectable: {
             type: Boolean,
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
             attribute: "data-connectable",
             reflect: true,
         }
@@ -12664,9 +12803,9 @@ class PinElement extends IElement {
         nodeElement = undefined
     ) {
         this.nodeElement = nodeElement;
-        this.advancedView = entity.bAdvancedView;
+        this.advancedView = entity.bAdvancedView?.valueOf();
         this.isLinked = false;
-        this.connectable = !entity.bNotConnectable;
+        this.connectable = !entity.bNotConnectable?.valueOf();
         super.initialize(entity, template);
         this.pinType = this.entity.getType();
         this.defaultValue = this.entity.getDefaultValue();
@@ -12680,20 +12819,15 @@ class PinElement extends IElement {
     }
 
     createPinReference() {
-        return new PinReferenceEntity({
-            objectName: this.nodeElement.getNodeName(),
-            pinGuid: this.getPinId(),
-        })
+        return new PinReferenceEntity(new SymbolEntity(this.nodeElement.getNodeName()), this.getPinId())
     }
 
-    /** @return {GuidEntity} */
     getPinId() {
         return this.entity.PinId
     }
 
-    /** @returns {String} */
     getPinName() {
-        return this.entity.PinName
+        return this.entity.PinName?.toString() ?? ""
     }
 
     getPinDisplayName() {
@@ -12722,7 +12856,7 @@ class PinElement extends IElement {
     }
 
     getLinks() {
-        return this.entity.LinkedTo ?? []
+        return this.entity.LinkedTo?.valueOf() ?? []
     }
 
     getDefaultValue(maybeCreate = false) {
@@ -12740,21 +12874,23 @@ class PinElement extends IElement {
 
     /** @param  {IElement[]} nodesWhitelist */
     sanitizeLinks(nodesWhitelist = []) {
-        this.entity.LinkedTo = this.entity.LinkedTo?.filter(pinReference => {
-            let pin = this.blueprint.getPin(pinReference);
-            if (pin) {
-                if (nodesWhitelist.length && !nodesWhitelist.includes(pin.nodeElement)) {
-                    return false
+        this.entity.LinkedTo = new (PinEntity.attributes.LinkedTo)(
+            this.entity.LinkedTo?.valueOf().filter(pinReference => {
+                let pin = this.blueprint.getPin(pinReference);
+                if (pin) {
+                    if (nodesWhitelist.length && !nodesWhitelist.includes(pin.nodeElement)) {
+                        return false
+                    }
+                    let link = this.blueprint.getLink(this, pin);
+                    if (!link) {
+                        link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
+                            .newObject(this, pin);
+                        this.blueprint.addGraphElement(link);
+                    }
                 }
-                let link = this.blueprint.getLink(this, pin);
-                if (!link) {
-                    link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
-                        .newObject(this, pin);
-                    this.blueprint.addGraphElement(link);
-                }
-            }
-            return pin
-        });
+                return pin
+            })
+        );
         this.isLinked = this.entity.isLinked();
     }
 
@@ -12806,7 +12942,7 @@ class PinElement extends IElement {
     redirectLink(originalPinElement, newReference) {
         const index = this.getLinks().findIndex(pinReference =>
             pinReference.objectName.toString() == originalPinElement.getNodeElement().getNodeName()
-            && pinReference.pinGuid.valueOf() == originalPinElement.entity.PinId.valueOf()
+            && pinReference.pinGuid.toString() == originalPinElement.entity.PinId.toString()
         );
         if (index >= 0) {
             this.entity.LinkedTo[index] = newReference;
@@ -13218,411 +13354,66 @@ function defineElements() {
     define("ueb-window", WindowElement);
 }
 
-class TerminalTypeEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        TerminalCategory: AttributeInfo.createType(String),
-        TerminalSubCategory: AttributeInfo.createType(String),
-        bTerminalIsConst: AttributeInfo.createType(Boolean),
-        bTerminalIsWeakPointer: AttributeInfo.createType(Boolean),
-        bTerminalIsUObjectWrapper: AttributeInfo.createType(Boolean),
-    }
-
-    constructor(values) {
-        super(values);
-        /** @type {String} */ this.TerminalCategory;
-        /** @type {String} */ this.TerminalSubCategory;
-        /** @type {Boolean} */ this.bTerminalIsConst;
-        /** @type {Boolean} */ this.bTerminalIsWeakPointer;
-        /** @type {Boolean} */ this.bTerminalIsUObjectWrapper;
-    }
-}
-
 class UnknownKeysEntity extends IEntity {
-
 
     static grammar = this.createGrammar()
 
+    static {
+        IEntity.unknownEntity = this;
+    }
+
     static createGrammar() {
-        return Parsernostrum.seq(
-            // Lookbehind
-            Parsernostrum.reg(
-                new RegExp(`(${Grammar.Regex.Path.source}|${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`),
-                1
-            ),
-            Parsernostrum.seq(Grammar.attributeName, Grammar.equalSeparation).map(([attribute, equal]) => attribute)
-                .chain(attributeName =>
-                    Grammar.unknownValue.map(attributeValue =>
-                        values => values[attributeName] = attributeValue
+        return /** @type {P<UnknownKeysEntity>} */(
+            Parsernostrum.seq(
+                // Lookbehind
+                Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Path.source}|${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`), 1),
+                Parsernostrum.seq(Grammar.attributeName, Grammar.equalSeparation).map(([attribute, equal]) => attribute)
+                    .chain(attributeName =>
+                        this.unknownEntityGrammar.map(attributeValue =>
+                            values => values[attributeName] = attributeValue
+                        )
                     )
-                )
-                .sepBy(Grammar.commaSeparation),
-            Parsernostrum.reg(/\s*(?:,\s*)?\)/),
-        ).map(([lookbehind, attributes, _2]) => {
-            lookbehind ??= "";
-            let values = {};
-            if (lookbehind.length) {
-                values.lookbehind = lookbehind;
-            }
-            attributes.forEach(attributeSetter => attributeSetter(values));
-            return new this(values)
-        })
-    }
-
-    constructor(values) {
-        super(values, true);
+                    .sepBy(Grammar.commaSeparation),
+                Parsernostrum.reg(/\s*(?:,\s*)?\)/),
+            ).map(([lookbehind, attributes, _2]) => {
+                lookbehind ??= "";
+                let values = {};
+                if (lookbehind.length) {
+                    values.lookbehind = lookbehind;
+                }
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                return new this(values)
+            }).label("UnknownKeysEntity")
+        )
     }
 }
-
-/**
- * @template {AttributeConstructor<Attribute>} T
- * @extends {Serializer<T>}
- */
-class CustomSerializer extends Serializer {
-
-    #objectWriter
-
-    /**
-     * @param {(v: ConstructedType<T>, insideString: Boolean) => String} objectWriter
-     * @param {T} entityType
-     */
-    constructor(objectWriter, entityType) {
-        super(entityType);
-        this.#objectWriter = objectWriter;
-    }
-
-    /**
-     * @param {ConstructedType<T>} entity
-     * @param {Boolean} insideString
-     * @returns {String}
-     */
-    doWrite(entity, insideString, indentation = "") {
-        let result = this.#objectWriter(entity, insideString);
-        return result
-    }
-}
-
-/**
- * @template {AttributeConstructor<Attribute>} T
- * @extends {Serializer<T>}
- */
-class ToStringSerializer extends Serializer {
-
-    /** @param {T} entityType */
-    constructor(entityType, escape = true) {
-        super(entityType);
-        if (escape) {
-            this.wrap = (entity, serialized) => Utility.escapeString(serialized);
-        }
-    }
-
-    /**
-     * @param {ConstructedType<T>} entity
-     * @param {Boolean} insideString
-     */
-    doWrite(entity, insideString, indentation = "") {
-
-        return !insideString && entity.constructor === String
-            ? `"${this.wrap(entity, entity.toString())}"` // String will have quotes if not inside a string already
-            : this.wrap(entity, entity.toString())
-    }
-}
-
-Grammar.unknownValue =
-    Parsernostrum.alt(
-        // Remember to keep the order, otherwise parsing might fail
-        Grammar.boolean,
-        GuidEntity.grammar,
-        Parsernostrum.str("None").map(() => new ObjectReferenceEntity({ type: "None" })),
-        Grammar.null,
-        Grammar.number,
-        ObjectReferenceEntity.fullReferenceGrammar,
-        Grammar.string,
-        LocalizedTextEntity.grammar,
-        InvariantTextEntity.grammar,
-        FormatTextEntity.grammar,
-        PinReferenceEntity.grammar,
-        Vector4DEntity.grammar,
-        VectorEntity.grammar,
-        RotatorEntity.grammar,
-        LinearColorEntity.grammar,
-        Vector2DEntity.grammar,
-        UnknownKeysEntity.grammar,
-        SymbolEntity.grammar,
-        Grammar.grammarFor(undefined, [PinReferenceEntity]),
-        Grammar.grammarFor(undefined, [new Union(Number, String, SymbolEntity)]),
-        Parsernostrum.lazy(() => Grammar.grammarFor(undefined, [undefined])),
-    );
 
 function initializeSerializerFactory() {
-
-    SerializerFactory.registerSerializer(
-        null,
-        new CustomSerializer(
-            (nullValue, insideString) => "()",
-            null
-        )
-    );
-
-    SerializerFactory.registerSerializer(
-        Array,
-        new CustomSerializer(
-            (array, insideString) =>
-                `(${array
-                    .map(v => SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString))
-                    .join(",")
-                })`,
-            Array
-        )
-    );
-
-    SerializerFactory.registerSerializer(
-        BigInt,
-        new ToStringSerializer(BigInt)
-    );
-
-    SerializerFactory.registerSerializer(
-        BlueprintEntity,
-        new ObjectSerializer(BlueprintEntity),
-    );
-
-    SerializerFactory.registerSerializer(
-        Boolean,
-        new CustomSerializer(
-            /** @param {Boolean} boolean */
-            (boolean, insideString) => boolean
-                ? insideString
-                    ? "true"
-                    : "True"
-                : insideString
-                    ? "false"
-                    : "False",
-            Boolean
-        )
-    );
-
-    SerializerFactory.registerSerializer(
-        ByteEntity,
-        new ToStringSerializer(ByteEntity)
-    );
-
-    SerializerFactory.registerSerializer(
-        ColorChannelEntity,
-        new ToStringSerializer(ColorChannelEntity)
-    );
-
-    SerializerFactory.registerSerializer(
-        EnumDisplayValueEntity,
-        new ToStringSerializer(EnumDisplayValueEntity)
-    );
-
-    SerializerFactory.registerSerializer(
-        EnumEntity,
-        new ToStringSerializer(EnumEntity)
-    );
-
-    SerializerFactory.registerSerializer(
-        FormatTextEntity,
-        new CustomSerializer(
-            (v, insideString) => {
-                let result = v.getLookbehind() + "("
-                    + v.value.map(v =>
-                        SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString)
-                    ).join(", ")
-                    + ")";
-                return result
-            },
-            FormatTextEntity)
-    );
-
-    SerializerFactory.registerSerializer(
-        FunctionReferenceEntity,
-        new Serializer(FunctionReferenceEntity, Serializer.bracketsWrapped)
-    );
-
-    SerializerFactory.registerSerializer(
-        GuidEntity,
-        new ToStringSerializer(GuidEntity)
-    );
-
-    SerializerFactory.registerSerializer(
-        IdentifierEntity,
-        new ToStringSerializer(IdentifierEntity)
-    );
-
-    SerializerFactory.registerSerializer(
-        Integer64Entity,
-        new ToStringSerializer(Integer64Entity)
-    );
-
-    SerializerFactory.registerSerializer(
-        IntegerEntity,
-        new ToStringSerializer(IntegerEntity)
-    );
-
-    SerializerFactory.registerSerializer(
-        InvariantTextEntity,
-        new Serializer(InvariantTextEntity, (entity, v) => `${entity.getLookbehind()}(${v})`, ", ", false, "", () => "")
-    );
-
-    SerializerFactory.registerSerializer(
-        KeyBindingEntity,
-        new Serializer(KeyBindingEntity, Serializer.bracketsWrapped)
-    );
-
-    SerializerFactory.registerSerializer(
-        LinearColorEntity,
-        new Serializer(LinearColorEntity, Serializer.bracketsWrapped)
-    );
-
-    SerializerFactory.registerSerializer(
-        LocalizedTextEntity,
-        new Serializer(LocalizedTextEntity, (entity, v) => `${entity.getLookbehind()}(${v})`, ", ", false, "", () => "")
-    );
-
-    SerializerFactory.registerSerializer(
-        MacroGraphReferenceEntity,
-        new Serializer(MacroGraphReferenceEntity, Serializer.bracketsWrapped)
-    );
-
-    SerializerFactory.registerSerializer(
-        MirroredEntity,
-        new CustomSerializer(
-            (v, insideString) => SerializerFactory.getSerializer(v.getTargetType()).write(v.get(), insideString),
-            MirroredEntity
-        )
-    );
-
-    SerializerFactory.registerSerializer(
-        Number,
-        new ToStringSerializer(Number)
-    );
-
-    SerializerFactory.registerSerializer(
-        ObjectEntity,
-        new ObjectSerializer()
-    );
-
-    SerializerFactory.registerSerializer(
-        ObjectReferenceEntity,
-        new ToStringSerializer(ObjectReferenceEntity, false)
-    );
-
-    SerializerFactory.registerSerializer(
-        PathSymbolEntity,
-        new ToStringSerializer(PathSymbolEntity)
-    );
-
-    SerializerFactory.registerSerializer(
-        PinEntity,
-        new Serializer(PinEntity, (entity, v) => `${entity.getLookbehind()} (${v})`, ",", true)
-    );
-
-    SerializerFactory.registerSerializer(
-        PinReferenceEntity,
-        new Serializer(PinReferenceEntity, undefined, " ", false, "", () => "")
-    );
-
-    SerializerFactory.registerSerializer(
-        PinTypeEntity,
-        new Serializer(PinTypeEntity)
-    );
-
-    SerializerFactory.registerSerializer(
-        TerminalTypeEntity,
-        new Serializer(TerminalTypeEntity, Serializer.bracketsWrapped)
-    );
-
-    SerializerFactory.registerSerializer(
-        RBSerializationVector2DEntity,
-        new CustomSerializer(
-            (value, insideString) => `X=${value.X} Y=${value.Y}`,
-            RBSerializationVector2DEntity
-        )
-    );
-
-    SerializerFactory.registerSerializer(
-        RotatorEntity,
-        new Serializer(RotatorEntity, Serializer.bracketsWrapped)
-    );
-
-    SerializerFactory.registerSerializer(
-        ScriptVariableEntity,
-        new Serializer(ScriptVariableEntity, Serializer.bracketsWrapped)
-    );
-
-    SerializerFactory.registerSerializer(
-        String,
-        new CustomSerializer(
-            (value, insideString) => insideString
-                ? Utility.escapeString(value)
-                : `"${Utility.escapeString(value)}"`,
-            String
-        )
-    );
-
-    SerializerFactory.registerSerializer(
-        SimpleSerializationRotatorEntity,
-        new CustomSerializer(
-            (value, insideString) => `${value.P}, ${value.Y}, ${value.R}`,
-            SimpleSerializationRotatorEntity
-        )
-    );
-
-    SerializerFactory.registerSerializer(
-        SimpleSerializationVector2DEntity,
-        new CustomSerializer(
-            (value, insideString) => `${value.X}, ${value.Y}`,
-            SimpleSerializationVector2DEntity
-        )
-    );
-
-    SerializerFactory.registerSerializer(
-        SimpleSerializationVectorEntity,
-        new CustomSerializer(
-            (value, insideString) => `${value.X}, ${value.Y}, ${value.Z}`,
-            SimpleSerializationVectorEntity
-        )
-    );
-
-    SerializerFactory.registerSerializer(
-        SimpleSerializationVector4DEntity,
-        new CustomSerializer(
-            (value, insideString) => `${value.X}, ${value.Y}, ${value.Z}, ${value.W}`,
-            SimpleSerializationVector4DEntity
-        )
-    );
-
-    SerializerFactory.registerSerializer(
-        SymbolEntity,
-        new ToStringSerializer(SymbolEntity)
-    );
-
-    SerializerFactory.registerSerializer(
-        UnknownKeysEntity,
-        new Serializer(UnknownKeysEntity, (entity, string) => `${entity.getLookbehind() ?? ""}(${string})`)
-    );
-
-    SerializerFactory.registerSerializer(
-        VariableReferenceEntity,
-        new Serializer(VariableReferenceEntity, Serializer.bracketsWrapped)
-    );
-
-    SerializerFactory.registerSerializer(
-        Vector2DEntity,
-        new Serializer(Vector2DEntity, Serializer.bracketsWrapped)
-    );
-
-    SerializerFactory.registerSerializer(
-        VectorEntity,
-        new Serializer(VectorEntity, Serializer.bracketsWrapped)
-    );
-
-    SerializerFactory.registerSerializer(
-        Vector4DEntity,
-        new Serializer(Vector4DEntity, Serializer.bracketsWrapped)
-    );
+    IEntity.unknownEntityGrammar =
+        Parsernostrum.alt(
+            // Remember to keep the order, otherwise parsing might fail
+            BooleanEntity.grammar,
+            GuidEntity.grammar,
+            Parsernostrum.str("None").map(() => ObjectReferenceEntity.createNoneInstance()),
+            NullEntity.grammar,
+            NumberEntity.grammar,
+            ObjectReferenceEntity.fullReferenceGrammar,
+            StringEntity.grammar,
+            LocalizedTextEntity.grammar,
+            InvariantTextEntity.grammar,
+            FormatTextEntity.grammar,
+            PinReferenceEntity.grammar,
+            Vector4DEntity.grammar,
+            VectorEntity.grammar,
+            Vector2DEntity.grammar,
+            RotatorEntity.grammar,
+            LinearColorEntity.grammar,
+            UnknownKeysEntity.grammar,
+            SymbolEntity.grammar,
+            ArrayEntity.of(PinReferenceEntity).grammar,
+            ArrayEntity.of(AlternativesEntity.accepting(NumberEntity, StringEntity, SymbolEntity)).grammar,
+            Parsernostrum.lazy(() => ArrayEntity.createGrammar(IEntity.unknownEntityGrammar)),
+        );
 }
 
 initializeSerializerFactory();

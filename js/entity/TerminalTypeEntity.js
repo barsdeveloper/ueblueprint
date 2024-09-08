@@ -1,16 +1,20 @@
-import AttributeInfo from "./AttributeInfo.js"
+import P from "parsernostrum"
+import Grammar from "../serialization/Grammar.js"
+import BooleanEntity from "./BooleanEntity.js"
 import IEntity from "./IEntity.js"
+import StringEntity from "./StringEntity.js"
 
 export default class TerminalTypeEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        TerminalCategory: AttributeInfo.createType(String),
-        TerminalSubCategory: AttributeInfo.createType(String),
-        bTerminalIsConst: AttributeInfo.createType(Boolean),
-        bTerminalIsWeakPointer: AttributeInfo.createType(Boolean),
-        bTerminalIsUObjectWrapper: AttributeInfo.createType(Boolean),
+        TerminalCategory: StringEntity,
+        TerminalSubCategory: StringEntity,
+        bTerminalIsConst: BooleanEntity,
+        bTerminalIsWeakPointer: BooleanEntity,
+        bTerminalIsUObjectWrapper: BooleanEntity,
     }
+    static grammar = this.createGrammar()
 
     constructor(values) {
         super(values)
@@ -19,5 +23,11 @@ export default class TerminalTypeEntity extends IEntity {
         /** @type {Boolean} */ this.bTerminalIsConst
         /** @type {Boolean} */ this.bTerminalIsWeakPointer
         /** @type {Boolean} */ this.bTerminalIsUObjectWrapper
+    }
+
+    static createGrammar() {
+        return /** @type {P<TerminalTypeEntity>} */(
+            Grammar.createEntityGrammar(this)
+        )
     }
 }

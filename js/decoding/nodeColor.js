@@ -8,23 +8,22 @@ export default function nodeColor(entity) {
         case Configuration.paths.materialExpressionConstant3Vector:
         case Configuration.paths.materialExpressionConstant4Vector:
             return Configuration.nodeColors.yellow
+        case Configuration.paths.materialExpressionFunctionInput:
+        case Configuration.paths.materialExpressionTextureCoordinate:
+        case Configuration.paths.materialExpressionWorldPosition:
+        case Configuration.paths.pcgEditorGraphNodeInput:
+        case Configuration.paths.pcgEditorGraphNodeOutput:
+            return Configuration.nodeColors.red
         case Configuration.paths.makeStruct:
             return Configuration.nodeColors.darkBlue
         case Configuration.paths.materialExpressionMaterialFunctionCall:
             return Configuration.nodeColors.blue
-        case Configuration.paths.materialExpressionFunctionInput:
-            return Configuration.nodeColors.red
         case Configuration.paths.materialExpressionTextureSample:
             return Configuration.nodeColors.darkTurquoise
-        case Configuration.paths.materialExpressionTextureCoordinate:
-            return Configuration.nodeColors.red
-        case Configuration.paths.pcgEditorGraphNodeInput:
-        case Configuration.paths.pcgEditorGraphNodeOutput:
-            return Configuration.nodeColors.red
     }
     switch (entity.getClass()) {
         case Configuration.paths.callFunction:
-            return entity.bIsPureFunc
+            return entity.bIsPureFunc?.valueOf()
                 ? Configuration.nodeColors.green
                 : Configuration.nodeColors.blue
         case Configuration.paths.niagaraNodeFunctionCall:
@@ -74,7 +73,7 @@ export default function nodeColor(entity) {
                 return Configuration.nodeColors.intenseGreen
         }
     }
-    if (entity.bIsPureFunc) {
+    if (entity.bIsPureFunc?.valueOf()) {
         return Configuration.nodeColors.green
     }
     return Configuration.nodeColors.blue

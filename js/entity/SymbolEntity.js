@@ -1,32 +1,36 @@
+import P from "parsernostrum"
 import Grammar from "../serialization/Grammar.js"
-import AttributeInfo from "./AttributeInfo.js"
 import IEntity from "./IEntity.js"
 
 export default class SymbolEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: AttributeInfo.createValue(""),
+    static attributeConverter = {
+        fromAttribute: (value, type) => new this(value),
+        toAttribute: (value, type) => value.toString()
     }
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Grammar.symbol.map(v => new this(v))
+        return /** @type {P<SymbolEntity>} */(
+            Grammar.symbol.map(v => new this(v)).label("SymbolEntity")
+        )
     }
 
-    /** @param {String | Object} values */
-    constructor(values) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            }
+    constructor(value = "") {
+        super()
+        this.value = value
+    }
+
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+    ) {
+        let result = this.value
+        if (Self.serialized) {
+            result = `"${result}"`
         }
-        super(values)
-        /** @type {String} */ this.value
-    }
-
-    valueOf() {
-        return this.value
+        return result
     }
 
     toString() {

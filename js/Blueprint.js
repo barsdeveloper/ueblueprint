@@ -4,6 +4,7 @@ import IElement from "./element/IElement.js"
 import LinkElement from "./element/LinkElement.js"
 import NodeElement from "./element/NodeElement.js"
 import BlueprintEntity from "./entity/BlueprintEntity.js"
+import BooleanEntity from "./entity/BooleanEntity.js"
 import BlueprintTemplate from "./template/BlueprintTemplate.js"
 
 /** @extends {IElement<BlueprintEntity, BlueprintTemplate>} */
@@ -14,19 +15,19 @@ export default class Blueprint extends IElement {
             type: Boolean,
             attribute: "data-selecting",
             reflect: true,
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
         },
         scrolling: {
             type: Boolean,
             attribute: "data-scrolling",
             reflect: true,
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
         },
         focused: {
             type: Boolean,
             attribute: "data-focused",
             reflect: true,
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
         },
         zoom: {
             type: Number,
@@ -411,15 +412,16 @@ export default class Blueprint extends IElement {
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
                 if (element.getType() == Configuration.paths.niagaraClipboardContent) {
                     this.entity = this.entity.mergeWith(element.entity)
-                    const additionalSerialization = atob(element.entity.ExportedNodes)
+                    const additionalSerialization = atob(element.entity.ExportedNodes.toString())
                     this.template.getPasteInputObject().pasted(additionalSerialization)
-                        .forEach(node => node.entity.isExported = true)
+                        .forEach(node => node.entity._exported = true)
                     continue
                 }
                 const name = element.entity.getObjectName()
                 const homonym = this.entity.getHomonymObjectEntity(element.entity)
                 if (homonym) {
-                    homonym.Name = this.entity.takeFreeName(name)
+                    homonym.Name.value = this.entity.takeFreeName(name)
+                    homonym.Name = homonym.Name
                 }
                 this.nodes.push(element)
                 this.entity.addObjectEntity(element.entity)

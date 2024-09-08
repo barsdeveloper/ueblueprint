@@ -1,47 +1,51 @@
-import Parsernostrum from "parsernostrum"
+import P from "parsernostrum"
 import Utility from "../Utility.js"
 import Grammar from "../serialization/Grammar.js"
-import AttributeInfo from "./AttributeInfo.js"
 import IEntity from "./IEntity.js"
+import StringEntity from "./StringEntity.js"
 
 export default class LocalizedTextEntity extends IEntity {
 
+    static attributeSeparator = ", "
+    static printKey = k => ""
+    static lookbehind = "NSLOCTEXT"
     static attributes = {
         ...super.attributes,
-        namespace: AttributeInfo.createValue(""),
-        key: AttributeInfo.createValue(""),
-        value: AttributeInfo.createValue(""),
-        lookbehind: new AttributeInfo({
-            ...super.attributes.lookbehind,
-            default: "NSLOCTEXT",
-        }),
+        namespace: StringEntity.withDefault(),
+        key: StringEntity.withDefault(),
+        value: StringEntity.withDefault(),
     }
     static grammar = this.createGrammar()
 
-    static createGrammar() {
-        return Parsernostrum.regArray(new RegExp(
-            String.raw`${this.attributes.lookbehind.default}\s*\(`
-            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
-            + String.raw`(?:,\s+)?`
-            + String.raw`\)`,
-            "m"
-        )).map(matchResult => new this({
-            namespace: Utility.unescapeString(matchResult[1]),
-            key: Utility.unescapeString(matchResult[2]),
-            value: Utility.unescapeString(matchResult[3]),
-        }))
+    constructor(values = {}) {
+        super(values)
+        /** @type {InstanceType<typeof LocalizedTextEntity.attributes.namespace>} */ this.namespace
+        /** @type {InstanceType<typeof LocalizedTextEntity.attributes.key>} */ this.key
+        /** @type {InstanceType<typeof LocalizedTextEntity.attributes.value>} */ this.value
     }
 
-    constructor(values) {
-        super(values)
-        /** @type {String} */ this.namespace
-        /** @type {String} */ this.key
-        /** @type {String} */ this.value
+    static createGrammar() {
+        return /** @type {P<LocalizedTextEntity>} */(
+            P.regArray(new RegExp(
+                String.raw`${LocalizedTextEntity.lookbehind}\s*\(`
+                + String.raw`\s*"(?<namespace>${Grammar.Regex.InsideString.source})"\s*,`
+                + String.raw`\s*"(?<key>${Grammar.Regex.InsideString.source})"\s*,`
+                + String.raw`\s*"(?<value>${Grammar.Regex.InsideString.source})"\s*`
+                + String.raw`(?<trailing>,\s+)?`
+                + String.raw`\)`,
+                "m"
+            )).map(({ groups: { namespace, key, value, trailing } }) => {
+                return new this({
+                    namespace: new (this.attributes.namespace)(Utility.unescapeString(namespace)),
+                    key: new (this.attributes.namespace)(Utility.unescapeString(key)),
+                    value: new (this.attributes.namespace)(Utility.unescapeString(value)),
+                    trailing: trailing !== undefined,
+                })
+            }).label("LocalizedTextEntity")
+        )
     }
 
     toString() {
-        return Utility.capitalFirstLetter(this.value)
+        return Utility.capitalFirstLetter(this.value.valueOf())
     }
 }

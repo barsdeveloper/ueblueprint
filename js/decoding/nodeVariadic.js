@@ -1,10 +1,13 @@
 import Configuration from "../Configuration.js"
+import ArrayEntity from "../entity/ArrayEntity.js"
 import GuidEntity from "../entity/GuidEntity.js"
+import NaturalNumberEntity from "../entity/NaturalNumberEntity.js"
 import PinEntity from "../entity/PinEntity.js"
+import StringEntity from "../entity/StringEntity.js"
 
 /** @param {PinEntity} pinEntity */
 const indexFromUpperCaseLetterName = pinEntity =>
-    pinEntity.PinName.match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0)
+    pinEntity.PinName?.toString().match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0)
 
 /** @param {ObjectEntity} entity */
 export default function nodeVariadic(entity) {
@@ -15,11 +18,12 @@ export default function nodeVariadic(entity) {
     /** @type {(newPinIndex: Number, minIndex: Number, maxIndex: Number, newPin: PinEntity) => String} */
     let pinNameFromIndex
     const type = entity.getType()
+    let prefix
     let name
     switch (type) {
         case Configuration.paths.commutativeAssociativeBinaryOperator:
         case Configuration.paths.promotableOperator:
-            name = entity.FunctionReference?.MemberName
+            name = entity.FunctionReference?.MemberName?.toString()
             switch (name) {
                 default:
                     if (
@@ -50,17 +54,22 @@ export default function nodeVariadic(entity) {
                     pinIndexFromEntity ??= indexFromUpperCaseLetterName
                     pinNameFromIndex ??= (index, min = -1, max = -1) => {
                         const result = String.fromCharCode(index >= 0 ? index : max + "A".charCodeAt(0) + 1)
-                        entity.NumAdditionalInputs = pinEntities().length - 1
+                        entity.NumAdditionalInputs = new NaturalNumberEntity(pinEntities().length - 1)
                         return result
                     }
                     break
             }
             break
+        case Configuration.paths.executionSequence:
+            prefix ??= "Then"
         case Configuration.paths.multiGate:
+            prefix ??= "Out"
             pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput())
-            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Out[_\s]+(\d+)\s*$/i)?.[1])
+            pinIndexFromEntity ??= pinEntity => Number(
+                pinEntity.PinName?.toString().match(new RegExp(String.raw`^\s*${prefix}[_\s]+(\d+)\s*$`, "i"))?.[1]
+            )
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) =>
-                `Out ${index >= 0 ? index : min > 0 ? "Out 0" : max + 1}`
+                `${prefix} ${index >= 0 ? index : min > 0 ? `${prefix} 0` : max + 1}`
             break
         // case Configuration.paths.niagaraNodeOp:
         //     pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isInput())
@@ -74,26 +83,26 @@ export default function nodeVariadic(entity) {
         //     break
         case Configuration.paths.switchInteger:
             pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput())
-            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*(\d+)\s*$/)?.[1])
+            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName?.toString().match(/^\s*(\d+)\s*$/)?.[1])
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => (index < 0 ? max + 1 : index).toString()
             break
         case Configuration.paths.switchGameplayTag:
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
                 const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`
-                entity.PinNames ??= []
-                entity.PinNames.push(result)
-                delete entity.PinTags[entity.PinTags.length - 1]
-                entity.PinTags[entity.PinTags.length] = null
+                entity.PinNames ??= new ArrayEntity()
+                entity.PinNames.valueOf().push(new StringEntity(result))
+                delete entity.PinTags.valueOf()[entity.PinTags.length - 1]
+                entity.PinTags.valueOf()[entity.PinTags.length] = null
                 return result
             }
         case Configuration.paths.switchName:
         case Configuration.paths.switchString:
             pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput())
-            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Case[_\s]+(\d+)\s*$/i)?.[1])
+            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.toString().match(/^\s*Case[_\s]+(\d+)\s*$/i)?.[1])
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
                 const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`
-                entity.PinNames ??= []
-                entity.PinNames.push(result)
+                entity.PinNames ??= new ArrayEntity()
+                entity.PinNames.valueOf().push(new StringEntity(result))
                 return result
             }
             break
@@ -138,9 +147,13 @@ export default function nodeVariadic(entity) {
                 }
             )
             const newPin = new PinEntity(modelPin)
-            newPin.PinId = GuidEntity.generateGuid()
-            newPin.PinName = pinNameFromIndex(index, min, max, newPin)
+            newPin.PinId = new GuidEntity()
+            newPin.PinName = new StringEntity(pinNameFromIndex(index, min, max, newPin))
             newPin.PinToolTip = undefined
+            if (newPin.DefaultValue) {
+                // @ts-expect-error
+                newPin.DefaultValue = new (newPin.DefaultValue.constructor)()
+            }
             entity.getCustomproperties(true).push(newPin)
             return newPin
         }

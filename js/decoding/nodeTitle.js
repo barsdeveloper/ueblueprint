@@ -1,5 +1,9 @@
 import Configuration from "../Configuration.js"
 import Utility from "../Utility.js"
+import BooleanEntity from "../entity/BooleanEntity.js"
+import LinearColorEntity from "../entity/LinearColorEntity.js"
+import MirroredEntity from "../entity/MirroredEntity.js"
+import VectorEntity from "../entity/VectorEntity.js"
 
 const sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
 const keyNameValue = {
@@ -31,43 +35,63 @@ const keyNameValue = {
     "Tilde": "`",
 }
 
+/** @param {String} value */
+function numberFromText(value = "") {
+    value = value.toLowerCase()
+    switch (value) {
+        case "zero": return 0
+        case "one": return 1
+        case "two": return 2
+        case "three": return 3
+        case "four": return 4
+        case "five": return 5
+        case "six": return 6
+        case "seven": return 7
+        case "eight": return 8
+        case "nine": return 9
+    }
+}
+
 function keyName(value) {
     /** @type {String} */
     let result = keyNameValue[value]
     if (result) {
         return result
     }
-    result = Utility.numberFromText(value)?.toString()
+    result = numberFromText(value)?.toString()
     if (result) {
         return result
     }
     const match = value.match(/NumPad([a-zA-Z]+)/)
     if (match) {
-        result = Utility.numberFromText(match[1]).toString()
+        result = numberFromText(match[1]).toString()
         if (result) {
             return "Num " + result
         }
     }
 }
 
-/** @param {ObjectEntity} entity */
+/**
+ * @param {ObjectEntity} entity
+ * @returns {String}
+ */
 export default function nodeTitle(entity) {
     let input
     switch (entity.getType()) {
         case Configuration.paths.asyncAction:
             if (entity.ProxyFactoryFunctionName) {
-                return Utility.formatStringName(entity.ProxyFactoryFunctionName)
+                return Utility.formatStringName(entity.ProxyFactoryFunctionName?.toString())
             }
         case Configuration.paths.actorBoundEvent:
         case Configuration.paths.componentBoundEvent:
-            return `${Utility.formatStringName(entity.DelegatePropertyName)} (${entity.ComponentPropertyName ?? "Unknown"})`
+            return `${Utility.formatStringName(entity.DelegatePropertyName?.toString())} (${entity.ComponentPropertyName?.toString() ?? "Unknown"})`
         case Configuration.paths.callDelegate:
-            return `Call ${entity.DelegateReference?.MemberName ?? "None"}`
+            return `Call ${entity.DelegateReference?.MemberName?.toString() ?? "None"}`
         case Configuration.paths.createDelegate:
             return "Create Event"
         case Configuration.paths.customEvent:
             if (entity.CustomFunctionName) {
-                return entity.CustomFunctionName
+                return entity.CustomFunctionName?.toString()
             }
         case Configuration.paths.dynamicCast:
             if (!entity.TargetType) {
@@ -77,7 +101,7 @@ export default function nodeTitle(entity) {
         case Configuration.paths.enumLiteral:
             return `Literal enum ${entity.Enum?.getName()}`
         case Configuration.paths.event:
-            return `Event ${(entity.EventReference?.MemberName ?? "").replace(/^Receive/, "")}`
+            return `Event ${(entity.EventReference?.MemberName?.toString() ?? "").replace(/^Receive/, "")}`
         case Configuration.paths.executionSequence:
             return "Sequence"
         case Configuration.paths.forEachElementInEnum:
@@ -85,9 +109,9 @@ export default function nodeTitle(entity) {
         case Configuration.paths.forEachLoopWithBreak:
             return "For Each Loop with Break"
         case Configuration.paths.functionEntry:
-            return entity.FunctionReference?.MemberName === "UserConstructionScript"
+            return entity.FunctionReference?.MemberName?.toString() === "UserConstructionScript"
                 ? "Construction Script"
-                : entity.FunctionReference?.MemberName
+                : entity.FunctionReference?.MemberName?.toString()
         case Configuration.paths.functionResult:
             return "Return Node"
         case Configuration.paths.ifThenElse:
@@ -98,36 +122,32 @@ export default function nodeTitle(entity) {
             }
         case Configuration.paths.materialExpressionComponentMask: {
             const materialObject = entity.getMaterialSubobject()
-            return `Mask ( ${Configuration.rgba
-                .filter(k => /** @type {MirroredEntity<any>} */(materialObject[k]).get() === true)
-                .map(v => v + " ")
-                .join("")})`
+            if (materialObject) {
+                return `Mask ( ${Configuration.rgba
+                    .filter(k => /** @type {MirroredEntity<typeof BooleanEntity>} */(materialObject[k]).getter().value === true)
+                    .map(v => v + " ")
+                    .join("")})`
+            }
         }
         case Configuration.paths.materialExpressionConstant:
-            input ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName == "Value")?.DefaultValue]
+            input ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName.toString() == "Value")?.DefaultValue]
         case Configuration.paths.materialExpressionConstant2Vector:
             input ??= [
-                entity.getCustomproperties().find(pinEntity => pinEntity.PinName == "X")?.DefaultValue,
-                entity.getCustomproperties().find(pinEntity => pinEntity.PinName == "Y")?.DefaultValue,
+                entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "X")?.DefaultValue,
+                entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "Y")?.DefaultValue,
             ]
         case Configuration.paths.materialExpressionConstant3Vector:
-            if (!input) {
-                /** @type {VectorEntity} */
-                const vector = entity.getCustomproperties()
-                    .find(pinEntity => pinEntity.PinName == "Constant")
-                    ?.DefaultValue
-                input = [vector.X, vector.Y, vector.Z]
-            }
         case Configuration.paths.materialExpressionConstant4Vector:
             if (!input) {
-                /** @type {LinearColorEntity} */
                 const vector = entity.getCustomproperties()
-                    .find(pinEntity => pinEntity.PinName == "Constant")
+                    .find(pinEntity => pinEntity.PinName?.toString() == "Constant")
                     ?.DefaultValue
-                input = [vector.R, vector.G, vector.B, vector.A].map(v => v.valueOf())
+                input = vector instanceof VectorEntity ? [vector.X, vector.Y, vector.Z].map(v => v.valueOf())
+                    : vector instanceof LinearColorEntity ? [vector.R, vector.G, vector.B, vector.A].map(v => v.valueOf())
+                        : /** @type {Number[]} */([])
             }
             if (input.length > 0) {
-                return input.map(v => Utility.printExponential(v)).reduce((acc, cur) => acc + "," + cur)
+                return input.map(v => Utility.printExponential(v)).join(",")
             }
             break
         case Configuration.paths.materialExpressionFunctionInput: {
@@ -150,6 +170,11 @@ export default function nodeTitle(entity) {
             break
         case Configuration.paths.materialExpressionSquareRoot:
             return "Sqrt"
+        case Configuration.paths.materialExpressionSubtract:
+            const materialObject = entity.getMaterialSubobject()
+            if (materialObject) {
+                return `Subtract(${materialObject.ConstA ?? "1"},${materialObject.ConstB ?? "1"})`
+            }
         case Configuration.paths.metasoundEditorGraphExternalNode: {
             const name = entity["ClassName"]?.["Name"]
             if (name) {
@@ -165,7 +190,7 @@ export default function nodeTitle(entity) {
             return "Output"
         case Configuration.paths.spawnActorFromClass:
             let className = entity.getCustomproperties()
-                .find(pinEntity => pinEntity.PinName == "ReturnValue")
+                .find(pinEntity => pinEntity.PinName.toString() == "ReturnValue")
                 ?.PinType
                 ?.PinSubCategoryObject
                 ?.getName()
@@ -190,7 +215,7 @@ export default function nodeTitle(entity) {
         return `Switch on ${switchTarget}`
     }
     if (entity.isComment()) {
-        return entity.NodeComment
+        return entity.NodeComment.toString()
     }
     const keyNameSymbol = entity.getHIDAttribute()
     if (keyNameSymbol) {
@@ -213,7 +238,7 @@ export default function nodeTitle(entity) {
     }
     if (entity.isPcg() && entity.getPcgSubobject()) {
         let pcgSubobject = entity.getPcgSubobject()
-        let result = pcgSubobject.NodeTitle ? pcgSubobject.NodeTitle : nodeTitle(pcgSubobject)
+        let result = pcgSubobject.NodeTitle ? pcgSubobject.NodeTitle.toString() : nodeTitle(pcgSubobject)
         return result
     }
     const subgraphObject = entity.getSubgraphObject()
@@ -232,7 +257,7 @@ export default function nodeTitle(entity) {
             return Utility.formatStringName(settingsObject.BlueprintElementType.getName())
         }
         if (settingsObject.Operation) {
-            const match = settingsObject.Name.match(/PCGMetadata(\w+)Settings_\d+/)
+            const match = settingsObject.Name?.toString().match(/PCGMetadata(\w+)Settings_\d+/)
             if (match) {
                 return Utility.formatStringName(match[1] + ": " + settingsObject.Operation)
             }
@@ -242,7 +267,7 @@ export default function nodeTitle(entity) {
             return settingsSubgraphObject.Graph.getName()
         }
     }
-    let memberName = entity.FunctionReference?.MemberName
+    let memberName = entity.FunctionReference?.MemberName?.toString()
     if (memberName) {
         const memberParent = entity.FunctionReference.MemberParent?.path ?? ""
         switch (memberName) {
@@ -379,7 +404,7 @@ export default function nodeTitle(entity) {
         return Utility.formatStringName(memberName)
     }
     if (entity.OpName) {
-        switch (entity.OpName) {
+        switch (entity.OpName.toString()) {
             case "Boolean::LogicAnd": return "Logic AND"
             case "Boolean::LogicEq": return "=="
             case "Boolean::LogicNEq": return "!="
@@ -392,10 +417,10 @@ export default function nodeTitle(entity) {
             case "Numeric::DistancePos": return "Distance"
             case "Numeric::Mul": return String.fromCharCode(0x2a2f)
         }
-        return Utility.formatStringName(entity.OpName).replaceAll("::", " ")
+        return Utility.formatStringName(entity.OpName.toString()).replaceAll("::", " ")
     }
     if (entity.FunctionDisplayName) {
-        return Utility.formatStringName(entity.FunctionDisplayName)
+        return Utility.formatStringName(entity.FunctionDisplayName.toString())
     }
     if (entity.ObjectRef) {
         return entity.ObjectRef.getName()

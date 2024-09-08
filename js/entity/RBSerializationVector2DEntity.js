@@ -1,4 +1,5 @@
-import Parsernostrum from "parsernostrum"
+import P from "parsernostrum"
+import Grammar from "../serialization/Grammar.js"
 import Vector2DEntity from "./Vector2DEntity.js"
 
 export default class RBSerializationVector2DEntity extends Vector2DEntity {
@@ -6,16 +7,19 @@ export default class RBSerializationVector2DEntity extends Vector2DEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsernostrum.alt(
-            Parsernostrum.regArray(new RegExp(
-                /X\s*=\s*/.source + "(?<x>" + Parsernostrum.number.getParser().parser.regexp.source + ")"
+        return /** @type {P<RBSerializationVector2DEntity>} */(P.alt(
+            P.regArray(new RegExp(
+                /X\s*=\s*/.source + "(?<x>" + Grammar.numberRegexSource + ")"
                 + "\\s+"
-                + /Y\s*=\s*/.source + "(?<y>" + Parsernostrum.number.getParser().parser.regexp.source + ")"
+                + /Y\s*=\s*/.source + "(?<y>" + Grammar.numberRegexSource + ")"
             )).map(({ groups: { x, y } }) => new this({
-                X: Number(x),
-                Y: Number(y),
+                X: new (Vector2DEntity.attributes.X)(x),
+                Y: new (Vector2DEntity.attributes.Y)(y),
             })),
-            Vector2DEntity.grammar
-        )
+            Vector2DEntity.grammar.map(v => new this({
+                X: v.X,
+                Y: v.Y,
+            }))
+        ).label("RBSerializationVector2DEntity"))
     }
 }
