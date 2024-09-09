@@ -93,7 +93,7 @@ export default class PinEntity extends IEntity {
         bDefaultValueIsReadOnly: BooleanEntity.withDefault(),
         bDefaultValueIsIgnored: BooleanEntity.withDefault(),
         bAdvancedView: BooleanEntity.withDefault(),
-        bOrphanedPin: BooleanEntity.withDefault(),
+        bOrphanedPin: BooleanEntity,
     }
     static grammar = this.createGrammar()
 
@@ -313,7 +313,7 @@ export default class PinEntity extends IEntity {
     }
 
     getSubCategory() {
-        return this.PinType.PinSubCategoryObject.path
+        return this.PinType.PinSubCategoryObject?.path
     }
 
     pinColor() {

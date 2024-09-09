@@ -5251,14 +5251,14 @@ class PinTypeEntity extends IEntity {
         ...super.attributes,
         PinCategory: StringEntity.withDefault(),
         PinSubCategory: StringEntity.withDefault(),
-        PinSubCategoryObject: ObjectReferenceEntity.withDefault(),
-        PinSubCategoryMemberReference: FunctionReferenceEntity.withDefault(),
+        PinSubCategoryObject: ObjectReferenceEntity,
+        PinSubCategoryMemberReference: FunctionReferenceEntity,
         ContainerType: SymbolEntity,
-        bIsReference: BooleanEntity.withDefault(),
-        bIsConst: BooleanEntity.withDefault(),
-        bIsWeakPointer: BooleanEntity.withDefault(),
-        bIsUObjectWrapper: BooleanEntity.withDefault(),
-        bSerializeAsSinglePrecisionFloat: BooleanEntity.withDefault(),
+        bIsReference: BooleanEntity,
+        bIsConst: BooleanEntity,
+        bIsWeakPointer: BooleanEntity,
+        bIsUObjectWrapper: BooleanEntity,
+        bSerializeAsSinglePrecisionFloat: BooleanEntity,
     }
     static grammar = this.createGrammar()
 
@@ -5617,7 +5617,7 @@ class PinEntity extends IEntity {
         bDefaultValueIsReadOnly: BooleanEntity.withDefault(),
         bDefaultValueIsIgnored: BooleanEntity.withDefault(),
         bAdvancedView: BooleanEntity.withDefault(),
-        bOrphanedPin: BooleanEntity.withDefault(),
+        bOrphanedPin: BooleanEntity,
     }
     static grammar = this.createGrammar()
 
@@ -5837,7 +5837,7 @@ class PinEntity extends IEntity {
     }
 
     getSubCategory() {
-        return this.PinType.PinSubCategoryObject.path
+        return this.PinType.PinSubCategoryObject?.path
     }
 
     pinColor() {
@@ -6509,7 +6509,7 @@ class ObjectEntity extends IEntity {
     getClass() {
         if (!this.#class) {
             this.#class = (this.Class?.path ? this.Class.path : this.Class?.type)
-                ?? this.ExportPath.type
+                ?? this.ExportPath?.type
                 ?? "";
             if (this.#class && !this.#class.startsWith("/")) {
                 // Old path names did not start with /Script or /Engine, check tests/resources/LegacyNodes.js
@@ -13425,10 +13425,10 @@ function initializeSerializerFactory() {
             NumberEntity.grammar,
             Parsernostrum.alt(
                 ObjectReferenceEntity.fullReferenceGrammar,
-                Parsernostrum.regArray(
+                Parsernostrum.regArray(new RegExp(
                     // @ts-expect-error
-                    new RegExp(`"(${Grammar.Regex.Path.source})'(${Grammar.symbol.getParser().regexp.source})'"`)
-                ).map(([full, type, path]) => new ObjectReferenceEntity(type, path, full))
+                    `"(${Grammar.Regex.Path.source})'(${Grammar.Regex.Path.source}|${Grammar.symbol.getParser().regexp.source})'"`
+                )).map(([full, type, path]) => new ObjectReferenceEntity(type, path, full))
             ),
             StringEntity.grammar,
             LocalizedTextEntity.grammar,

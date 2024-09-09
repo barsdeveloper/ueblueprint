@@ -13,14 +13,14 @@ export default class PinTypeEntity extends IEntity {
         ...super.attributes,
         PinCategory: StringEntity.withDefault(),
         PinSubCategory: StringEntity.withDefault(),
-        PinSubCategoryObject: ObjectReferenceEntity.withDefault(),
-        PinSubCategoryMemberReference: FunctionReferenceEntity.withDefault(),
+        PinSubCategoryObject: ObjectReferenceEntity,
+        PinSubCategoryMemberReference: FunctionReferenceEntity,
         ContainerType: SymbolEntity,
-        bIsReference: BooleanEntity.withDefault(),
-        bIsConst: BooleanEntity.withDefault(),
-        bIsWeakPointer: BooleanEntity.withDefault(),
-        bIsUObjectWrapper: BooleanEntity.withDefault(),
-        bSerializeAsSinglePrecisionFloat: BooleanEntity.withDefault(),
+        bIsReference: BooleanEntity,
+        bIsConst: BooleanEntity,
+        bIsWeakPointer: BooleanEntity,
+        bIsUObjectWrapper: BooleanEntity,
+        bSerializeAsSinglePrecisionFloat: BooleanEntity,
     }
     static grammar = this.createGrammar()
 

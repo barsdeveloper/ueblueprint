@@ -32,10 +32,10 @@ export default function initializeSerializerFactory() {
             NumberEntity.grammar,
             Parsernostrum.alt(
                 ObjectReferenceEntity.fullReferenceGrammar,
-                Parsernostrum.regArray(
+                Parsernostrum.regArray(new RegExp(
                     // @ts-expect-error
-                    new RegExp(`"(${Grammar.Regex.Path.source})'(${Grammar.symbol.getParser().regexp.source})'"`)
-                ).map(([full, type, path]) => new ObjectReferenceEntity(type, path, full))
+                    `"(${Grammar.Regex.Path.source})'(${Grammar.Regex.Path.source}|${Grammar.symbol.getParser().regexp.source})'"`
+                )).map(([full, type, path]) => new ObjectReferenceEntity(type, path, full))
             ),
             StringEntity.grammar,
             LocalizedTextEntity.grammar,
