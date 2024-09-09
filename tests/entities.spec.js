@@ -830,7 +830,7 @@ test("ObjectReferenceEntity", () => {
         "/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element",
     ))
     expect(value.serialize()).toEqual(
-        String.raw`Function'"/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element"'`
+        `Function'"/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element"'`
     )
     expect(value.serialize(true)).toEqual(
         String.raw`Function'\"/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element\"'`
@@ -899,6 +899,14 @@ test("ObjectReferenceEntity", () => {
     value = grammar.parse(`"/Game/_YukiritoLib/Textures/T_紫色渐变01.T_紫色渐变01"`)
     expect(value).toBeInstanceOf(ObjectReferenceEntity)
     expect(value).toEqual(new ObjectReferenceEntity("/Game/_YukiritoLib/Textures/T_紫色渐变01.T_紫色渐变01"))
+
+    value = grammar.parse(`"/Script/MetasoundEditor.MetasoundEditorGraphVariable'MetasoundEditorGraphVariable_1'"`)
+    expect(value).toBeInstanceOf(ObjectReferenceEntity)
+    expect(value).toEqual(new ObjectReferenceEntity(
+        "/Script/MetasoundEditor.MetasoundEditorGraphVariable",
+        "MetasoundEditorGraphVariable_1"
+    ))
+    expect(value.serialize()).toEqual(`"/Script/MetasoundEditor.MetasoundEditorGraphVariable'MetasoundEditorGraphVariable_1'"`)
 })
 
 test("PinEntity", () => {
@@ -1190,6 +1198,9 @@ test("Unknown", () => {
     expect(parser.parse("(R=0.000000,G=0.660000,B=1.000000,A=1.000000)").serialize()).toEqual("(R=0.000000,G=0.660000,B=1.000000,A=1.000000)")
     expect(parser.parse(`Class'"/Script/Engine.KismetSystemLibrary"'`)).toBeInstanceOf(ObjectReferenceEntity)
     expect(parser.parse(`Class'"/Script/Engine.KismetSystemLibrary"'`).serialize()).toEqual(`Class'"/Script/Engine.KismetSystemLibrary"'`)
+    expect(parser.parse(`"/Script/MetasoundEditor.MetasoundEditorGraphVariable'MetasoundEditorGraphVariable_1'"`)).toBeInstanceOf(ObjectReferenceEntity)
+    expect(parser.parse(`"/Script/MetasoundEditor.MetasoundEditorGraphVariable'MetasoundEditorGraphVariable_1'"`).serialize())
+        .toEqual(`"/Script/MetasoundEditor.MetasoundEditorGraphVariable'MetasoundEditorGraphVariable_1'"`)
     expect(parser.parse("(1,2,3,4,5,6,7,8,9)")).toBeInstanceOf(ArrayEntity)
     expect(parser.parse("(1,2,3,4,5,6,7,8,9)").serialize()).toEqual("(1,2,3,4,5,6,7,8,9)")
     expect(parser.parse(`("Hello", "World",)`)).toBeInstanceOf(ArrayEntity)

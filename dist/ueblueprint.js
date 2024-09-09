@@ -4473,8 +4473,8 @@ class ArrayEntity extends IEntity {
             ).map(([_0, values, trailing]) => {
                 values = values instanceof Array ? values : [];
                 let Self = this;
-                if (trailing !== undefined != Self.trailing) {
-                    Self = Self.flagTrailing();
+                if ((trailing !== undefined) !== Self.trailing) {
+                    Self = Self.flagTrailing(trailing !== undefined);
                 }
                 const result = new Self(values);
                 return result
@@ -5122,12 +5122,11 @@ class ObjectReferenceEntity extends IEntity {
         super();
         this.#type = type;
         this.#path = path;
-        this.#full = full
-            ?? (
-                this.type.includes("/") || this.path
-                    ? `"${this.type + (this.path ? (`'${this.path}'`) : "")}"`
-                    : this.type
-            );
+        this.#full = full ?? (
+            this.type.includes("/") || this.path
+                ? `"${this.type + (this.path ? (`'${this.path}'`) : "")}"`
+                : this.type
+        );
     }
 
     /** @returns {P<ObjectReferenceEntity>} */
@@ -6038,6 +6037,7 @@ class NullEntity extends IEntity {
         // @ts-expect-error
         return Parsernostrum.reg(new RegExp(String.raw`\(${Parsernostrum.whitespaceInlineOpt.getParser().regexp.source}\)`))
             .map(v => new this())
+            .label("NullEntity")
     }
 
     serialize(
@@ -13423,7 +13423,13 @@ function initializeSerializerFactory() {
             Parsernostrum.str("None").map(() => ObjectReferenceEntity.createNoneInstance()),
             NullEntity.grammar,
             NumberEntity.grammar,
-            ObjectReferenceEntity.fullReferenceGrammar,
+            Parsernostrum.alt(
+                ObjectReferenceEntity.fullReferenceGrammar,
+                Parsernostrum.regArray(
+                    // @ts-expect-error
+                    new RegExp(`"(${Grammar.Regex.Path.source})'(${Grammar.symbol.getParser().regexp.source})'"`)
+                ).map(([full, type, path]) => new ObjectReferenceEntity(type, path, full))
+            ),
             StringEntity.grammar,
             LocalizedTextEntity.grammar,
             InvariantTextEntity.grammar,

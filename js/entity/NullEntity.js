@@ -10,6 +10,7 @@ export default class NullEntity extends IEntity {
         // @ts-expect-error
         return P.reg(new RegExp(String.raw`\(${P.whitespaceInlineOpt.getParser().regexp.source}\)`))
             .map(v => new this())
+            .label("NullEntity")
     }
 
     serialize(

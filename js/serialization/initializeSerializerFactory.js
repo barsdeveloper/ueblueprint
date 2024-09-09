@@ -19,6 +19,7 @@ import UnknownKeysEntity from "../entity/UnknownKeysEntity.js"
 import Vector2DEntity from "../entity/Vector2DEntity.js"
 import Vector4DEntity from "../entity/Vector4DEntity.js"
 import VectorEntity from "../entity/VectorEntity.js"
+import Grammar from "./Grammar.js"
 
 export default function initializeSerializerFactory() {
     IEntity.unknownEntityGrammar =
@@ -29,7 +30,13 @@ export default function initializeSerializerFactory() {
             Parsernostrum.str("None").map(() => ObjectReferenceEntity.createNoneInstance()),
             NullEntity.grammar,
             NumberEntity.grammar,
-            ObjectReferenceEntity.fullReferenceGrammar,
+            Parsernostrum.alt(
+                ObjectReferenceEntity.fullReferenceGrammar,
+                Parsernostrum.regArray(
+                    // @ts-expect-error
+                    new RegExp(`"(${Grammar.Regex.Path.source})'(${Grammar.symbol.getParser().regexp.source})'"`)
+                ).map(([full, type, path]) => new ObjectReferenceEntity(type, path, full))
+            ),
             StringEntity.grammar,
             LocalizedTextEntity.grammar,
             InvariantTextEntity.grammar,
