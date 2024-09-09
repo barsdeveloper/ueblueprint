@@ -1,16 +1,15 @@
 # UEBlueprint
 
-A stand alone editor implementation of the UE's Blueprint visual language. (WIP)
+A stand alone editor implementation of the UE's Blueprint visual language.
 
 ## Features:
 
 - Intercommunicates with UE (can copy nodes both ways).
-- Can be used as a WEB library to visualize, interact and modify Blueprint graphs.
+- Can be used as a WEB library to visualize and interact with Blueprint graphs.
 - Can be used inside VS Code to operate directly on files from a UE project (in the future).
 - Graph shown is pixel-similar to how it appears in UE.
 - Graph behaves the same way as it does in UE (with the default settings).
-- All the information shown in he graph is just the one embedded in the serialized text (in VS Code it should be able to access assets also).
-- Modern object oriented, clean, JavaScript codebase.
+- All the information shown in he graph is just the one embedded in the serialized text.
 
 ## Demo:
 [Try it!](https://barsdeveloper.github.io/ueblueprint/)
@@ -48,7 +47,7 @@ You can check `index.html` for a working example, the main steps are the followi
     import { Blueprint } from "./dist/ueblueprint.js"
 </script>
 ```
-4. Define your blueprint the by just writing the code inside a `ueb-blueprint`, inside a `template` element.
+4. Define your blueprint by just writing the code inside a `ueb-blueprint`, inside a `template` element.
 ```HTML
 <ueb-blueprint>
     <template>
