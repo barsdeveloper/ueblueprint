@@ -25,7 +25,7 @@ export default class KnotEntity extends ObjectEntity {
             inputPinEntity.copyTypeFrom(pinReferenceForType)
             outputPinEntity.copyTypeFrom(pinReferenceForType)
         }
-        values["CustomProperties"] = new (ObjectEntity.attributes.CustomProperties)([inputPinEntity, outputPinEntity])
+        values.CustomProperties = new (ObjectEntity.attributes.CustomProperties)([inputPinEntity, outputPinEntity])
         super(values)
     }
 }

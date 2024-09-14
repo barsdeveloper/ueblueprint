@@ -247,7 +247,7 @@ export default function nodeTitle(entity) {
     }
     const settingsObject = entity.getSettingsObject()
     if (settingsObject) {
-        if (settingsObject.ExportPath.type === Configuration.paths.pcgHiGenGridSizeSettings) {
+        if (settingsObject.ExportPath?.valueOf()?.type === Configuration.paths.pcgHiGenGridSizeSettings) {
             return `Grid Size: ${(
                 settingsObject.HiGenGridSize?.toString().match(/\d+/)?.[0]?.concat("00")
                 ?? settingsObject.HiGenGridSize?.toString().match(/^\w+$/)?.[0]

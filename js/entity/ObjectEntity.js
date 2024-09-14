@@ -47,7 +47,7 @@ export default class ObjectEntity extends IEntity {
         Class: ObjectReferenceEntity,
         Name: StringEntity,
         Archetype: ObjectReferenceEntity,
-        ExportPath: ObjectReferenceEntity,
+        ExportPath: MirroredEntity.of(ObjectReferenceEntity),
         ObjectRef: ObjectReferenceEntity,
         BlueprintElementType: ObjectReferenceEntity,
         BlueprintElementInstance: ObjectReferenceEntity,
@@ -364,6 +364,17 @@ export default class ObjectEntity extends IEntity {
                     ? outputIndex++
                     : i
         })
+        const reference = this.ExportPath?.valueOf()
+        if (reference?.path.endsWith(this.Name?.valueOf())) {
+            const mirroredEntity = /** @type {typeof ObjectEntity} */(this.constructor).attributes.ExportPath
+            const objectReferenceEntity = /** @type {typeof ObjectReferenceEntity} */(mirroredEntity.type)
+            const nameLength = this.Name.valueOf().length
+            this.ExportPath = new mirroredEntity(() => new objectReferenceEntity(
+                reference.type,
+                reference.path.substring(0, reference.path.length - nameLength) + this.Name,
+                reference.full,
+            ))
+        }
     }
 
     /** @returns {P<ObjectEntity>} */
@@ -414,7 +425,7 @@ export default class ObjectEntity extends IEntity {
     getClass() {
         if (!this.#class) {
             this.#class = (this.Class?.path ? this.Class.path : this.Class?.type)
-                ?? this.ExportPath?.type
+                ?? this.ExportPath?.valueOf()?.type
                 ?? ""
             if (this.#class && !this.#class.startsWith("/")) {
                 // Old path names did not start with /Script or /Engine, check tests/resources/LegacyNodes.js
@@ -690,9 +701,9 @@ export default class ObjectEntity extends IEntity {
                 ? ` Archetype${keySeparator}${this.Archetype.serialize(insideString)}`
                 : ""
             )
-            + ((this.ExportPath?.type || this.ExportPath?.path)
-                // && Self.attributes.ExportPath.ignored !== true
-                // && this.ExportPath.ignored !== true
+            + ((this.ExportPath?.valueOf()?.type || this.ExportPath?.valueOf()?.path)
+                // && Self.attributes.ExportPath.valueOf().ignored !== true
+                // && this.ExportPath.valueOf().ignored !== true
                 ? ` ExportPath${keySeparator}${this.ExportPath.serialize(insideString)}`
                 : ""
             )

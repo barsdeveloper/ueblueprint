@@ -907,6 +907,13 @@ test("ObjectReferenceEntity", () => {
         "MetasoundEditorGraphVariable_1"
     ))
     expect(value.serialize()).toEqual(`"/Script/MetasoundEditor.MetasoundEditorGraphVariable'MetasoundEditorGraphVariable_1'"`)
+    value = grammar.parse('"/Script/Engine.Default__KismetMathLibrary"')
+    expect(value).toBeInstanceOf(ObjectReferenceEntity)
+    expect(value).toEqual(new ObjectReferenceEntity(
+        "/Script/Engine.Default__KismetMathLibrary",
+        ""
+    ))
+    expect(value.serialize()).toEqual('"/Script/Engine.Default__KismetMathLibrary"')
 })
 
 test("PinEntity", () => {

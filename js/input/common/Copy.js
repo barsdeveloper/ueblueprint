@@ -1,3 +1,4 @@
+import NiagaraClipboardContent from "../../entity/objects/NiagaraClipboardContent.js"
 import IInput from "../IInput.js"
 
 /**
@@ -29,15 +30,19 @@ export default class Copy extends IInput {
     }
 
     getSerializedText() {
-        const allNodes = this.blueprint.getNodes(true).map(n => n.entity)
-        const exported = allNodes.filter(n => n.exported).map(n => n.serialize())
-        const result = allNodes.filter(n => !n.exported).map(n => n.serialize())
-        if (exported.length) {
-            this.blueprint.entity.ExportedNodes.value = btoa(exported.join(""))
-            result.splice(0, 0, this.blueprint.entity.serialize(false))
-            delete this.blueprint.entity.ExportedNodes
+        const nodes = this.blueprint.getNodes(true).map(n => n.entity)
+        let exports = false
+        let result = nodes
+            .filter(n => {
+                exports ||= n.exported
+                return !n.exported
+            })
+            .reduce((acc, cur) => acc + cur.serialize(), "")
+        if (exports) {
+            const object = new NiagaraClipboardContent(this.blueprint.entity, nodes)
+            result = object.serialize() + result
         }
-        return result.join("")
+        return result
     }
 
     copied() {

@@ -2666,6 +2666,7 @@ class IEntity {
         this.#keys = [... new Set(value)];
     }
 
+    // @ts-expect-error
     #lookbehind = /** @type {String} */(this.constructor.lookbehind)
     get lookbehind() {
         return this.#lookbehind.trim()
@@ -3042,6 +3043,11 @@ class IEntity {
             }
         }
         return true
+    }
+
+    /** @returns {IEntity | Boolean | Number | String | BigInt | (IEntity | Boolean | Number | String | BigInt)[]} */
+    valueOf() {
+        return this
     }
 }
 
@@ -3810,14 +3816,14 @@ class MirroredEntity extends IEntity {
         return this.getter?.().equals(other)
     }
 
+    /** @returns {InstanceType<T>} */
     valueOf() {
-        this.valueOf = this.getter().valueOf.bind(this.getter());
-        return this.valueOf()
+        // @ts-expect-error
+        return this.getter().valueOf()
     }
 
     toString() {
-        this.toString = this.getter().toString.bind(this.getter());
-        return this.toString()
+        return this.getter().toString()
     }
 }
 
@@ -4189,7 +4195,7 @@ function nodeTitle(entity) {
     }
     const settingsObject = entity.getSettingsObject();
     if (settingsObject) {
-        if (settingsObject.ExportPath.type === Configuration.paths.pcgHiGenGridSizeSettings) {
+        if (settingsObject.ExportPath?.valueOf()?.type === Configuration.paths.pcgHiGenGridSizeSettings) {
             return `Grid Size: ${(
                 settingsObject.HiGenGridSize?.toString().match(/\d+/)?.[0]?.concat("00")
                 ?? settingsObject.HiGenGridSize?.toString().match(/^\w+$/)?.[0]
@@ -5078,12 +5084,6 @@ class Integer64Entity extends IEntity {
 
 class ObjectReferenceEntity extends IEntity {
 
-    /** @protected */
-    static _quotedParser = Parsernostrum.regArray(new RegExp(
-        `'"(${Grammar.Regex.InsideString.source})"'`
-        + "|"
-        + `'(${Grammar.Regex.InsideSingleQuotedString.source})'`
-    )).map(([_0, a, b]) => a ?? b)
     static typeReference = Parsernostrum.reg(
         // @ts-expect-error
         new RegExp(Grammar.Regex.Path.source + "|" + Grammar.symbol.getParser().regexp.source)
@@ -5107,8 +5107,6 @@ class ObjectReferenceEntity extends IEntity {
         this.#path = value;
     }
 
-    #fullEscaped
-    /** @type {String} */
     #full
     get full() {
         return this.#full
@@ -5117,16 +5115,17 @@ class ObjectReferenceEntity extends IEntity {
         this.#full = value;
     }
 
-
-    constructor(type = "None", path = "", full = null) {
+    /** @param {(t: String, p: String) => String} full */
+    constructor(
+        type = "None",
+        path = "",
+        full = type.includes("/") || path
+            ? (t, p) => `"${t + (p ? (`'${p}'`) : "")}"`
+            : (t, p) => t) {
         super();
         this.#type = type;
         this.#path = path;
-        this.#full = full ?? (
-            this.type.includes("/") || this.path
-                ? `"${this.type + (this.path ? (`'${this.path}'`) : "")}"`
-                : this.type
-        );
+        this.#full = full;
     }
 
     /** @returns {P<ObjectReferenceEntity>} */
@@ -5144,10 +5143,21 @@ class ObjectReferenceEntity extends IEntity {
             new RegExp(
                 // @ts-expect-error
                 "(" + this.typeReference.getParser().regexp.source + ")"
-                // @ts-expect-error
-                + "(?:" + this._quotedParser.getParser().parser.regexp.source + ")"
+                + "(?:"
+                + `'"(${Grammar.Regex.InsideString.source})"'`
+                + "|"
+                + `'(${Grammar.Regex.InsideSingleQuotedString.source})'`
+                + ")"
             )
-        ).map(([full, type, ...path]) => new this(type, path.find(v => v), full))
+        ).map(([full, type, fullQuotedPath, simpleQuotedPath]) => {
+            let fullQuoted = fullQuotedPath ? true : false;
+            let quotes = fullQuoted ? [`'"`, `"'`] : ["'", "'"];
+            return new this(
+                type,
+                fullQuoted ? fullQuotedPath : simpleQuotedPath,
+                (t, p) => t + quotes[0] + p + quotes[1]
+            )
+        })
     }
 
     /** @returns {P<ObjectReferenceEntity>} */
@@ -5157,16 +5167,16 @@ class ObjectReferenceEntity extends IEntity {
                 '"(' + Grammar.Regex.InsideString.source + "?)"
                 + "(?:'(" + Grammar.Regex.InsideSingleQuotedString.source + `?)')?"`
             )
-        ).map(([full, type, path]) => new this(type, path, full))
+        ).map(([_0, type, path]) => new this(type, path, (t, p) => `"${t}${p ? `'${p}'` : ""}"`))
     }
 
     /** @returns {P<ObjectReferenceEntity>} */
     static createTypeReferenceGrammar() {
-        return this.typeReference.map(v => new this(v, "", v))
+        return this.typeReference.map(v => new this(v, "", (t, p) => t))
     }
 
     static createNoneInstance() {
-        return new ObjectReferenceEntity("None", "", "None")
+        return new this("None")
     }
 
     getName(dropCounter = false) {
@@ -5174,13 +5184,11 @@ class ObjectReferenceEntity extends IEntity {
     }
 
     doSerialize(insideString = false) {
+        let result = this.full(this.type, this.path);
         if (insideString) {
-            if (this.#fullEscaped === undefined) {
-                this.#fullEscaped = Utility.escapeString(this.#full, false);
-            }
-            return this.#fullEscaped
+            result = Utility.escapeString(result, false);
         }
-        return this.full
+        return result
     }
 
     /** @param {IEntity} other */
@@ -6142,7 +6150,7 @@ class ObjectEntity extends IEntity {
         Class: ObjectReferenceEntity,
         Name: StringEntity,
         Archetype: ObjectReferenceEntity,
-        ExportPath: ObjectReferenceEntity,
+        ExportPath: MirroredEntity.of(ObjectReferenceEntity),
         ObjectRef: ObjectReferenceEntity,
         BlueprintElementType: ObjectReferenceEntity,
         BlueprintElementInstance: ObjectReferenceEntity,
@@ -6459,6 +6467,17 @@ class ObjectEntity extends IEntity {
                     ? outputIndex++
                     : i;
         });
+        const reference = this.ExportPath?.valueOf();
+        if (reference?.path.endsWith(this.Name?.valueOf())) {
+            const mirroredEntity = /** @type {typeof ObjectEntity} */(this.constructor).attributes.ExportPath;
+            const objectReferenceEntity = /** @type {typeof ObjectReferenceEntity} */(mirroredEntity.type);
+            const nameLength = this.Name.valueOf().length;
+            this.ExportPath = new mirroredEntity(() => new objectReferenceEntity(
+                reference.type,
+                reference.path.substring(0, reference.path.length - nameLength) + this.Name,
+                reference.full,
+            ));
+        }
     }
 
     /** @returns {P<ObjectEntity>} */
@@ -6509,7 +6528,7 @@ class ObjectEntity extends IEntity {
     getClass() {
         if (!this.#class) {
             this.#class = (this.Class?.path ? this.Class.path : this.Class?.type)
-                ?? this.ExportPath?.type
+                ?? this.ExportPath?.valueOf()?.type
                 ?? "";
             if (this.#class && !this.#class.startsWith("/")) {
                 // Old path names did not start with /Script or /Engine, check tests/resources/LegacyNodes.js
@@ -6783,9 +6802,9 @@ class ObjectEntity extends IEntity {
                 ? ` Archetype${keySeparator}${this.Archetype.serialize(insideString)}`
                 : ""
             )
-            + ((this.ExportPath?.type || this.ExportPath?.path)
-                // && Self.attributes.ExportPath.ignored !== true
-                // && this.ExportPath.ignored !== true
+            + ((this.ExportPath?.valueOf()?.type || this.ExportPath?.valueOf()?.path)
+                // && Self.attributes.ExportPath.valueOf().ignored !== true
+                // && this.ExportPath.valueOf().ignored !== true
                 ? ` ExportPath${keySeparator}${this.ExportPath.serialize(insideString)}`
                 : ""
             )
@@ -6830,7 +6849,7 @@ class KnotEntity extends ObjectEntity {
             inputPinEntity.copyTypeFrom(pinReferenceForType);
             outputPinEntity.copyTypeFrom(pinReferenceForType);
         }
-        values["CustomProperties"] = new (ObjectEntity.attributes.CustomProperties)([inputPinEntity, outputPinEntity]);
+        values.CustomProperties = new (ObjectEntity.attributes.CustomProperties)([inputPinEntity, outputPinEntity]);
         super(values);
     }
 }
@@ -10084,6 +10103,32 @@ class BlueprintEntity extends ObjectEntity {
     }
 }
 
+class NiagaraClipboardContent extends ObjectEntity {
+
+    /**
+     * @param {BlueprintEntity} blueprint
+     * @param {ObjectEntity[]} nodes
+     */
+    constructor(blueprint, nodes) {
+        const typePath = Configuration.paths.niagaraClipboardContent;
+        const name = blueprint.takeFreeName("NiagaraClipboardContent");
+        const exportPath = `/Engine/Transient.${name}`;
+        let exported = "";
+        for (const node of nodes) {
+            if (node.exported) {
+                exported += node.serialize();
+            }
+        }
+        nodes.filter(n => !n.exported).map(n => n.serialize());
+        super({
+            Class: new ObjectReferenceEntity(typePath),
+            Name: new StringEntity(name),
+            ExportPath: new ObjectReferenceEntity(typePath, exportPath),
+            ExportedNodes: new StringEntity(btoa(exported))
+        });
+    }
+}
+
 /**
  * @typedef {import("../IInput.js").Options & {
  *     listenOnFocus?: Boolean,
@@ -10113,15 +10158,19 @@ class Copy extends IInput {
     }
 
     getSerializedText() {
-        const allNodes = this.blueprint.getNodes(true).map(n => n.entity);
-        const exported = allNodes.filter(n => n.exported).map(n => n.serialize());
-        const result = allNodes.filter(n => !n.exported).map(n => n.serialize());
-        if (exported.length) {
-            this.blueprint.entity.ExportedNodes.value = btoa(exported.join(""));
-            result.splice(0, 0, this.blueprint.entity.serialize(false));
-            delete this.blueprint.entity.ExportedNodes;
+        const nodes = this.blueprint.getNodes(true).map(n => n.entity);
+        let exports = false;
+        let result = nodes
+            .filter(n => {
+                exports ||= n.exported;
+                return !n.exported
+            })
+            .reduce((acc, cur) => acc + cur.serialize(), "");
+        if (exports) {
+            const object = new NiagaraClipboardContent(this.blueprint.entity, nodes);
+            result = object.serialize() + result;
         }
-        return result.join("")
+        return result
     }
 
     copied() {
@@ -11228,7 +11277,7 @@ class Blueprint extends IElement {
                     this.entity = this.entity.mergeWith(element.entity);
                     const additionalSerialization = atob(element.entity.ExportedNodes.toString());
                     this.template.getPasteInputObject().pasted(additionalSerialization)
-                        .forEach(node => node.entity._exported = true);
+                        .forEach(node => node.entity.exported = true);
                     continue
                 }
                 const name = element.entity.getObjectName();
@@ -13428,7 +13477,7 @@ function initializeSerializerFactory() {
                 Parsernostrum.regArray(new RegExp(
                     // @ts-expect-error
                     `"(${Grammar.Regex.Path.source})'(${Grammar.Regex.Path.source}|${Grammar.symbol.getParser().regexp.source})'"`
-                )).map(([full, type, path]) => new ObjectReferenceEntity(type, path, full))
+                )).map(([_0, type, path]) => new ObjectReferenceEntity(type, path, (t, p) => `"${t}'${p}'"`))
             ),
             StringEntity.grammar,
             LocalizedTextEntity.grammar,
