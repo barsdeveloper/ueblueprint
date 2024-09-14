@@ -4482,8 +4482,7 @@ class ArrayEntity extends IEntity {
                 if ((trailing !== undefined) !== Self.trailing) {
                     Self = Self.flagTrailing(trailing !== undefined);
                 }
-                const result = new Self(values);
-                return result
+                return new Self(values)
             }).label(`ArrayEntity of ${this.type?.className() ?? "unknown values"}`)
     }
 
@@ -6239,7 +6238,7 @@ class ObjectEntity extends IEntity {
         NodeGuid: GuidEntity,
         ErrorType: IntegerEntity,
         ErrorMsg: StringEntity,
-        ScriptVariables: ArrayEntity.of(ScriptVariableEntity),
+        ScriptVariables: ArrayEntity.flagInlined().of(ScriptVariableEntity),
         Node: MirroredEntity.of(ObjectReferenceEntity),
         ExportedNodes: StringEntity,
         CustomProperties: ArrayEntity.of(AlternativesEntity.accepting(PinEntity, UnknownPinEntity)).withDefault().flagSilent(),
@@ -6258,28 +6257,27 @@ class ObjectEntity extends IEntity {
             Grammar.symbol.map(v => [v, false]),
         ),
         Parsernostrum.reg(new RegExp(String.raw`\s*\(\s*(\d+)\s*\)\s*\=\s*`), 1).map(Number)
-    )
-        .chain(
-            /** @param {[[keyof ObjectEntity.attributes, Boolean], Number]} param */
-            ([[symbol, quoted], index]) =>
-                (this.attributes[symbol]?.grammar ?? IEntity.unknownEntityGrammar).map(currentValue =>
-                    values => {
-                        if (values[symbol] === undefined) {
-                            let arrayEntity = ArrayEntity;
-                            if (quoted != arrayEntity.quoted) {
-                                arrayEntity = arrayEntity.flagQuoted(quoted);
-                            }
-                            if (!arrayEntity.inlined) {
-                                arrayEntity = arrayEntity.flagInlined();
-                            }
-                            values[symbol] = new arrayEntity();
+    ).chain(
+        /** @param {[[keyof ObjectEntity.attributes, Boolean], Number]} param */
+        ([[symbol, quoted], index]) =>
+            (this.attributes[symbol]?.grammar ?? IEntity.unknownEntityGrammar).map(currentValue =>
+                values => {
+                    if (values[symbol] === undefined) {
+                        let arrayEntity = ArrayEntity;
+                        if (quoted != arrayEntity.quoted) {
+                            arrayEntity = arrayEntity.flagQuoted(quoted);
                         }
-                        /** @type {ArrayEntity} */
-                        const target = values[symbol];
-                        target.values[index] = currentValue;
+                        if (!arrayEntity.inlined) {
+                            arrayEntity = arrayEntity.flagInlined();
+                        }
+                        values[symbol] = new arrayEntity();
                     }
-                )
-        )
+                    /** @type {ArrayEntity} */
+                    const target = values[symbol];
+                    target.values[index] = currentValue;
+                }
+            )
+    )
     static grammar = this.createGrammar()
     static grammarMultipleObjects = Parsernostrum.seq(
         Parsernostrum.whitespaceOpt,
