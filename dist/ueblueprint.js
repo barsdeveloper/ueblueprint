@@ -205,6 +205,7 @@ class Configuration {
         niagaraFloat: "/Script/Niagara.NiagaraFloat",
         NiagaraInt32: "/Script/Niagara.NiagaraInt32",
         niagaraMatrix: "/Script/Niagara.NiagaraMatrix",
+        niagaraNodeConvert: "/Script/NiagaraEditor.NiagaraNodeConvert",
         niagaraNodeFunctionCall: "/Script/NiagaraEditor.NiagaraNodeFunctionCall",
         niagaraNodeOp: "/Script/NiagaraEditor.NiagaraNodeOp",
         niagaraNumeric: "/Script/Niagara.NiagaraNumeric",
@@ -4133,6 +4134,14 @@ function nodeTitle(entity) {
                 }
             }
         }
+        case Configuration.paths.niagaraNodeConvert:
+            /** @type {String} */
+            const targetType = (entity["AutowireMakeType"]?.["ClassStructOrEnum"] ?? "")
+                .toString()
+                .match(/(?:Niagara)?(\w+)['"]*$/)
+                ?.[1]
+                ?? "";
+            return `Make ${targetType}`
         case Configuration.paths.pcgEditorGraphNodeInput:
             return "Input"
         case Configuration.paths.pcgEditorGraphNodeOutput:
@@ -5220,6 +5229,10 @@ class ObjectReferenceEntity extends IEntity {
             return false
         }
         return this.type == other.type && this.path == other.path
+    }
+
+    toString() {
+        return this.full(this.type, this.path)
     }
 }
 

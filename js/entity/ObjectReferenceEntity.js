@@ -119,4 +119,8 @@ export default class ObjectReferenceEntity extends IEntity {
         }
         return this.type == other.type && this.path == other.path
     }
+
+    toString() {
+        return this.full(this.type, this.path)
+    }
 }

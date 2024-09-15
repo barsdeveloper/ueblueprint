@@ -181,6 +181,7 @@ export default class Configuration {
         niagaraFloat: "/Script/Niagara.NiagaraFloat",
         NiagaraInt32: "/Script/Niagara.NiagaraInt32",
         niagaraMatrix: "/Script/Niagara.NiagaraMatrix",
+        niagaraNodeConvert: "/Script/NiagaraEditor.NiagaraNodeConvert",
         niagaraNodeFunctionCall: "/Script/NiagaraEditor.NiagaraNodeFunctionCall",
         niagaraNodeOp: "/Script/NiagaraEditor.NiagaraNodeOp",
         niagaraNumeric: "/Script/Niagara.NiagaraNumeric",
