@@ -11,6 +11,7 @@ import GuidEntity from "../js/entity/GuidEntity.js"
 import IEntity from "../js/entity/IEntity.js"
 import Integer64Entity from "../js/entity/Integer64Entity.js"
 import IntegerEntity from "../js/entity/IntegerEntity.js"
+import InvariantTextEntity from "../js/entity/InvariantTextEntity.js"
 import KeyBindingEntity from "../js/entity/KeyBindingEntity.js"
 import LinearColorEntity from "../js/entity/LinearColorEntity.js"
 import MirroredEntity from "../js/entity/MirroredEntity.js"
@@ -457,7 +458,7 @@ test("Integer64Entity", () => {
 })
 
 test("IntegerEntity", () => {
-    let grammar = IntegerEntity.grammar
+    const grammar = IntegerEntity.grammar
 
     let value = grammar.parse("0")
     expect(value).toBeInstanceOf(IntegerEntity)
@@ -513,6 +514,19 @@ test("IntegerEntity", () => {
 
     expect(() => grammar.parse("1.2").value).toThrow()
     expect(IntegerEntity.flagSerialized().grammar.parse("589").serialize()).toEqual(`"589"`)
+})
+
+test("InvariantTextEntity", () => {
+    const grammar = InvariantTextEntity.grammar
+
+    let value = grammar.parse('INVTEXT("NiagaraWildcard")')
+    expect(value).toBeInstanceOf(InvariantTextEntity)
+    expect(value).toEqual(new InvariantTextEntity("NiagaraWildcard"))
+    expect(value.equals(new InvariantTextEntity("NiagaraWildcard"))).toBeTruthy()
+    expect(value.equals(new InvariantTextEntity("Unrelated"))).toBeFalsy()
+    expect(value.equals(new StringEntity("NiagaraWildcard"))).toBeFalsy()
+    expect(value.toString()).toEqual("NiagaraWildcard")
+    expect(value.serialize()).toEqual('INVTEXT("NiagaraWildcard")')
 })
 
 test("KeyBindingEntity", () => {

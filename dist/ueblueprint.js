@@ -203,6 +203,7 @@ class Configuration {
         niagaraClipboardContent: "/Script/NiagaraEditor.NiagaraClipboardContent",
         niagaraDataInterfaceVolumeTexture: "/Script/Niagara.NiagaraDataInterfaceVolumeTexture",
         niagaraFloat: "/Script/Niagara.NiagaraFloat",
+        NiagaraInt32: "/Script/Niagara.NiagaraInt32",
         niagaraMatrix: "/Script/Niagara.NiagaraMatrix",
         niagaraNodeFunctionCall: "/Script/NiagaraEditor.NiagaraNodeFunctionCall",
         niagaraNodeOp: "/Script/NiagaraEditor.NiagaraNodeOp",
@@ -4155,6 +4156,7 @@ function nodeTitle(entity) {
         case Configuration.paths.variableSet:
             return "SET"
     }
+    const className = entity.getClass();
     let switchTarget = entity.switchTarget();
     if (switchTarget) {
         if (switchTarget[0] !== "E") {
@@ -4169,14 +4171,14 @@ function nodeTitle(entity) {
     if (keyNameSymbol) {
         const name = keyNameSymbol.toString();
         let title = keyName(name) ?? Utility.formatStringName(name);
-        if (entity.getClass() === Configuration.paths.inputDebugKey) {
+        if (className === Configuration.paths.inputDebugKey) {
             title = "Debug Key " + title;
-        } else if (entity.getClass() === Configuration.paths.getInputAxisKeyValue) {
+        } else if (className === Configuration.paths.getInputAxisKeyValue) {
             title = "Get " + title;
         }
         return title
     }
-    if (entity.getClass() === Configuration.paths.macro) {
+    if (className === Configuration.paths.macro) {
         return Utility.formatStringName(entity.MacroGraphReference?.getMacroName())
     }
     if (entity.isMaterial() && entity.getMaterialSubobject()) {
@@ -4364,8 +4366,24 @@ function nodeTitle(entity) {
             case "Numeric::Add": return "+"
             case "Numeric::DistancePos": return "Distance"
             case "Numeric::Mul": return String.fromCharCode(0x2a2f)
+            case "Integer::BitLShift": return "Bitwise Left Shift"
+            case "Integer::BitAnd": return "Bitwise AND"
+            case "Integer::BitNot": return "Bitwise NOT"
+            case "Integer::BitOr": return "Bitwise OR"
+            case "Integer::BitRShift": return "Bitwise Right Shift"
+            case "Integer::BitXOr": return "Bitwise XOR"
+            // case "Integer::BitOr": return "Bitwise OR"
+            // case "Integer::BitOr": return "Bitwise OR"
         }
         return Utility.formatStringName(entity.OpName.toString()).replaceAll("::", " ")
+    }
+    let prefix;
+    if (
+        className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNodeParameter")
+        || className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNode"
+
+        )) {
+        return Utility.formatStringName(className.substring(prefix.length))
     }
     if (entity.FunctionDisplayName) {
         return Utility.formatStringName(entity.FunctionDisplayName.toString())
@@ -4645,24 +4663,12 @@ class NaturalNumberEntity extends IntegerEntity {
 }
 
 const colors = {
-    [Configuration.paths.niagaraBool]: i$3`146, 0, 0`,
-    [Configuration.paths.niagaraDataInterfaceVolumeTexture]: i$3`0, 168, 242`,
-    [Configuration.paths.niagaraFloat]: i$3`160, 250, 68`,
-    [Configuration.paths.niagaraMatrix]: i$3`0, 88, 200`,
-    [Configuration.paths.niagaraNumeric]: i$3`0, 88, 200`,
-    [Configuration.paths.niagaraPosition]: i$3`251, 146, 251`,
-    [Configuration.paths.quat4f]: i$3`0, 88, 200`,
-    [Configuration.paths.rotator]: i$3`157, 177, 251`,
-    [Configuration.paths.transform]: i$3`227, 103, 0`,
-    [Configuration.paths.vector]: i$3`251, 198, 34`,
-    [Configuration.paths.vector3f]: i$3`250, 200, 36`,
-    [Configuration.paths.vector4f]: i$3`0, 88, 200`,
     "Any": i$3`132, 132, 132`,
     "Any[]": i$3`132, 132, 132`,
     "audio": i$3`252, 148, 252`,
     "blue": i$3`0, 0, 255`,
     "bool": i$3`146, 0, 0`,
-    "byte": i$3`0, 109, 99`,
+    "byte": i$3`0, 110, 100`,
     "class": i$3`88, 0, 186`,
     "default": i$3`255, 255, 255`,
     "delegate": i$3`255, 56, 56`,
@@ -4670,16 +4676,16 @@ const colors = {
     "exec": i$3`240, 240, 240`,
     "float": i$3`160, 252, 70`,
     "green": i$3`0, 255, 0`,
-    "int": i$3`31, 224, 172`,
+    "int": i$3`30, 224, 172`,
     "int32": i$3`30, 224, 172`,
-    "int64": i$3`169, 223, 172`,
+    "int64": i$3`170, 224, 172`,
     "interface": i$3`238, 252, 168`,
-    "name": i$3`201, 128, 251`,
+    "name": i$3`200, 128, 252`,
     "object": i$3`0, 168, 242`,
-    "Param": i$3`255, 166, 39`,
-    "Param[]": i$3`255, 166, 39`,
-    "Point": i$3`63, 137, 255`,
-    "Point[]": i$3`63, 137, 255`,
+    "Param": i$3`255, 166, 40`,
+    "Param[]": i$3`255, 166, 40`,
+    "Point": i$3`64, 138, 255`,
+    "Point[]": i$3`64, 137, 255`,
     "real": i$3`54, 208, 0`,
     "red": i$3`255, 0, 0`,
     "string": i$3`251, 0, 208`,
@@ -4691,6 +4697,19 @@ const colors = {
     "Volume": i$3`230, 69, 188`,
     "Volume[]": i$3`230, 69, 188`,
     "wildcard": i$3`128, 120, 120`,
+    [Configuration.paths.niagaraBool]: i$3`146, 0, 0`,
+    [Configuration.paths.niagaraDataInterfaceVolumeTexture]: i$3`0, 168, 242`,
+    [Configuration.paths.niagaraFloat]: i$3`160, 250, 68`,
+    [Configuration.paths.NiagaraInt32]: i$3`30, 224, 172`,
+    [Configuration.paths.niagaraMatrix]: i$3`0, 88, 200`,
+    [Configuration.paths.niagaraNumeric]: i$3`0, 88, 200`,
+    [Configuration.paths.niagaraPosition]: i$3`251, 146, 251`,
+    [Configuration.paths.quat4f]: i$3`0, 88, 200`,
+    [Configuration.paths.rotator]: i$3`157, 177, 251`,
+    [Configuration.paths.transform]: i$3`227, 103, 0`,
+    [Configuration.paths.vector]: i$3`251, 198, 34`,
+    [Configuration.paths.vector3f]: i$3`250, 200, 36`,
+    [Configuration.paths.vector4f]: i$3`0, 88, 200`,
 };
 
 const pinColorMaterial = i$3`120, 120, 120`;
@@ -4721,6 +4740,7 @@ function pinTitle(entity) {
             return match[1] // In case they match, then keep the case of the PinToolTip
         }
     }
+    result = result.replace(/^Module\./, "");
     return result
 }
 
@@ -4899,18 +4919,22 @@ class InvariantTextEntity extends IEntity {
                 Parsernostrum.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
                 Parsernostrum.doubleQuotedString,
                 Parsernostrum.reg(/\s*\)/)
-            ).map(([_0, value, _2]) => Number(value)),
-            Parsernostrum.reg(new RegExp(this.lookbehind)).map(() => 0) // InvariantTextEntity can not have arguments
+            ).map(([_0, value, _2]) => value),
+            Parsernostrum.reg(new RegExp(this.lookbehind)).map(() => "") // InvariantTextEntity can have no arguments
         )
             .map(value => new this(value))
             .label("InvariantTextEntity")
     }
 
     doSerialize() {
-        return this.lookbehind + "(" + this.value + ")"
+        return this.lookbehind + '("' + this.value + '")'
     }
 
     valueOf() {
+        return this.value
+    }
+
+    toString() {
         return this.value
     }
 }
@@ -5580,6 +5604,7 @@ class PinEntity extends IEntity {
         "real": NumberEntity,
         "string": StringEntity,
         [Configuration.paths.linearColor]: LinearColorEntity,
+        [Configuration.paths.niagaraBool]: BooleanEntity,
         [Configuration.paths.niagaraPosition]: VectorEntity,
         [Configuration.paths.rotator]: RotatorEntity,
         [Configuration.paths.vector]: VectorEntity,
@@ -11713,7 +11738,7 @@ class BoolPinTemplate extends PinTemplate {
     #input
 
     #onChangeHandler = () => {
-        const entity = this.element.getDefaultValue();
+        const entity = this.element.getDefaultValue(true);
         entity.value = this.#input.checked;
         this.element.setDefaultValue(entity);
     }
@@ -12773,6 +12798,7 @@ const inputPinTemplates = {
     "string": StringPinTemplate,
     [Configuration.paths.linearColor]: LinearColorPinTemplate,
     [Configuration.paths.niagaraBool]: BoolPinTemplate,
+    [Configuration.paths.NiagaraInt32]: IntPinTemplate,
     [Configuration.paths.niagaraPosition]: VectorPinTemplate,
     [Configuration.paths.rotator]: RotatorPinTemplate,
     [Configuration.paths.vector]: VectorPinTemplate,

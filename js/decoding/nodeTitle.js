@@ -207,6 +207,7 @@ export default function nodeTitle(entity) {
         case Configuration.paths.variableSet:
             return "SET"
     }
+    const className = entity.getClass()
     let switchTarget = entity.switchTarget()
     if (switchTarget) {
         if (switchTarget[0] !== "E") {
@@ -221,14 +222,14 @@ export default function nodeTitle(entity) {
     if (keyNameSymbol) {
         const name = keyNameSymbol.toString()
         let title = keyName(name) ?? Utility.formatStringName(name)
-        if (entity.getClass() === Configuration.paths.inputDebugKey) {
+        if (className === Configuration.paths.inputDebugKey) {
             title = "Debug Key " + title
-        } else if (entity.getClass() === Configuration.paths.getInputAxisKeyValue) {
+        } else if (className === Configuration.paths.getInputAxisKeyValue) {
             title = "Get " + title
         }
         return title
     }
-    if (entity.getClass() === Configuration.paths.macro) {
+    if (className === Configuration.paths.macro) {
         return Utility.formatStringName(entity.MacroGraphReference?.getMacroName())
     }
     if (entity.isMaterial() && entity.getMaterialSubobject()) {
@@ -416,8 +417,24 @@ export default function nodeTitle(entity) {
             case "Numeric::Add": return "+"
             case "Numeric::DistancePos": return "Distance"
             case "Numeric::Mul": return String.fromCharCode(0x2a2f)
+            case "Integer::BitLShift": return "Bitwise Left Shift"
+            case "Integer::BitAnd": return "Bitwise AND"
+            case "Integer::BitNot": return "Bitwise NOT"
+            case "Integer::BitOr": return "Bitwise OR"
+            case "Integer::BitRShift": return "Bitwise Right Shift"
+            case "Integer::BitXOr": return "Bitwise XOR"
+            // case "Integer::BitOr": return "Bitwise OR"
+            // case "Integer::BitOr": return "Bitwise OR"
         }
         return Utility.formatStringName(entity.OpName.toString()).replaceAll("::", " ")
+    }
+    let prefix
+    if (
+        className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNodeParameter")
+        || className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNode"
+
+        )) {
+        return Utility.formatStringName(className.substring(prefix.length))
     }
     if (entity.FunctionDisplayName) {
         return Utility.formatStringName(entity.FunctionDisplayName.toString())

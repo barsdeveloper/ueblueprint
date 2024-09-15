@@ -179,6 +179,7 @@ export default class Configuration {
         niagaraClipboardContent: "/Script/NiagaraEditor.NiagaraClipboardContent",
         niagaraDataInterfaceVolumeTexture: "/Script/Niagara.NiagaraDataInterfaceVolumeTexture",
         niagaraFloat: "/Script/Niagara.NiagaraFloat",
+        NiagaraInt32: "/Script/Niagara.NiagaraInt32",
         niagaraMatrix: "/Script/Niagara.NiagaraMatrix",
         niagaraNodeFunctionCall: "/Script/NiagaraEditor.NiagaraNodeFunctionCall",
         niagaraNodeOp: "/Script/NiagaraEditor.NiagaraNodeOp",

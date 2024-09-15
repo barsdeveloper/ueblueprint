@@ -11,5 +11,6 @@ export default function pinTitle(entity) {
             return match[1] // In case they match, then keep the case of the PinToolTip
         }
     }
+    result = result.replace(/^Module\./, "")
     return result
 }
