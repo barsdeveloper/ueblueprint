@@ -47,7 +47,7 @@ export default class ObjectEntity extends IEntity {
         Class: ObjectReferenceEntity,
         Name: StringEntity,
         Archetype: ObjectReferenceEntity,
-        ExportPath: ObjectReferenceEntity,
+        ExportPath: MirroredEntity.of(ObjectReferenceEntity),
         ObjectRef: ObjectReferenceEntity,
         BlueprintElementType: ObjectReferenceEntity,
         BlueprintElementInstance: ObjectReferenceEntity,
@@ -136,7 +136,7 @@ export default class ObjectEntity extends IEntity {
         NodeGuid: GuidEntity,
         ErrorType: IntegerEntity,
         ErrorMsg: StringEntity,
-        ScriptVariables: ArrayEntity.of(ScriptVariableEntity),
+        ScriptVariables: ArrayEntity.flagInlined().of(ScriptVariableEntity),
         Node: MirroredEntity.of(ObjectReferenceEntity),
         ExportedNodes: StringEntity,
         CustomProperties: ArrayEntity.of(AlternativesEntity.accepting(PinEntity, UnknownPinEntity)).withDefault().flagSilent(),
@@ -155,28 +155,27 @@ export default class ObjectEntity extends IEntity {
             Grammar.symbol.map(v => [v, false]),
         ),
         P.reg(new RegExp(String.raw`\s*\(\s*(\d+)\s*\)\s*\=\s*`), 1).map(Number)
-    )
-        .chain(
-            /** @param {[[keyof ObjectEntity.attributes, Boolean], Number]} param */
-            ([[symbol, quoted], index]) =>
-                (this.attributes[symbol]?.grammar ?? IEntity.unknownEntityGrammar).map(currentValue =>
-                    values => {
-                        if (values[symbol] === undefined) {
-                            let arrayEntity = ArrayEntity
-                            if (quoted != arrayEntity.quoted) {
-                                arrayEntity = arrayEntity.flagQuoted(quoted)
-                            }
-                            if (!arrayEntity.inlined) {
-                                arrayEntity = arrayEntity.flagInlined()
-                            }
-                            values[symbol] = new arrayEntity()
+    ).chain(
+        /** @param {[[keyof ObjectEntity.attributes, Boolean], Number]} param */
+        ([[symbol, quoted], index]) =>
+            (this.attributes[symbol]?.grammar ?? IEntity.unknownEntityGrammar).map(currentValue =>
+                values => {
+                    if (values[symbol] === undefined) {
+                        let arrayEntity = ArrayEntity
+                        if (quoted != arrayEntity.quoted) {
+                            arrayEntity = arrayEntity.flagQuoted(quoted)
                         }
-                        /** @type {ArrayEntity} */
-                        const target = values[symbol]
-                        target.values[index] = currentValue
+                        if (!arrayEntity.inlined) {
+                            arrayEntity = arrayEntity.flagInlined()
+                        }
+                        values[symbol] = new arrayEntity()
                     }
-                )
-        )
+                    /** @type {ArrayEntity} */
+                    const target = values[symbol]
+                    target.values[index] = currentValue
+                }
+            )
+    )
     static grammar = this.createGrammar()
     static grammarMultipleObjects = P.seq(
         P.whitespaceOpt,
@@ -364,6 +363,17 @@ export default class ObjectEntity extends IEntity {
                     ? outputIndex++
                     : i
         })
+        const reference = this.ExportPath?.valueOf()
+        if (reference?.path.endsWith(this.Name?.valueOf())) {
+            const mirroredEntity = /** @type {typeof ObjectEntity} */(this.constructor).attributes.ExportPath
+            const objectReferenceEntity = /** @type {typeof ObjectReferenceEntity} */(mirroredEntity.type)
+            const nameLength = this.Name.valueOf().length
+            this.ExportPath = new mirroredEntity(() => new objectReferenceEntity(
+                reference.type,
+                reference.path.substring(0, reference.path.length - nameLength) + this.Name,
+                reference.full,
+            ))
+        }
     }
 
     /** @returns {P<ObjectEntity>} */
@@ -414,7 +424,7 @@ export default class ObjectEntity extends IEntity {
     getClass() {
         if (!this.#class) {
             this.#class = (this.Class?.path ? this.Class.path : this.Class?.type)
-                ?? this.ExportPath?.type
+                ?? this.ExportPath?.valueOf()?.type
                 ?? ""
             if (this.#class && !this.#class.startsWith("/")) {
                 // Old path names did not start with /Script or /Engine, check tests/resources/LegacyNodes.js
@@ -690,9 +700,9 @@ export default class ObjectEntity extends IEntity {
                 ? ` Archetype${keySeparator}${this.Archetype.serialize(insideString)}`
                 : ""
             )
-            + ((this.ExportPath?.type || this.ExportPath?.path)
-                // && Self.attributes.ExportPath.ignored !== true
-                // && this.ExportPath.ignored !== true
+            + ((this.ExportPath?.valueOf()?.type || this.ExportPath?.valueOf()?.path)
+                // && Self.attributes.ExportPath.valueOf().ignored !== true
+                // && this.ExportPath.valueOf().ignored !== true
                 ? ` ExportPath${keySeparator}${this.ExportPath.serialize(insideString)}`
                 : ""
             )

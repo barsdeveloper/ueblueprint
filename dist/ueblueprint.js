@@ -203,7 +203,9 @@ class Configuration {
         niagaraClipboardContent: "/Script/NiagaraEditor.NiagaraClipboardContent",
         niagaraDataInterfaceVolumeTexture: "/Script/Niagara.NiagaraDataInterfaceVolumeTexture",
         niagaraFloat: "/Script/Niagara.NiagaraFloat",
+        NiagaraInt32: "/Script/Niagara.NiagaraInt32",
         niagaraMatrix: "/Script/Niagara.NiagaraMatrix",
+        niagaraNodeConvert: "/Script/NiagaraEditor.NiagaraNodeConvert",
         niagaraNodeFunctionCall: "/Script/NiagaraEditor.NiagaraNodeFunctionCall",
         niagaraNodeOp: "/Script/NiagaraEditor.NiagaraNodeOp",
         niagaraNumeric: "/Script/Niagara.NiagaraNumeric",
@@ -2666,6 +2668,7 @@ class IEntity {
         this.#keys = [... new Set(value)];
     }
 
+    // @ts-expect-error
     #lookbehind = /** @type {String} */(this.constructor.lookbehind)
     get lookbehind() {
         return this.#lookbehind.trim()
@@ -3042,6 +3045,11 @@ class IEntity {
             }
         }
         return true
+    }
+
+    /** @returns {IEntity | Boolean | Number | String | BigInt | (IEntity | Boolean | Number | String | BigInt)[]} */
+    valueOf() {
+        return this
     }
 }
 
@@ -3810,14 +3818,14 @@ class MirroredEntity extends IEntity {
         return this.getter?.().equals(other)
     }
 
+    /** @returns {InstanceType<T>} */
     valueOf() {
-        this.valueOf = this.getter().valueOf.bind(this.getter());
-        return this.valueOf()
+        // @ts-expect-error
+        return this.getter().valueOf()
     }
 
     toString() {
-        this.toString = this.getter().toString.bind(this.getter());
-        return this.toString()
+        return this.getter().toString()
     }
 }
 
@@ -4126,6 +4134,14 @@ function nodeTitle(entity) {
                 }
             }
         }
+        case Configuration.paths.niagaraNodeConvert:
+            /** @type {String} */
+            const targetType = (entity["AutowireMakeType"]?.["ClassStructOrEnum"] ?? "")
+                .toString()
+                .match(/(?:Niagara)?(\w+)['"]*$/)
+                ?.[1]
+                ?? "";
+            return `Make ${targetType}`
         case Configuration.paths.pcgEditorGraphNodeInput:
             return "Input"
         case Configuration.paths.pcgEditorGraphNodeOutput:
@@ -4149,6 +4165,7 @@ function nodeTitle(entity) {
         case Configuration.paths.variableSet:
             return "SET"
     }
+    const className = entity.getClass();
     let switchTarget = entity.switchTarget();
     if (switchTarget) {
         if (switchTarget[0] !== "E") {
@@ -4163,14 +4180,14 @@ function nodeTitle(entity) {
     if (keyNameSymbol) {
         const name = keyNameSymbol.toString();
         let title = keyName(name) ?? Utility.formatStringName(name);
-        if (entity.getClass() === Configuration.paths.inputDebugKey) {
+        if (className === Configuration.paths.inputDebugKey) {
             title = "Debug Key " + title;
-        } else if (entity.getClass() === Configuration.paths.getInputAxisKeyValue) {
+        } else if (className === Configuration.paths.getInputAxisKeyValue) {
             title = "Get " + title;
         }
         return title
     }
-    if (entity.getClass() === Configuration.paths.macro) {
+    if (className === Configuration.paths.macro) {
         return Utility.formatStringName(entity.MacroGraphReference?.getMacroName())
     }
     if (entity.isMaterial() && entity.getMaterialSubobject()) {
@@ -4189,7 +4206,7 @@ function nodeTitle(entity) {
     }
     const settingsObject = entity.getSettingsObject();
     if (settingsObject) {
-        if (settingsObject.ExportPath.type === Configuration.paths.pcgHiGenGridSizeSettings) {
+        if (settingsObject.ExportPath?.valueOf()?.type === Configuration.paths.pcgHiGenGridSizeSettings) {
             return `Grid Size: ${(
                 settingsObject.HiGenGridSize?.toString().match(/\d+/)?.[0]?.concat("00")
                 ?? settingsObject.HiGenGridSize?.toString().match(/^\w+$/)?.[0]
@@ -4358,8 +4375,24 @@ function nodeTitle(entity) {
             case "Numeric::Add": return "+"
             case "Numeric::DistancePos": return "Distance"
             case "Numeric::Mul": return String.fromCharCode(0x2a2f)
+            case "Integer::BitLShift": return "Bitwise Left Shift"
+            case "Integer::BitAnd": return "Bitwise AND"
+            case "Integer::BitNot": return "Bitwise NOT"
+            case "Integer::BitOr": return "Bitwise OR"
+            case "Integer::BitRShift": return "Bitwise Right Shift"
+            case "Integer::BitXOr": return "Bitwise XOR"
+            // case "Integer::BitOr": return "Bitwise OR"
+            // case "Integer::BitOr": return "Bitwise OR"
         }
         return Utility.formatStringName(entity.OpName.toString()).replaceAll("::", " ")
+    }
+    let prefix;
+    if (
+        className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNodeParameter")
+        || className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNode"
+
+        )) {
+        return Utility.formatStringName(className.substring(prefix.length))
     }
     if (entity.FunctionDisplayName) {
         return Utility.formatStringName(entity.FunctionDisplayName.toString())
@@ -4476,8 +4509,7 @@ class ArrayEntity extends IEntity {
                 if ((trailing !== undefined) !== Self.trailing) {
                     Self = Self.flagTrailing(trailing !== undefined);
                 }
-                const result = new Self(values);
-                return result
+                return new Self(values)
             }).label(`ArrayEntity of ${this.type?.className() ?? "unknown values"}`)
     }
 
@@ -4640,24 +4672,12 @@ class NaturalNumberEntity extends IntegerEntity {
 }
 
 const colors = {
-    [Configuration.paths.niagaraBool]: i$3`146, 0, 0`,
-    [Configuration.paths.niagaraDataInterfaceVolumeTexture]: i$3`0, 168, 242`,
-    [Configuration.paths.niagaraFloat]: i$3`160, 250, 68`,
-    [Configuration.paths.niagaraMatrix]: i$3`0, 88, 200`,
-    [Configuration.paths.niagaraNumeric]: i$3`0, 88, 200`,
-    [Configuration.paths.niagaraPosition]: i$3`251, 146, 251`,
-    [Configuration.paths.quat4f]: i$3`0, 88, 200`,
-    [Configuration.paths.rotator]: i$3`157, 177, 251`,
-    [Configuration.paths.transform]: i$3`227, 103, 0`,
-    [Configuration.paths.vector]: i$3`251, 198, 34`,
-    [Configuration.paths.vector3f]: i$3`250, 200, 36`,
-    [Configuration.paths.vector4f]: i$3`0, 88, 200`,
     "Any": i$3`132, 132, 132`,
     "Any[]": i$3`132, 132, 132`,
     "audio": i$3`252, 148, 252`,
     "blue": i$3`0, 0, 255`,
     "bool": i$3`146, 0, 0`,
-    "byte": i$3`0, 109, 99`,
+    "byte": i$3`0, 110, 100`,
     "class": i$3`88, 0, 186`,
     "default": i$3`255, 255, 255`,
     "delegate": i$3`255, 56, 56`,
@@ -4665,16 +4685,16 @@ const colors = {
     "exec": i$3`240, 240, 240`,
     "float": i$3`160, 252, 70`,
     "green": i$3`0, 255, 0`,
-    "int": i$3`31, 224, 172`,
+    "int": i$3`30, 224, 172`,
     "int32": i$3`30, 224, 172`,
-    "int64": i$3`169, 223, 172`,
+    "int64": i$3`170, 224, 172`,
     "interface": i$3`238, 252, 168`,
-    "name": i$3`201, 128, 251`,
+    "name": i$3`200, 128, 252`,
     "object": i$3`0, 168, 242`,
-    "Param": i$3`255, 166, 39`,
-    "Param[]": i$3`255, 166, 39`,
-    "Point": i$3`63, 137, 255`,
-    "Point[]": i$3`63, 137, 255`,
+    "Param": i$3`255, 166, 40`,
+    "Param[]": i$3`255, 166, 40`,
+    "Point": i$3`64, 138, 255`,
+    "Point[]": i$3`64, 137, 255`,
     "real": i$3`54, 208, 0`,
     "red": i$3`255, 0, 0`,
     "string": i$3`251, 0, 208`,
@@ -4686,6 +4706,19 @@ const colors = {
     "Volume": i$3`230, 69, 188`,
     "Volume[]": i$3`230, 69, 188`,
     "wildcard": i$3`128, 120, 120`,
+    [Configuration.paths.niagaraBool]: i$3`146, 0, 0`,
+    [Configuration.paths.niagaraDataInterfaceVolumeTexture]: i$3`0, 168, 242`,
+    [Configuration.paths.niagaraFloat]: i$3`160, 250, 68`,
+    [Configuration.paths.NiagaraInt32]: i$3`30, 224, 172`,
+    [Configuration.paths.niagaraMatrix]: i$3`0, 88, 200`,
+    [Configuration.paths.niagaraNumeric]: i$3`0, 88, 200`,
+    [Configuration.paths.niagaraPosition]: i$3`251, 146, 251`,
+    [Configuration.paths.quat4f]: i$3`0, 88, 200`,
+    [Configuration.paths.rotator]: i$3`157, 177, 251`,
+    [Configuration.paths.transform]: i$3`227, 103, 0`,
+    [Configuration.paths.vector]: i$3`251, 198, 34`,
+    [Configuration.paths.vector3f]: i$3`250, 200, 36`,
+    [Configuration.paths.vector4f]: i$3`0, 88, 200`,
 };
 
 const pinColorMaterial = i$3`120, 120, 120`;
@@ -4716,6 +4749,7 @@ function pinTitle(entity) {
             return match[1] // In case they match, then keep the case of the PinToolTip
         }
     }
+    result = result.replace(/^Module\./, "");
     return result
 }
 
@@ -4894,18 +4928,22 @@ class InvariantTextEntity extends IEntity {
                 Parsernostrum.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
                 Parsernostrum.doubleQuotedString,
                 Parsernostrum.reg(/\s*\)/)
-            ).map(([_0, value, _2]) => Number(value)),
-            Parsernostrum.reg(new RegExp(this.lookbehind)).map(() => 0) // InvariantTextEntity can not have arguments
+            ).map(([_0, value, _2]) => value),
+            Parsernostrum.reg(new RegExp(this.lookbehind)).map(() => "") // InvariantTextEntity can have no arguments
         )
             .map(value => new this(value))
             .label("InvariantTextEntity")
     }
 
     doSerialize() {
-        return this.lookbehind + "(" + this.value + ")"
+        return this.lookbehind + '("' + this.value + '")'
     }
 
     valueOf() {
+        return this.value
+    }
+
+    toString() {
         return this.value
     }
 }
@@ -5078,12 +5116,6 @@ class Integer64Entity extends IEntity {
 
 class ObjectReferenceEntity extends IEntity {
 
-    /** @protected */
-    static _quotedParser = Parsernostrum.regArray(new RegExp(
-        `'"(${Grammar.Regex.InsideString.source})"'`
-        + "|"
-        + `'(${Grammar.Regex.InsideSingleQuotedString.source})'`
-    )).map(([_0, a, b]) => a ?? b)
     static typeReference = Parsernostrum.reg(
         // @ts-expect-error
         new RegExp(Grammar.Regex.Path.source + "|" + Grammar.symbol.getParser().regexp.source)
@@ -5107,8 +5139,6 @@ class ObjectReferenceEntity extends IEntity {
         this.#path = value;
     }
 
-    #fullEscaped
-    /** @type {String} */
     #full
     get full() {
         return this.#full
@@ -5117,16 +5147,17 @@ class ObjectReferenceEntity extends IEntity {
         this.#full = value;
     }
 
-
-    constructor(type = "None", path = "", full = null) {
+    /** @param {(t: String, p: String) => String} full */
+    constructor(
+        type = "None",
+        path = "",
+        full = type.includes("/") || path
+            ? (t, p) => `"${t + (p ? (`'${p}'`) : "")}"`
+            : (t, p) => t) {
         super();
         this.#type = type;
         this.#path = path;
-        this.#full = full ?? (
-            this.type.includes("/") || this.path
-                ? `"${this.type + (this.path ? (`'${this.path}'`) : "")}"`
-                : this.type
-        );
+        this.#full = full;
     }
 
     /** @returns {P<ObjectReferenceEntity>} */
@@ -5144,10 +5175,21 @@ class ObjectReferenceEntity extends IEntity {
             new RegExp(
                 // @ts-expect-error
                 "(" + this.typeReference.getParser().regexp.source + ")"
-                // @ts-expect-error
-                + "(?:" + this._quotedParser.getParser().parser.regexp.source + ")"
+                + "(?:"
+                + `'"(${Grammar.Regex.InsideString.source})"'`
+                + "|"
+                + `'(${Grammar.Regex.InsideSingleQuotedString.source})'`
+                + ")"
             )
-        ).map(([full, type, ...path]) => new this(type, path.find(v => v), full))
+        ).map(([full, type, fullQuotedPath, simpleQuotedPath]) => {
+            let fullQuoted = fullQuotedPath ? true : false;
+            let quotes = fullQuoted ? [`'"`, `"'`] : ["'", "'"];
+            return new this(
+                type,
+                fullQuoted ? fullQuotedPath : simpleQuotedPath,
+                (t, p) => t + quotes[0] + p + quotes[1]
+            )
+        })
     }
 
     /** @returns {P<ObjectReferenceEntity>} */
@@ -5157,16 +5199,16 @@ class ObjectReferenceEntity extends IEntity {
                 '"(' + Grammar.Regex.InsideString.source + "?)"
                 + "(?:'(" + Grammar.Regex.InsideSingleQuotedString.source + `?)')?"`
             )
-        ).map(([full, type, path]) => new this(type, path, full))
+        ).map(([_0, type, path]) => new this(type, path, (t, p) => `"${t}${p ? `'${p}'` : ""}"`))
     }
 
     /** @returns {P<ObjectReferenceEntity>} */
     static createTypeReferenceGrammar() {
-        return this.typeReference.map(v => new this(v, "", v))
+        return this.typeReference.map(v => new this(v, "", (t, p) => t))
     }
 
     static createNoneInstance() {
-        return new ObjectReferenceEntity("None", "", "None")
+        return new this("None")
     }
 
     getName(dropCounter = false) {
@@ -5174,13 +5216,11 @@ class ObjectReferenceEntity extends IEntity {
     }
 
     doSerialize(insideString = false) {
+        let result = this.full(this.type, this.path);
         if (insideString) {
-            if (this.#fullEscaped === undefined) {
-                this.#fullEscaped = Utility.escapeString(this.#full, false);
-            }
-            return this.#fullEscaped
+            result = Utility.escapeString(result, false);
         }
-        return this.full
+        return result
     }
 
     /** @param {IEntity} other */
@@ -5189,6 +5229,10 @@ class ObjectReferenceEntity extends IEntity {
             return false
         }
         return this.type == other.type && this.path == other.path
+    }
+
+    toString() {
+        return this.full(this.type, this.path)
     }
 }
 
@@ -5573,6 +5617,7 @@ class PinEntity extends IEntity {
         "real": NumberEntity,
         "string": StringEntity,
         [Configuration.paths.linearColor]: LinearColorEntity,
+        [Configuration.paths.niagaraBool]: BooleanEntity,
         [Configuration.paths.niagaraPosition]: VectorEntity,
         [Configuration.paths.rotator]: RotatorEntity,
         [Configuration.paths.vector]: VectorEntity,
@@ -6142,7 +6187,7 @@ class ObjectEntity extends IEntity {
         Class: ObjectReferenceEntity,
         Name: StringEntity,
         Archetype: ObjectReferenceEntity,
-        ExportPath: ObjectReferenceEntity,
+        ExportPath: MirroredEntity.of(ObjectReferenceEntity),
         ObjectRef: ObjectReferenceEntity,
         BlueprintElementType: ObjectReferenceEntity,
         BlueprintElementInstance: ObjectReferenceEntity,
@@ -6231,7 +6276,7 @@ class ObjectEntity extends IEntity {
         NodeGuid: GuidEntity,
         ErrorType: IntegerEntity,
         ErrorMsg: StringEntity,
-        ScriptVariables: ArrayEntity.of(ScriptVariableEntity),
+        ScriptVariables: ArrayEntity.flagInlined().of(ScriptVariableEntity),
         Node: MirroredEntity.of(ObjectReferenceEntity),
         ExportedNodes: StringEntity,
         CustomProperties: ArrayEntity.of(AlternativesEntity.accepting(PinEntity, UnknownPinEntity)).withDefault().flagSilent(),
@@ -6250,28 +6295,27 @@ class ObjectEntity extends IEntity {
             Grammar.symbol.map(v => [v, false]),
         ),
         Parsernostrum.reg(new RegExp(String.raw`\s*\(\s*(\d+)\s*\)\s*\=\s*`), 1).map(Number)
-    )
-        .chain(
-            /** @param {[[keyof ObjectEntity.attributes, Boolean], Number]} param */
-            ([[symbol, quoted], index]) =>
-                (this.attributes[symbol]?.grammar ?? IEntity.unknownEntityGrammar).map(currentValue =>
-                    values => {
-                        if (values[symbol] === undefined) {
-                            let arrayEntity = ArrayEntity;
-                            if (quoted != arrayEntity.quoted) {
-                                arrayEntity = arrayEntity.flagQuoted(quoted);
-                            }
-                            if (!arrayEntity.inlined) {
-                                arrayEntity = arrayEntity.flagInlined();
-                            }
-                            values[symbol] = new arrayEntity();
+    ).chain(
+        /** @param {[[keyof ObjectEntity.attributes, Boolean], Number]} param */
+        ([[symbol, quoted], index]) =>
+            (this.attributes[symbol]?.grammar ?? IEntity.unknownEntityGrammar).map(currentValue =>
+                values => {
+                    if (values[symbol] === undefined) {
+                        let arrayEntity = ArrayEntity;
+                        if (quoted != arrayEntity.quoted) {
+                            arrayEntity = arrayEntity.flagQuoted(quoted);
                         }
-                        /** @type {ArrayEntity} */
-                        const target = values[symbol];
-                        target.values[index] = currentValue;
+                        if (!arrayEntity.inlined) {
+                            arrayEntity = arrayEntity.flagInlined();
+                        }
+                        values[symbol] = new arrayEntity();
                     }
-                )
-        )
+                    /** @type {ArrayEntity} */
+                    const target = values[symbol];
+                    target.values[index] = currentValue;
+                }
+            )
+    )
     static grammar = this.createGrammar()
     static grammarMultipleObjects = Parsernostrum.seq(
         Parsernostrum.whitespaceOpt,
@@ -6459,6 +6503,17 @@ class ObjectEntity extends IEntity {
                     ? outputIndex++
                     : i;
         });
+        const reference = this.ExportPath?.valueOf();
+        if (reference?.path.endsWith(this.Name?.valueOf())) {
+            const mirroredEntity = /** @type {typeof ObjectEntity} */(this.constructor).attributes.ExportPath;
+            const objectReferenceEntity = /** @type {typeof ObjectReferenceEntity} */(mirroredEntity.type);
+            const nameLength = this.Name.valueOf().length;
+            this.ExportPath = new mirroredEntity(() => new objectReferenceEntity(
+                reference.type,
+                reference.path.substring(0, reference.path.length - nameLength) + this.Name,
+                reference.full,
+            ));
+        }
     }
 
     /** @returns {P<ObjectEntity>} */
@@ -6509,7 +6564,7 @@ class ObjectEntity extends IEntity {
     getClass() {
         if (!this.#class) {
             this.#class = (this.Class?.path ? this.Class.path : this.Class?.type)
-                ?? this.ExportPath?.type
+                ?? this.ExportPath?.valueOf()?.type
                 ?? "";
             if (this.#class && !this.#class.startsWith("/")) {
                 // Old path names did not start with /Script or /Engine, check tests/resources/LegacyNodes.js
@@ -6783,9 +6838,9 @@ class ObjectEntity extends IEntity {
                 ? ` Archetype${keySeparator}${this.Archetype.serialize(insideString)}`
                 : ""
             )
-            + ((this.ExportPath?.type || this.ExportPath?.path)
-                // && Self.attributes.ExportPath.ignored !== true
-                // && this.ExportPath.ignored !== true
+            + ((this.ExportPath?.valueOf()?.type || this.ExportPath?.valueOf()?.path)
+                // && Self.attributes.ExportPath.valueOf().ignored !== true
+                // && this.ExportPath.valueOf().ignored !== true
                 ? ` ExportPath${keySeparator}${this.ExportPath.serialize(insideString)}`
                 : ""
             )
@@ -6830,7 +6885,7 @@ class KnotEntity extends ObjectEntity {
             inputPinEntity.copyTypeFrom(pinReferenceForType);
             outputPinEntity.copyTypeFrom(pinReferenceForType);
         }
-        values["CustomProperties"] = new (ObjectEntity.attributes.CustomProperties)([inputPinEntity, outputPinEntity]);
+        values.CustomProperties = new (ObjectEntity.attributes.CustomProperties)([inputPinEntity, outputPinEntity]);
         super(values);
     }
 }
@@ -10084,6 +10139,32 @@ class BlueprintEntity extends ObjectEntity {
     }
 }
 
+class NiagaraClipboardContent extends ObjectEntity {
+
+    /**
+     * @param {BlueprintEntity} blueprint
+     * @param {ObjectEntity[]} nodes
+     */
+    constructor(blueprint, nodes) {
+        const typePath = Configuration.paths.niagaraClipboardContent;
+        const name = blueprint.takeFreeName("NiagaraClipboardContent");
+        const exportPath = `/Engine/Transient.${name}`;
+        let exported = "";
+        for (const node of nodes) {
+            if (node.exported) {
+                exported += node.serialize();
+            }
+        }
+        nodes.filter(n => !n.exported).map(n => n.serialize());
+        super({
+            Class: new ObjectReferenceEntity(typePath),
+            Name: new StringEntity(name),
+            ExportPath: new ObjectReferenceEntity(typePath, exportPath),
+            ExportedNodes: new StringEntity(btoa(exported))
+        });
+    }
+}
+
 /**
  * @typedef {import("../IInput.js").Options & {
  *     listenOnFocus?: Boolean,
@@ -10113,15 +10194,19 @@ class Copy extends IInput {
     }
 
     getSerializedText() {
-        const allNodes = this.blueprint.getNodes(true).map(n => n.entity);
-        const exported = allNodes.filter(n => n.exported).map(n => n.serialize());
-        const result = allNodes.filter(n => !n.exported).map(n => n.serialize());
-        if (exported.length) {
-            this.blueprint.entity.ExportedNodes.value = btoa(exported.join(""));
-            result.splice(0, 0, this.blueprint.entity.serialize(false));
-            delete this.blueprint.entity.ExportedNodes;
+        const nodes = this.blueprint.getNodes(true).map(n => n.entity);
+        let exports = false;
+        let result = nodes
+            .filter(n => {
+                exports ||= n.exported;
+                return !n.exported
+            })
+            .reduce((acc, cur) => acc + cur.serialize(), "");
+        if (exports) {
+            const object = new NiagaraClipboardContent(this.blueprint.entity, nodes);
+            result = object.serialize() + result;
         }
-        return result.join("")
+        return result
     }
 
     copied() {
@@ -11228,7 +11313,7 @@ class Blueprint extends IElement {
                     this.entity = this.entity.mergeWith(element.entity);
                     const additionalSerialization = atob(element.entity.ExportedNodes.toString());
                     this.template.getPasteInputObject().pasted(additionalSerialization)
-                        .forEach(node => node.entity._exported = true);
+                        .forEach(node => node.entity.exported = true);
                     continue
                 }
                 const name = element.entity.getObjectName();
@@ -11666,7 +11751,7 @@ class BoolPinTemplate extends PinTemplate {
     #input
 
     #onChangeHandler = () => {
-        const entity = this.element.getDefaultValue();
+        const entity = this.element.getDefaultValue(true);
         entity.value = this.#input.checked;
         this.element.setDefaultValue(entity);
     }
@@ -12726,6 +12811,7 @@ const inputPinTemplates = {
     "string": StringPinTemplate,
     [Configuration.paths.linearColor]: LinearColorPinTemplate,
     [Configuration.paths.niagaraBool]: BoolPinTemplate,
+    [Configuration.paths.NiagaraInt32]: IntPinTemplate,
     [Configuration.paths.niagaraPosition]: VectorPinTemplate,
     [Configuration.paths.rotator]: RotatorPinTemplate,
     [Configuration.paths.vector]: VectorPinTemplate,
@@ -13428,7 +13514,7 @@ function initializeSerializerFactory() {
                 Parsernostrum.regArray(new RegExp(
                     // @ts-expect-error
                     `"(${Grammar.Regex.Path.source})'(${Grammar.Regex.Path.source}|${Grammar.symbol.getParser().regexp.source})'"`
-                )).map(([full, type, path]) => new ObjectReferenceEntity(type, path, full))
+                )).map(([_0, type, path]) => new ObjectReferenceEntity(type, path, (t, p) => `"${t}'${p}'"`))
             ),
             StringEntity.grammar,
             LocalizedTextEntity.grammar,

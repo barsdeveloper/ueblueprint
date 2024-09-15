@@ -44,6 +44,7 @@ export default class IEntity {
         this.#keys = [... new Set(value)]
     }
 
+    // @ts-expect-error
     #lookbehind = /** @type {String} */(this.constructor.lookbehind)
     get lookbehind() {
         return this.#lookbehind.trim()
@@ -420,5 +421,10 @@ export default class IEntity {
             }
         }
         return true
+    }
+
+    /** @returns {IEntity | Boolean | Number | String | BigInt | (IEntity | Boolean | Number | String | BigInt)[]} */
+    valueOf() {
+        return this
     }
 }

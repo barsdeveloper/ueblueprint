@@ -49,6 +49,7 @@ export default class PinEntity extends IEntity {
         "real": NumberEntity,
         "string": StringEntity,
         [Configuration.paths.linearColor]: LinearColorEntity,
+        [Configuration.paths.niagaraBool]: BooleanEntity,
         [Configuration.paths.niagaraPosition]: VectorEntity,
         [Configuration.paths.rotator]: RotatorEntity,
         [Configuration.paths.vector]: VectorEntity,

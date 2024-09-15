@@ -10,7 +10,7 @@ export default class BoolPinTemplate extends PinTemplate {
     #input
 
     #onChangeHandler = () => {
-        const entity = this.element.getDefaultValue()
+        const entity = this.element.getDefaultValue(true)
         entity.value = this.#input.checked
         this.element.setDefaultValue(entity)
     }

@@ -57,6 +57,7 @@
  * @typedef {import("./js/element/SelectorElement.js").default} SelectorElement
  * @typedef {import("./js/element/WindowElement.js").default} WindowElement
  * @typedef {import("./js/entity/ByteEntity.js").default} ByteEntity
+ * @typedef {import("./js/entity/BlueprintEntity.js").default} BlueprintEntity
  * @typedef {import("./js/entity/ColorChannelEntity.js").default} ColorChannelEntity
  * @typedef {import("./js/entity/ComputedTypeEntity.js").default} ComputedTypeEntity
  * @typedef {import("./js/entity/EnumDisplayValueEntity.js").default} EnumDisplayValueEntity
