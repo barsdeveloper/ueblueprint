@@ -7,6 +7,7 @@ import NodeTemplate from "./NodeTemplate.js"
 export default class EventNodeTemplate extends NodeTemplate {
 
     static nodeStyleClasses = [...super.nodeStyleClasses, "ueb-node-style-event"]
+    #delegatePinElement
 
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
@@ -38,21 +39,31 @@ export default class EventNodeTemplate extends NodeTemplate {
         `
     }
 
+    getPinElements() {
+        return this.element.getPinElements().filter(v => v.entity.PinType.PinCategory?.toString() !== "delegate")
+    }
+
     createDelegatePinElement() {
-        const pin = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin")).newObject(
-            this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory?.toString() === "delegate"),
-            new MinimalPinTemplate(),
-            this.element
-        )
-        pin.template.isNameRendered = false
-        return pin
+        if (!this.#delegatePinElement) {
+            this.#delegatePinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
+                .newObject(
+                    this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory?.toString() === "delegate"),
+                    new MinimalPinTemplate(),
+                    this.element
+                )
+            this.#delegatePinElement.template.isNameRendered = false
+        }
+        return this.#delegatePinElement
     }
 
     createPinElements() {
-        return this.element.getPinEntities()
-            .filter(v => !v.isHidden() && v.PinType.PinCategory?.toString() !== "delegate")
-            .map(pinEntity => /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
-                .newObject(pinEntity, undefined, this.element)
-            )
+        return [
+            this.createDelegatePinElement(),
+            ...this.element.getPinEntities()
+                .filter(v => !v.isHidden() && v.PinType.PinCategory?.toString() !== "delegate")
+                .map(pinEntity => /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
+                    .newObject(pinEntity, undefined, this.element)
+                )
+        ]
     }
 }

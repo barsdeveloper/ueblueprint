@@ -67,7 +67,7 @@ export default class SVGIcon {
     `
 
     static delegate = html`
-        <svg viewBox="-2 -2 32 32" xmlns="http://www.w3.org/2000/svg">
+        <svg width="11" height="11" viewBox="-2 -2 32 32" xmlns="http://www.w3.org/2000/svg">
             <rect class="ueb-pin-tofill" fill="black" width="28" height="28" rx="4" stroke="currentColor" stroke-width="5" />
         </svg>
     `

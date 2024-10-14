@@ -137,7 +137,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         this.element.nodeNameElement = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-name-text"))
         let hasInput = false
         let hasOutput = false
-        for (const p of this.element.getPinElements()) {
+        for (const p of this.getPinElements()) {
             if (p === this.defaultPin) {
                 continue
             }
@@ -160,6 +160,10 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         }
     }
 
+    getPinElements() {
+        return this.element.getPinElements()
+    }
+
     createPinElements() {
         return this.element.getPinEntities()
             .filter(v => !v.isHidden())
@@ -172,14 +176,6 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
 
     getTargetType() {
         return this.element.entity.FunctionReference?.MemberParent?.getName() ?? "Untitled"
-    }
-
-    /**
-     * @param {NodeElement} node
-     * @returns {NodeListOf<PinElement>}
-     */
-    getPinElements(node) {
-        return node.querySelectorAll("ueb-pin")
     }
 
     linksChanged() { }

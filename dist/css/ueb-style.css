@@ -740,11 +740,6 @@ ueb-pin[data-connectable=false] .ueb-pin-icon {
   visibility: hidden;
 }
 
-.ueb-node-style-event ueb-pin[data-type=delegate] .ueb-pin-icon {
-  width: 11px;
-  height: 11px;
-}
-
 .ueb-node-inputs .ueb-pin-icon {
   margin-right: 6px;
 }

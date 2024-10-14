@@ -980,7 +980,7 @@ class SVGIcon {
     `
 
     static delegate = x`
-        <svg viewBox="-2 -2 32 32" xmlns="http://www.w3.org/2000/svg">
+        <svg width="11" height="11" viewBox="-2 -2 32 32" xmlns="http://www.w3.org/2000/svg">
             <rect class="ueb-pin-tofill" fill="black" width="28" height="28" rx="4" stroke="currentColor" stroke-width="5" />
         </svg>
     `
@@ -8719,7 +8719,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         this.element.nodeNameElement = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-name-text"));
         let hasInput = false;
         let hasOutput = false;
-        for (const p of this.element.getPinElements()) {
+        for (const p of this.getPinElements()) {
             if (p === this.defaultPin) {
                 continue
             }
@@ -8742,6 +8742,10 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         }
     }
 
+    getPinElements() {
+        return this.element.getPinElements()
+    }
+
     createPinElements() {
         return this.element.getPinEntities()
             .filter(v => !v.isHidden())
@@ -8754,14 +8758,6 @@ class NodeTemplate extends ISelectableDraggableTemplate {
 
     getTargetType() {
         return this.element.entity.FunctionReference?.MemberParent?.getName() ?? "Untitled"
-    }
-
-    /**
-     * @param {NodeElement} node
-     * @returns {NodeListOf<PinElement>}
-     */
-    getPinElements(node) {
-        return node.querySelectorAll("ueb-pin")
     }
 
     linksChanged() { }
@@ -9330,12 +9326,12 @@ class PinTemplate extends ITemplate {
                     return SVGIcon.pcgStackPin
             }
         }
-        switch (this.element.entity.PinType?.ContainerType?.serialize()) {
+        switch (this.element.entity.PinType.ContainerType?.toString()) {
             case "Array": return SVGIcon.arrayPin
             case "Set": return SVGIcon.setPin
             case "Map": return SVGIcon.mapPin
         }
-        if (this.element.entity.PinType?.PinCategory?.toString().toLocaleLowerCase() === "delegate") {
+        if (this.element.entity.PinType.PinCategory?.toString().toLocaleLowerCase() === "delegate") {
             return SVGIcon.delegate
         }
         if (this.element.nodeElement?.template instanceof VariableOperationNodeTemplate) {
@@ -9419,6 +9415,7 @@ class MinimalPinTemplate extends PinTemplate {
 class EventNodeTemplate extends NodeTemplate {
 
     static nodeStyleClasses = [...super.nodeStyleClasses, "ueb-node-style-event"]
+    #delegatePinElement
 
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
@@ -9450,22 +9447,32 @@ class EventNodeTemplate extends NodeTemplate {
         `
     }
 
+    getPinElements() {
+        return this.element.getPinElements().filter(v => v.entity.PinType.PinCategory?.toString() !== "delegate")
+    }
+
     createDelegatePinElement() {
-        const pin = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin")).newObject(
-            this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory?.toString() === "delegate"),
-            new MinimalPinTemplate(),
-            this.element
-        );
-        pin.template.isNameRendered = false;
-        return pin
+        if (!this.#delegatePinElement) {
+            this.#delegatePinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
+                .newObject(
+                    this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory?.toString() === "delegate"),
+                    new MinimalPinTemplate(),
+                    this.element
+                );
+            this.#delegatePinElement.template.isNameRendered = false;
+        }
+        return this.#delegatePinElement
     }
 
     createPinElements() {
-        return this.element.getPinEntities()
-            .filter(v => !v.isHidden() && v.PinType.PinCategory?.toString() !== "delegate")
-            .map(pinEntity => /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
-                .newObject(pinEntity, undefined, this.element)
-            )
+        return [
+            this.createDelegatePinElement(),
+            ...this.element.getPinEntities()
+                .filter(v => !v.isHidden() && v.PinType.PinCategory?.toString() !== "delegate")
+                .map(pinEntity => /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
+                    .newObject(pinEntity, undefined, this.element)
+                )
+        ]
     }
 }
 
@@ -9545,17 +9552,9 @@ class KnotNodeTemplate extends NodeTemplate {
     }
 
     setupPins() {
-        this.element.getPinElements().forEach(
-            p => /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-border")).appendChild(p)
-        );
-    }
-
-    /**
-     * @param {NodeElement} node
-     * @returns {NodeListOf<PinElement>}
-     */
-    getPinElements(node) {
-        return node.querySelectorAll("ueb-pin")
+        for (const p of this.getPinElements()) {
+            /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-border")).appendChild(p);
+        }
     }
 
     createPinElements() {
