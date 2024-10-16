@@ -107,9 +107,17 @@ export default class Grammar {
             const attributeKey = attributeName.split(Configuration.keysSeparator)
             const attributeValue = this.getAttribute(entityType, attributeKey)
             const grammar = attributeValue ? attributeValue.grammar : IEntity.unknownEntityGrammar
+            const inlined = attributeKey.length > 1
             return grammar.map(attributeValue =>
                 values => {
                     Utility.objectSet(values, attributeKey, attributeValue)
+                    attributeKey.reduce(
+                        (acc, cur, i) => {
+                            acc[cur]["inlined"] = inlined && i < attributeKey.length - 1
+                            return acc[cur]
+                        },
+                        values
+                    )
                     handleObjectSet(values, attributeKey, attributeValue)
                 }
             )

@@ -60,6 +60,14 @@ export default class IEntity {
         this.#ignored = value
     }
 
+    #inlined = /** @type {typeof IEntity} */(this.constructor).inlined
+    get inlined() {
+        return this.#inlined
+    }
+    set inlined(value) {
+        this.#inlined = value
+    }
+
     #quoted
     get quoted() {
         return this.#quoted ?? /** @type {typeof IEntity} */(this.constructor).quoted ?? false
@@ -330,7 +338,7 @@ export default class IEntity {
             if (keyValue.length && (Self.attributes[key]?.quoted || value.quoted)) {
                 keyValue = `"${keyValue}"`
             }
-            if (valueType.inlined) {
+            if (value.inlined) {
                 const inlinedPrintKey = valueType.className() === "ArrayEntity"
                     ? k => printKey(`${keyValue}${k}`)
                     : k => printKey(`${keyValue}.${k}`)

@@ -55,7 +55,7 @@ const pinColorMaterial = css`120, 120, 120`
 /** @param {PinEntity<IEntity>} entity */
 export default function pinColor(entity) {
     if (entity.PinType.PinCategory?.toString() === "mask") {
-        const result = colors[entity.PinType.PinSubCategory]
+        const result = colors[entity.PinType.PinSubCategory?.toString()]
         if (result) {
             return result
         }
