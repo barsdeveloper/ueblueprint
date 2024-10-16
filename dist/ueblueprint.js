@@ -9881,7 +9881,7 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     /** @param {String} name */
-    #redirectLinksAfterRename(name) {
+    #redirectLinksBeforeRename(name) {
         for (let sourcePinElement of this.getPinElements()) {
             for (let targetPinReference of sourcePinElement.getLinks()) {
                 this.blueprint.getPin(targetPinReference).redirectLink(
@@ -9916,9 +9916,9 @@ class NodeElement extends ISelectableDraggableElement {
             "Name",
             /** @param {InstanceType<typeof ObjectEntity.attributes.Name>} newName */
             newName => {
+                this.#redirectLinksBeforeRename(newName.value);
                 this.nodeTitle = newName.value;
                 this.nodeDisplayName = nodeTitle(entity);
-                this.#redirectLinksAfterRename(newName.value);
             }
         );
     }
@@ -10033,7 +10033,7 @@ class BlueprintEntity extends ObjectEntity {
 
     /** @param {ObjectEntity} entity */
     getHomonymObjectEntity(entity) {
-        const name = entity.getObjectName(false);
+        const name = entity.getObjectName();
         return this.#objectEntities.find(entity => entity.getObjectName() == name)
     }
 
@@ -11255,8 +11255,9 @@ class Blueprint extends IElement {
                 const name = element.entity.getObjectName();
                 const homonym = this.entity.getHomonymObjectEntity(element.entity);
                 if (homonym) {
-                    homonym.Name.value = this.entity.takeFreeName(name);
-                    homonym.Name = homonym.Name;
+                    const newName = this.entity.takeFreeName(name);
+                    // @ts-expect-error
+                    homonym.Name = new (homonym.Name.constructor)(newName);
                 }
                 this.nodes.push(element);
                 this.entity.addObjectEntity(element.entity);
@@ -12783,7 +12784,7 @@ class PinElement extends IElement {
                 fromAttribute: (value, type) => value
                     ? GuidEntity.grammar.parse(value)
                     : null,
-                toAttribute: (value, type) => /** @type {String} */(value?.toString()),
+                toAttribute: (value, type) => value?.toString(),
             },
             attribute: "data-id",
             reflect: true,
@@ -12855,6 +12856,7 @@ class PinElement extends IElement {
         this.isLinked = false;
         this.connectable = !entity.bNotConnectable?.valueOf();
         super.initialize(entity, template);
+        this.pinId = this.entity.PinId;
         this.pinType = this.entity.getType();
         this.defaultValue = this.entity.getDefaultValue();
         this.color = PinElement.properties.color.converter.fromAttribute(this.getColor().toString());
@@ -12993,7 +12995,7 @@ class PinElement extends IElement {
             && pinReference.pinGuid.toString() == originalPinElement.entity.PinId.toString()
         );
         if (index >= 0) {
-            this.entity.LinkedTo[index] = newReference;
+            this.entity.LinkedTo.valueOf()[index] = newReference;
             return true
         }
         return false

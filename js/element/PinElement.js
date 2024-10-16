@@ -23,7 +23,7 @@ export default class PinElement extends IElement {
                 fromAttribute: (value, type) => value
                     ? GuidEntity.grammar.parse(value)
                     : null,
-                toAttribute: (value, type) => /** @type {String} */(value?.toString()),
+                toAttribute: (value, type) => value?.toString(),
             },
             attribute: "data-id",
             reflect: true,
@@ -95,6 +95,7 @@ export default class PinElement extends IElement {
         this.isLinked = false
         this.connectable = !entity.bNotConnectable?.valueOf()
         super.initialize(entity, template)
+        this.pinId = this.entity.PinId
         this.pinType = this.entity.getType()
         this.defaultValue = this.entity.getDefaultValue()
         this.color = PinElement.properties.color.converter.fromAttribute(this.getColor().toString())
@@ -233,7 +234,7 @@ export default class PinElement extends IElement {
             && pinReference.pinGuid.toString() == originalPinElement.entity.PinId.toString()
         )
         if (index >= 0) {
-            this.entity.LinkedTo[index] = newReference
+            this.entity.LinkedTo.valueOf()[index] = newReference
             return true
         }
         return false
