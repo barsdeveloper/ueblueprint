@@ -11,9 +11,11 @@ export default function nodeIcon(entity) {
         case Configuration.paths.addDelegate:
         case Configuration.paths.asyncAction:
         case Configuration.paths.callDelegate:
+        case Configuration.paths.clearDelegate:
         case Configuration.paths.createDelegate:
         case Configuration.paths.functionEntry:
         case Configuration.paths.functionResult:
+        case Configuration.paths.removeDelegate:
             return SVGIcon.node
         case Configuration.paths.customEvent: return SVGIcon.event
         case Configuration.paths.doN: return SVGIcon.doN

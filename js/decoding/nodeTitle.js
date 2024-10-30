@@ -76,8 +76,17 @@ function keyName(value) {
  * @returns {String}
  */
 export default function nodeTitle(entity) {
-    let input
+    let value
     switch (entity.getType()) {
+        case Configuration.paths.addDelegate:
+            value ??= "Bind Event to "
+        case Configuration.paths.clearDelegate:
+            value ??= "Unbind all Events from "
+        case Configuration.paths.removeDelegate:
+            value ??= "Unbind Event from "
+            return value + Utility.formatStringName(
+                entity.DelegateReference?.MemberName?.toString().replace(/Delegate$/, "") ?? "None"
+            )
         case Configuration.paths.asyncAction:
             if (entity.ProxyFactoryFunctionName) {
                 return Utility.formatStringName(entity.ProxyFactoryFunctionName?.toString())
@@ -130,25 +139,26 @@ export default function nodeTitle(entity) {
             }
         }
         case Configuration.paths.materialExpressionConstant:
-            input ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName.toString() == "Value")?.DefaultValue]
+            value ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName.toString() == "Value")?.DefaultValue]
         case Configuration.paths.materialExpressionConstant2Vector:
-            input ??= [
+            value ??= [
                 entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "X")?.DefaultValue,
                 entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "Y")?.DefaultValue,
             ]
         case Configuration.paths.materialExpressionConstant3Vector:
         case Configuration.paths.materialExpressionConstant4Vector:
-            if (!input) {
+            if (!value) {
                 const vector = entity.getCustomproperties()
                     .find(pinEntity => pinEntity.PinName?.toString() == "Constant")
                     ?.DefaultValue
-                input = vector instanceof VectorEntity ? [vector.X, vector.Y, vector.Z].map(v => v.valueOf())
+                value = vector instanceof VectorEntity ? [vector.X, vector.Y, vector.Z].map(v => v.valueOf())
                     : vector instanceof LinearColorEntity ? [vector.R, vector.G, vector.B, vector.A].map(v => v.valueOf())
                         : /** @type {Number[]} */([])
             }
-            if (input.length > 0) {
-                return input.map(v => Utility.printExponential(v)).join(",")
+            if (value?.length > 0) {
+                return value.map(v => Utility.printExponential(v)).join(",")
             }
+            value = undefined
             break
         case Configuration.paths.materialExpressionFunctionInput: {
             const materialObject = entity.getMaterialSubobject()

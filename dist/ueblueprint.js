@@ -130,6 +130,7 @@ class Configuration {
         callArrayFunction: "/Script/BlueprintGraph.K2Node_CallArrayFunction",
         callDelegate: "/Script/BlueprintGraph.K2Node_CallDelegate",
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
+        clearDelegate: "/Script/BlueprintGraph.K2Node_ClearDelegate",
         comment: "/Script/UnrealEd.EdGraphNode_Comment",
         commutativeAssociativeBinaryOperator: "/Script/BlueprintGraph.K2Node_CommutativeAssociativeBinaryOperator",
         componentBoundEvent: "/Script/BlueprintGraph.K2Node_ComponentBoundEvent",
@@ -216,6 +217,7 @@ class Configuration {
         pcgSubgraphSettings: "/Script/PCG.PCGSubgraphSettings",
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
         quat4f: "/Script/CoreUObject.Quat4f",
+        removeDelegate: "/Script/BlueprintGraph.K2Node_RemoveDelegate",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         rotator: "/Script/CoreUObject.Rotator",
         select: "/Script/BlueprintGraph.K2Node_Select",
@@ -4034,8 +4036,17 @@ function keyName(value) {
  * @returns {String}
  */
 function nodeTitle(entity) {
-    let input;
+    let value;
     switch (entity.getType()) {
+        case Configuration.paths.addDelegate:
+            value ??= "Bind Event to ";
+        case Configuration.paths.clearDelegate:
+            value ??= "Unbind all Events from ";
+        case Configuration.paths.removeDelegate:
+            value ??= "Unbind Event from ";
+            return value + Utility.formatStringName(
+                entity.DelegateReference?.MemberName?.toString().replace(/Delegate$/, "") ?? "None"
+            )
         case Configuration.paths.asyncAction:
             if (entity.ProxyFactoryFunctionName) {
                 return Utility.formatStringName(entity.ProxyFactoryFunctionName?.toString())
@@ -4088,25 +4099,26 @@ function nodeTitle(entity) {
             }
         }
         case Configuration.paths.materialExpressionConstant:
-            input ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName.toString() == "Value")?.DefaultValue];
+            value ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName.toString() == "Value")?.DefaultValue];
         case Configuration.paths.materialExpressionConstant2Vector:
-            input ??= [
+            value ??= [
                 entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "X")?.DefaultValue,
                 entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "Y")?.DefaultValue,
             ];
         case Configuration.paths.materialExpressionConstant3Vector:
         case Configuration.paths.materialExpressionConstant4Vector:
-            if (!input) {
+            if (!value) {
                 const vector = entity.getCustomproperties()
                     .find(pinEntity => pinEntity.PinName?.toString() == "Constant")
                     ?.DefaultValue;
-                input = vector instanceof VectorEntity ? [vector.X, vector.Y, vector.Z].map(v => v.valueOf())
+                value = vector instanceof VectorEntity ? [vector.X, vector.Y, vector.Z].map(v => v.valueOf())
                     : vector instanceof LinearColorEntity ? [vector.R, vector.G, vector.B, vector.A].map(v => v.valueOf())
                         : /** @type {Number[]} */([]);
             }
-            if (input.length > 0) {
-                return input.map(v => Utility.printExponential(v)).join(",")
+            if (value?.length > 0) {
+                return value.map(v => Utility.printExponential(v)).join(",")
             }
+            value = undefined;
             break
         case Configuration.paths.materialExpressionFunctionInput: {
             const materialObject = entity.getMaterialSubobject();
@@ -4395,9 +4407,11 @@ function nodeIcon(entity) {
         case Configuration.paths.addDelegate:
         case Configuration.paths.asyncAction:
         case Configuration.paths.callDelegate:
+        case Configuration.paths.clearDelegate:
         case Configuration.paths.createDelegate:
         case Configuration.paths.functionEntry:
         case Configuration.paths.functionResult:
+        case Configuration.paths.removeDelegate:
             return SVGIcon.node
         case Configuration.paths.customEvent: return SVGIcon.event
         case Configuration.paths.doN: return SVGIcon.doN
@@ -8442,6 +8456,28 @@ class MouseClickDrag extends MouseMoveDraggable {
     }
 }
 
+/**
+ * @param {ObjectEntity} entity
+ * @returns {String?}
+ */
+function nodeSubtitle(entity) {
+    switch (entity.getType()) {
+        case Configuration.paths.addDelegate:
+        case Configuration.paths.clearDelegate:
+            return null
+    }
+    const targetPin = entity
+        .getPinEntities()
+        .find(pin => pin.PinName?.toString() === "self" && pinTitle(pin) === "Target");
+    if (targetPin) {
+        const target = entity.FunctionReference?.MemberParent?.getName()
+            ?? targetPin.PinType?.PinSubCategoryObject?.getName()
+            ?? "Untitled";
+        return target.length > 0 ? `Target is ${Utility.formatStringName(target)}` : null
+    }
+    return null
+}
+
 /** @typedef {import("./IMouseClickDrag.js").Options} Options */
 
 /** @extends {MouseMoveDraggable<NodeElement>} */
@@ -8613,7 +8649,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
 
     static nodeStyleClasses = ["ueb-node-style-default"]
 
-    #hasSubtitle = false
+    #subtitle
 
     /** @type {() => PinEntity<IEntity>} */
     pinInserter
@@ -8659,6 +8695,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element);
+        this.#subtitle = nodeSubtitle(element.entity);
         this.element.classList.add(.../** @type {typeof NodeTemplate} */(this.constructor).nodeStyleClasses);
         this.element.style.setProperty("--ueb-node-color", this.getColor().cssText);
         this.pinInserter = this.element.entity.additionalPinInserter();
@@ -8717,13 +8754,12 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                 ${name ? x`
                     <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
                         ${name}
-                        ${this.#hasSubtitle && this.getTargetType().length > 0 ? x`
-                            <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
-                                Target is ${Utility.formatStringName(this.getTargetType())}
-                            </div>
-                        `: A}
+                        ${this.#subtitle ? x`
+                            <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">${this.#subtitle}</div>
+                        `: A
+                }
                     </div>
-                ` : A}
+    ` : A}
             </div>
         `
     }
@@ -8771,15 +8807,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     createPinElements() {
         return this.element.getPinEntities()
             .filter(v => !v.isHidden())
-            .map(pinEntity => {
-                this.#hasSubtitle = this.#hasSubtitle
-                    || pinEntity.PinName.toString() === "self" && pinEntity.pinTitle() === "Target";
-                return this.createPinElement(pinEntity)
-            })
-    }
-
-    getTargetType() {
-        return this.element.entity.FunctionReference?.MemberParent?.getName() ?? "Untitled"
+            .map(pinEntity => this.createPinElement(pinEntity))
     }
 
     linksChanged() { }

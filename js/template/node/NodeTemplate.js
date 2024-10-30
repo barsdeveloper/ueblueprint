@@ -1,7 +1,7 @@
 import { html, nothing } from "lit"
-import SVGIcon from "../../SVGIcon.js"
-import Utility from "../../Utility.js"
+import nodeSubtitle from "../../decoding/nodeSubtitle.js"
 import ElementFactory from "../../element/ElementFactory.js"
+import SVGIcon from "../../SVGIcon.js"
 import ISelectableDraggableTemplate from "../ISelectableDraggableTemplate.js"
 
 /** @extends {ISelectableDraggableTemplate<NodeElement>} */
@@ -9,7 +9,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
 
     static nodeStyleClasses = ["ueb-node-style-default"]
 
-    #hasSubtitle = false
+    #subtitle
 
     /** @type {() => PinEntity<IEntity>} */
     pinInserter
@@ -55,6 +55,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element)
+        this.#subtitle = nodeSubtitle(element.entity)
         this.element.classList.add(.../** @type {typeof NodeTemplate} */(this.constructor).nodeStyleClasses)
         this.element.style.setProperty("--ueb-node-color", this.getColor().cssText)
         this.pinInserter = this.element.entity.additionalPinInserter()
@@ -113,13 +114,12 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
                 ${name ? html`
                     <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
                         ${name}
-                        ${this.#hasSubtitle && this.getTargetType().length > 0 ? html`
-                            <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
-                                Target is ${Utility.formatStringName(this.getTargetType())}
-                            </div>
-                        `: nothing}
+                        ${this.#subtitle ? html`
+                            <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">${this.#subtitle}</div>
+                        `: nothing
+                }
                     </div>
-                ` : nothing}
+    ` : nothing}
             </div>
         `
     }
@@ -167,15 +167,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     createPinElements() {
         return this.element.getPinEntities()
             .filter(v => !v.isHidden())
-            .map(pinEntity => {
-                this.#hasSubtitle = this.#hasSubtitle
-                    || pinEntity.PinName.toString() === "self" && pinEntity.pinTitle() === "Target"
-                return this.createPinElement(pinEntity)
-            })
-    }
-
-    getTargetType() {
-        return this.element.entity.FunctionReference?.MemberParent?.getName() ?? "Untitled"
+            .map(pinEntity => this.createPinElement(pinEntity))
     }
 
     linksChanged() { }
