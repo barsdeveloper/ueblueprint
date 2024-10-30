@@ -8464,6 +8464,7 @@ function nodeSubtitle(entity) {
     switch (entity.getType()) {
         case Configuration.paths.addDelegate:
         case Configuration.paths.clearDelegate:
+        case Configuration.paths.removeDelegate:
             return null
     }
     const targetPin = entity
@@ -8756,10 +8757,9 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                         ${name}
                         ${this.#subtitle ? x`
                             <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">${this.#subtitle}</div>
-                        `: A
-                }
+                        `: A}
                     </div>
-    ` : A}
+                ` : A}
             </div>
         `
     }

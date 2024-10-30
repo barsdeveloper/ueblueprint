@@ -116,10 +116,9 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
                         ${name}
                         ${this.#subtitle ? html`
                             <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">${this.#subtitle}</div>
-                        `: nothing
-                }
+                        `: nothing}
                     </div>
-    ` : nothing}
+                ` : nothing}
             </div>
         `
     }

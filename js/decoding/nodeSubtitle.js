@@ -10,6 +10,7 @@ export default function nodeSubtitle(entity) {
     switch (entity.getType()) {
         case Configuration.paths.addDelegate:
         case Configuration.paths.clearDelegate:
+        case Configuration.paths.removeDelegate:
             return null
     }
     const targetPin = entity
