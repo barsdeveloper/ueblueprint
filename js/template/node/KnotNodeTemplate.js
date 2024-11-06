@@ -54,17 +54,9 @@ export default class KnotNodeTemplate extends NodeTemplate {
     }
 
     setupPins() {
-        this.element.getPinElements().forEach(
-            p => /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-border")).appendChild(p)
-        )
-    }
-
-    /**
-     * @param {NodeElement} node
-     * @returns {NodeListOf<PinElement>}
-     */
-    getPinElements(node) {
-        return node.querySelectorAll("ueb-pin")
+        for (const p of this.getPinElements()) {
+            /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-border")).appendChild(p)
+        }
     }
 
     createPinElements() {

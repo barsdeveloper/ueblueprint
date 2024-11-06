@@ -110,12 +110,12 @@ export default class PinTemplate extends ITemplate {
                     return SVGIcon.pcgStackPin
             }
         }
-        switch (this.element.entity.PinType?.ContainerType?.serialize()) {
+        switch (this.element.entity.PinType.ContainerType?.toString()) {
             case "Array": return SVGIcon.arrayPin
             case "Set": return SVGIcon.setPin
             case "Map": return SVGIcon.mapPin
         }
-        if (this.element.entity.PinType?.PinCategory?.toString().toLocaleLowerCase() === "delegate") {
+        if (this.element.entity.PinType.PinCategory?.toString().toLocaleLowerCase() === "delegate") {
             return SVGIcon.delegate
         }
         if (this.element.nodeElement?.template instanceof VariableOperationNodeTemplate) {

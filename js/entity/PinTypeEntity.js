@@ -12,7 +12,7 @@ export default class PinTypeEntity extends IEntity {
     static attributes = {
         ...super.attributes,
         PinCategory: StringEntity.withDefault(),
-        PinSubCategory: StringEntity.withDefault(),
+        PinSubCategory: StringEntity,
         PinSubCategoryObject: ObjectReferenceEntity,
         PinSubCategoryMemberReference: FunctionReferenceEntity,
         ContainerType: SymbolEntity,

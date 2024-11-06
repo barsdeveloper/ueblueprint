@@ -130,6 +130,7 @@ class Configuration {
         callArrayFunction: "/Script/BlueprintGraph.K2Node_CallArrayFunction",
         callDelegate: "/Script/BlueprintGraph.K2Node_CallDelegate",
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
+        clearDelegate: "/Script/BlueprintGraph.K2Node_ClearDelegate",
         comment: "/Script/UnrealEd.EdGraphNode_Comment",
         commutativeAssociativeBinaryOperator: "/Script/BlueprintGraph.K2Node_CommutativeAssociativeBinaryOperator",
         componentBoundEvent: "/Script/BlueprintGraph.K2Node_ComponentBoundEvent",
@@ -218,6 +219,7 @@ class Configuration {
         pcgSubgraphSettings: "/Script/PCG.PCGSubgraphSettings",
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
         quat4f: "/Script/CoreUObject.Quat4f",
+        removeDelegate: "/Script/BlueprintGraph.K2Node_RemoveDelegate",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         rotator: "/Script/CoreUObject.Rotator",
         select: "/Script/BlueprintGraph.K2Node_Select",
@@ -982,7 +984,7 @@ class SVGIcon {
     `
 
     static delegate = x`
-        <svg viewBox="-2 -2 32 32" xmlns="http://www.w3.org/2000/svg">
+        <svg width="11" height="11" viewBox="-2 -2 32 32" xmlns="http://www.w3.org/2000/svg">
             <rect class="ueb-pin-tofill" fill="black" width="28" height="28" rx="4" stroke="currentColor" stroke-width="5" />
         </svg>
     `
@@ -2685,6 +2687,14 @@ class IEntity {
         this.#ignored = value;
     }
 
+    #inlined = /** @type {typeof IEntity} */(this.constructor).inlined
+    get inlined() {
+        return this.#inlined
+    }
+    set inlined(value) {
+        this.#inlined = value;
+    }
+
     #quoted
     get quoted() {
         return this.#quoted ?? /** @type {typeof IEntity} */(this.constructor).quoted ?? false
@@ -2955,7 +2965,7 @@ class IEntity {
             if (keyValue.length && (Self.attributes[key]?.quoted || value.quoted)) {
                 keyValue = `"${keyValue}"`;
             }
-            if (valueType.inlined) {
+            if (value.inlined) {
                 const inlinedPrintKey = valueType.className() === "ArrayEntity"
                     ? k => printKey(`${keyValue}${k}`)
                     : k => printKey(`${keyValue}.${k}`);
@@ -3271,9 +3281,17 @@ class Grammar {
             const attributeKey = attributeName.split(Configuration.keysSeparator);
             const attributeValue = this.getAttribute(entityType, attributeKey);
             const grammar = attributeValue ? attributeValue.grammar : IEntity.unknownEntityGrammar;
+            const inlined = attributeKey.length > 1;
             return grammar.map(attributeValue =>
                 values => {
                     Utility.objectSet(values, attributeKey, attributeValue);
+                    attributeKey.reduce(
+                        (acc, cur, i) => {
+                            acc[cur]["inlined"] = inlined && i < attributeKey.length - 1;
+                            return acc[cur]
+                        },
+                        values
+                    );
                     handleObjectSet(values, attributeKey, attributeValue);
                 }
             )
@@ -4026,8 +4044,17 @@ function keyName(value) {
  * @returns {String}
  */
 function nodeTitle(entity) {
-    let input;
+    let value;
     switch (entity.getType()) {
+        case Configuration.paths.addDelegate:
+            value ??= "Bind Event to ";
+        case Configuration.paths.clearDelegate:
+            value ??= "Unbind all Events from ";
+        case Configuration.paths.removeDelegate:
+            value ??= "Unbind Event from ";
+            return value + Utility.formatStringName(
+                entity.DelegateReference?.MemberName?.toString().replace(/Delegate$/, "") ?? "None"
+            )
         case Configuration.paths.asyncAction:
             if (entity.ProxyFactoryFunctionName) {
                 return Utility.formatStringName(entity.ProxyFactoryFunctionName?.toString())
@@ -4080,25 +4107,26 @@ function nodeTitle(entity) {
             }
         }
         case Configuration.paths.materialExpressionConstant:
-            input ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName.toString() == "Value")?.DefaultValue];
+            value ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName.toString() == "Value")?.DefaultValue];
         case Configuration.paths.materialExpressionConstant2Vector:
-            input ??= [
+            value ??= [
                 entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "X")?.DefaultValue,
                 entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "Y")?.DefaultValue,
             ];
         case Configuration.paths.materialExpressionConstant3Vector:
         case Configuration.paths.materialExpressionConstant4Vector:
-            if (!input) {
+            if (!value) {
                 const vector = entity.getCustomproperties()
                     .find(pinEntity => pinEntity.PinName?.toString() == "Constant")
                     ?.DefaultValue;
-                input = vector instanceof VectorEntity ? [vector.X, vector.Y, vector.Z].map(v => v.valueOf())
+                value = vector instanceof VectorEntity ? [vector.X, vector.Y, vector.Z].map(v => v.valueOf())
                     : vector instanceof LinearColorEntity ? [vector.R, vector.G, vector.B, vector.A].map(v => v.valueOf())
                         : /** @type {Number[]} */([]);
             }
-            if (input.length > 0) {
-                return input.map(v => Utility.printExponential(v)).join(",")
+            if (value?.length > 0) {
+                return value.map(v => Utility.printExponential(v)).join(",")
             }
+            value = undefined;
             break
         case Configuration.paths.materialExpressionFunctionInput: {
             const materialObject = entity.getMaterialSubobject();
@@ -4412,9 +4440,11 @@ function nodeIcon(entity) {
         case Configuration.paths.addDelegate:
         case Configuration.paths.asyncAction:
         case Configuration.paths.callDelegate:
+        case Configuration.paths.clearDelegate:
         case Configuration.paths.createDelegate:
         case Configuration.paths.functionEntry:
         case Configuration.paths.functionResult:
+        case Configuration.paths.removeDelegate:
             return SVGIcon.node
         case Configuration.paths.customEvent: return SVGIcon.event
         case Configuration.paths.doN: return SVGIcon.doN
@@ -4726,7 +4756,7 @@ const pinColorMaterial = i$3`120, 120, 120`;
 /** @param {PinEntity<IEntity>} entity */
 function pinColor(entity) {
     if (entity.PinType.PinCategory?.toString() === "mask") {
-        const result = colors[entity.PinType.PinSubCategory];
+        const result = colors[entity.PinType.PinSubCategory?.toString()];
         if (result) {
             return result
         }
@@ -5294,7 +5324,7 @@ class PinTypeEntity extends IEntity {
     static attributes = {
         ...super.attributes,
         PinCategory: StringEntity.withDefault(),
-        PinSubCategory: StringEntity.withDefault(),
+        PinSubCategory: StringEntity,
         PinSubCategoryObject: ObjectReferenceEntity,
         PinSubCategoryMemberReference: FunctionReferenceEntity,
         ContainerType: SymbolEntity,
@@ -5657,11 +5687,11 @@ class PinEntity extends IEntity {
         AutogeneratedDefaultValue: StringEntity,
         DefaultObject: ObjectReferenceEntity,
         PersistentGuid: GuidEntity,
-        bHidden: BooleanEntity.withDefault(),
-        bNotConnectable: BooleanEntity.withDefault(),
-        bDefaultValueIsReadOnly: BooleanEntity.withDefault(),
-        bDefaultValueIsIgnored: BooleanEntity.withDefault(),
-        bAdvancedView: BooleanEntity.withDefault(),
+        bHidden: BooleanEntity,
+        bNotConnectable: BooleanEntity,
+        bDefaultValueIsReadOnly: BooleanEntity,
+        bDefaultValueIsIgnored: BooleanEntity,
+        bAdvancedView: BooleanEntity,
         bOrphanedPin: BooleanEntity,
     }
     static grammar = this.createGrammar()
@@ -6121,12 +6151,18 @@ class ScriptVariableEntity extends IEntity {
 
 class UnknownPinEntity extends PinEntity {
 
+    static attributes = {
+        ...super.attributes,
+        PinId: GuidEntity
+    }
+
     static grammar = this.createGrammar()
 
     /** @returns {P<UnknownPinEntity>} */
     static createGrammar() {
         return Parsernostrum.seq(
-            Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Symbol.source})\\s*\\(\\s*`), 1),
+            // Lookbehind
+            Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Symbol.source}\\s*)\\(\\s*`), 1),
             Grammar.createAttributeGrammar(this).sepBy(Grammar.commaSeparation),
             Parsernostrum.reg(/\s*(?:,\s*)?\)/)
         ).map(([lookbehind, attributes, _2]) => {
@@ -8475,6 +8511,29 @@ class MouseClickDrag extends MouseMoveDraggable {
     }
 }
 
+/**
+ * @param {ObjectEntity} entity
+ * @returns {String?}
+ */
+function nodeSubtitle(entity) {
+    switch (entity.getType()) {
+        case Configuration.paths.addDelegate:
+        case Configuration.paths.clearDelegate:
+        case Configuration.paths.removeDelegate:
+            return null
+    }
+    const targetPin = entity
+        .getPinEntities()
+        .find(pin => pin.PinName?.toString() === "self" && pinTitle(pin) === "Target");
+    if (targetPin) {
+        const target = entity.FunctionReference?.MemberParent?.getName()
+            ?? targetPin.PinType?.PinSubCategoryObject?.getName()
+            ?? "Untitled";
+        return target.length > 0 ? `Target is ${Utility.formatStringName(target)}` : null
+    }
+    return null
+}
+
 /** @typedef {import("./IMouseClickDrag.js").Options} Options */
 
 /** @extends {MouseMoveDraggable<NodeElement>} */
@@ -8646,7 +8705,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
 
     static nodeStyleClasses = ["ueb-node-style-default"]
 
-    #hasSubtitle = false
+    #subtitle
 
     /** @type {() => PinEntity<IEntity>} */
     pinInserter
@@ -8692,6 +8751,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element);
+        this.#subtitle = nodeSubtitle(element.entity);
         this.element.classList.add(.../** @type {typeof NodeTemplate} */(this.constructor).nodeStyleClasses);
         this.element.style.setProperty("--ueb-node-color", this.getColor().cssText);
         this.pinInserter = this.element.entity.additionalPinInserter();
@@ -8750,10 +8810,8 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                 ${name ? x`
                     <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
                         ${name}
-                        ${this.#hasSubtitle && this.getTargetType().length > 0 ? x`
-                            <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
-                                Target is ${Utility.formatStringName(this.getTargetType())}
-                            </div>
+                        ${this.#subtitle ? x`
+                            <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">${this.#subtitle}</div>
                         `: A}
                     </div>
                 ` : A}
@@ -8774,7 +8832,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         this.element.nodeNameElement = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-name-text"));
         let hasInput = false;
         let hasOutput = false;
-        for (const p of this.element.getPinElements()) {
+        for (const p of this.getPinElements()) {
             if (p === this.defaultPin) {
                 continue
             }
@@ -8797,26 +8855,14 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         }
     }
 
+    getPinElements() {
+        return this.element.getPinElements()
+    }
+
     createPinElements() {
         return this.element.getPinEntities()
             .filter(v => !v.isHidden())
-            .map(pinEntity => {
-                this.#hasSubtitle = this.#hasSubtitle
-                    || pinEntity.PinName.toString() === "self" && pinEntity.pinTitle() === "Target";
-                return this.createPinElement(pinEntity)
-            })
-    }
-
-    getTargetType() {
-        return this.element.entity.FunctionReference?.MemberParent?.getName() ?? "Untitled"
-    }
-
-    /**
-     * @param {NodeElement} node
-     * @returns {NodeListOf<PinElement>}
-     */
-    getPinElements(node) {
-        return node.querySelectorAll("ueb-pin")
+            .map(pinEntity => this.createPinElement(pinEntity))
     }
 
     linksChanged() { }
@@ -9385,12 +9431,12 @@ class PinTemplate extends ITemplate {
                     return SVGIcon.pcgStackPin
             }
         }
-        switch (this.element.entity.PinType?.ContainerType?.serialize()) {
+        switch (this.element.entity.PinType.ContainerType?.toString()) {
             case "Array": return SVGIcon.arrayPin
             case "Set": return SVGIcon.setPin
             case "Map": return SVGIcon.mapPin
         }
-        if (this.element.entity.PinType?.PinCategory?.toString().toLocaleLowerCase() === "delegate") {
+        if (this.element.entity.PinType.PinCategory?.toString().toLocaleLowerCase() === "delegate") {
             return SVGIcon.delegate
         }
         if (this.element.nodeElement?.template instanceof VariableOperationNodeTemplate) {
@@ -9474,6 +9520,7 @@ class MinimalPinTemplate extends PinTemplate {
 class EventNodeTemplate extends NodeTemplate {
 
     static nodeStyleClasses = [...super.nodeStyleClasses, "ueb-node-style-event"]
+    #delegatePinElement
 
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
@@ -9505,22 +9552,32 @@ class EventNodeTemplate extends NodeTemplate {
         `
     }
 
+    getPinElements() {
+        return this.element.getPinElements().filter(v => v.entity.PinType.PinCategory?.toString() !== "delegate")
+    }
+
     createDelegatePinElement() {
-        const pin = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin")).newObject(
-            this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory?.toString() === "delegate"),
-            new MinimalPinTemplate(),
-            this.element
-        );
-        pin.template.isNameRendered = false;
-        return pin
+        if (!this.#delegatePinElement) {
+            this.#delegatePinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
+                .newObject(
+                    this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory?.toString() === "delegate"),
+                    new MinimalPinTemplate(),
+                    this.element
+                );
+            this.#delegatePinElement.template.isNameRendered = false;
+        }
+        return this.#delegatePinElement
     }
 
     createPinElements() {
-        return this.element.getPinEntities()
-            .filter(v => !v.isHidden() && v.PinType.PinCategory?.toString() !== "delegate")
-            .map(pinEntity => /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
-                .newObject(pinEntity, undefined, this.element)
-            )
+        return [
+            this.createDelegatePinElement(),
+            ...this.element.getPinEntities()
+                .filter(v => !v.isHidden() && v.PinType.PinCategory?.toString() !== "delegate")
+                .map(pinEntity => /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
+                    .newObject(pinEntity, undefined, this.element)
+                )
+        ]
     }
 }
 
@@ -9600,17 +9657,9 @@ class KnotNodeTemplate extends NodeTemplate {
     }
 
     setupPins() {
-        this.element.getPinElements().forEach(
-            p => /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-border")).appendChild(p)
-        );
-    }
-
-    /**
-     * @param {NodeElement} node
-     * @returns {NodeListOf<PinElement>}
-     */
-    getPinElements(node) {
-        return node.querySelectorAll("ueb-pin")
+        for (const p of this.getPinElements()) {
+            /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-border")).appendChild(p);
+        }
     }
 
     createPinElements() {
@@ -9915,7 +9964,7 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     /** @param {String} name */
-    #redirectLinksAfterRename(name) {
+    #redirectLinksBeforeRename(name) {
         for (let sourcePinElement of this.getPinElements()) {
             for (let targetPinReference of sourcePinElement.getLinks()) {
                 this.blueprint.getPin(targetPinReference).redirectLink(
@@ -9950,9 +9999,9 @@ class NodeElement extends ISelectableDraggableElement {
             "Name",
             /** @param {InstanceType<typeof ObjectEntity.attributes.Name>} newName */
             newName => {
+                this.#redirectLinksBeforeRename(newName.value);
                 this.nodeTitle = newName.value;
                 this.nodeDisplayName = nodeTitle(entity);
-                this.#redirectLinksAfterRename(newName.value);
             }
         );
     }
@@ -10067,7 +10116,7 @@ class BlueprintEntity extends ObjectEntity {
 
     /** @param {ObjectEntity} entity */
     getHomonymObjectEntity(entity) {
-        const name = entity.getObjectName(false);
+        const name = entity.getObjectName();
         return this.#objectEntities.find(entity => entity.getObjectName() == name)
     }
 
@@ -11319,8 +11368,9 @@ class Blueprint extends IElement {
                 const name = element.entity.getObjectName();
                 const homonym = this.entity.getHomonymObjectEntity(element.entity);
                 if (homonym) {
-                    homonym.Name.value = this.entity.takeFreeName(name);
-                    homonym.Name = homonym.Name;
+                    const newName = this.entity.takeFreeName(name);
+                    // @ts-expect-error
+                    homonym.Name = new (homonym.Name.constructor)(newName);
                 }
                 this.nodes.push(element);
                 this.entity.addObjectEntity(element.entity);
@@ -12848,7 +12898,7 @@ class PinElement extends IElement {
                 fromAttribute: (value, type) => value
                     ? GuidEntity.grammar.parse(value)
                     : null,
-                toAttribute: (value, type) => /** @type {String} */(value?.toString()),
+                toAttribute: (value, type) => value?.toString(),
             },
             attribute: "data-id",
             reflect: true,
@@ -12920,6 +12970,7 @@ class PinElement extends IElement {
         this.isLinked = false;
         this.connectable = !entity.bNotConnectable?.valueOf();
         super.initialize(entity, template);
+        this.pinId = this.entity.PinId;
         this.pinType = this.entity.getType();
         this.defaultValue = this.entity.getDefaultValue();
         this.color = PinElement.properties.color.converter.fromAttribute(this.getColor().toString());
@@ -13058,7 +13109,7 @@ class PinElement extends IElement {
             && pinReference.pinGuid.toString() == originalPinElement.entity.PinId.toString()
         );
         if (index >= 0) {
-            this.entity.LinkedTo[index] = newReference;
+            this.entity.LinkedTo.valueOf()[index] = newReference;
             return true
         }
         return false

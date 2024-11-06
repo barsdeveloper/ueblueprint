@@ -15,7 +15,7 @@ export default class BlueprintEntity extends ObjectEntity {
 
     /** @param {ObjectEntity} entity */
     getHomonymObjectEntity(entity) {
-        const name = entity.getObjectName(false)
+        const name = entity.getObjectName()
         return this.#objectEntities.find(entity => entity.getObjectName() == name)
     }
 

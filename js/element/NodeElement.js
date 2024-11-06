@@ -100,7 +100,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     /** @param {String} name */
-    #redirectLinksAfterRename(name) {
+    #redirectLinksBeforeRename(name) {
         for (let sourcePinElement of this.getPinElements()) {
             for (let targetPinReference of sourcePinElement.getLinks()) {
                 this.blueprint.getPin(targetPinReference).redirectLink(
@@ -135,9 +135,9 @@ export default class NodeElement extends ISelectableDraggableElement {
             "Name",
             /** @param {InstanceType<typeof ObjectEntity.attributes.Name>} newName */
             newName => {
+                this.#redirectLinksBeforeRename(newName.value)
                 this.nodeTitle = newName.value
                 this.nodeDisplayName = nodeTitle(entity)
-                this.#redirectLinksAfterRename(newName.value)
             }
         )
     }
