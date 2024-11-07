@@ -4414,19 +4414,18 @@ function nodeTitle(entity) {
         }
         return Utility.formatStringName(entity.OpName.toString()).replaceAll("::", " ")
     }
-    let prefix;
-    if (
-        className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNodeParameter")
-        || className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNode"
-
-        )) {
-        return Utility.formatStringName(className.substring(prefix.length))
-    }
     if (entity.FunctionDisplayName) {
         return Utility.formatStringName(entity.FunctionDisplayName.toString())
     }
     if (entity.ObjectRef) {
         return entity.ObjectRef.getName()
+    }
+    let prefix;
+    if (
+        className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNodeParameter")
+        || className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNode")
+    ) {
+        return Utility.formatStringName(className.substring(prefix.length))
     }
     return Utility.formatStringName(entity.getNameAndCounter()[0])
 }
