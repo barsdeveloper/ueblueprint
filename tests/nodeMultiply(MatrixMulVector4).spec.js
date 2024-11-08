@@ -1,3 +1,4 @@
+import PinElement from "../js/element/PinElement.js"
 import Utility from "../js/Utility.js"
 import { expect, testNode } from "./fixtures/test.js"
 

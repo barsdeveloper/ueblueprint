@@ -76,5 +76,8 @@ export default function nodeColor(entity) {
     if (entity.bIsPureFunc?.valueOf()) {
         return Configuration.nodeColors.green
     }
+    if (entity["Input"]?.["Name"]) {
+        return Configuration.nodeColors.gray
+    }
     return Configuration.nodeColors.blue
 }

@@ -250,8 +250,9 @@ export default function nodeTitle(entity) {
     if (className === Configuration.paths.macro) {
         return Utility.formatStringName(entity.MacroGraphReference?.getMacroName())
     }
-    if (entity.isMaterial() && entity.getMaterialSubobject()) {
-        let result = nodeTitle(entity.getMaterialSubobject())
+    const materialSubobject = entity.getMaterialSubobject()
+    if (materialSubobject) {
+        let result = nodeTitle(materialSubobject)
         result = result.match(/Material Expression (.+)/)?.[1] ?? result
         return result
     }
@@ -457,7 +458,10 @@ export default function nodeTitle(entity) {
         className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNodeParameter")
         || className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNode")
     ) {
-        return Utility.formatStringName(className.substring(prefix.length))
+        return entity["Input"]?.["Name"]?.toString() ?? Utility.formatStringName(className.substring(prefix.length))
+    }
+    if (entity.ParameterName) {
+        return entity.ParameterName.toString()
     }
     return Utility.formatStringName(entity.getNameAndCounter()[0])
 }

@@ -107,8 +107,11 @@ export default class ObjectEntity extends IEntity {
         SizeX: MirroredEntity.of(IntegerEntity),
         SizeY: MirroredEntity.of(IntegerEntity),
         Text: MirroredEntity.of(StringEntity),
+        ParameterName: StringEntity,
+        ExpressionGUID: GuidEntity,
         MaterialExpressionEditorX: MirroredEntity.of(IntegerEntity),
         MaterialExpressionEditorY: MirroredEntity.of(IntegerEntity),
+        MaterialExpressionGuid: GuidEntity,
         NodeTitle: StringEntity,
         NodeTitleColor: LinearColorEntity,
         PositionX: MirroredEntity.of(IntegerEntity),
@@ -201,20 +204,20 @@ export default class ObjectEntity extends IEntity {
         super(values)
 
         // Attributes
+        /** @type {ArrayEntity<typeof PinEntity | typeof UnknownPinEntity>} */ this.CustomProperties
         /** @type {InstanceType<typeof ObjectEntity.attributes.AddedPins>} */ this.AddedPins
         /** @type {InstanceType<typeof ObjectEntity.attributes.AdvancedPinDisplay>} */ this.AdvancedPinDisplay
         /** @type {InstanceType<typeof ObjectEntity.attributes.Archetype>} */ this.Archetype
         /** @type {InstanceType<typeof ObjectEntity.attributes.AxisKey>} */ this.AxisKey
         /** @type {InstanceType<typeof ObjectEntity.attributes.bIsPureFunc>} */ this.bIsPureFunc
         /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementInstance>} */ this.BlueprintElementInstance
-        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstA>} */ this.ConstA
-        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstB>} */ this.ConstB
         /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementType>} */ this.BlueprintElementType
         /** @type {InstanceType<typeof ObjectEntity.attributes.Class>} */ this.Class
         /** @type {InstanceType<typeof ObjectEntity.attributes.CommentColor>} */ this.CommentColor
         /** @type {InstanceType<typeof ObjectEntity.attributes.ComponentPropertyName>} */ this.ComponentPropertyName
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstA>} */ this.ConstA
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstB>} */ this.ConstB
         /** @type {InstanceType<typeof ObjectEntity.attributes.CustomFunctionName>} */ this.CustomFunctionName
-        /** @type {ArrayEntity<typeof PinEntity | typeof UnknownPinEntity>} */ this.CustomProperties
         /** @type {InstanceType<typeof ObjectEntity.attributes.DelegatePropertyName>} */ this.DelegatePropertyName
         /** @type {InstanceType<typeof ObjectEntity.attributes.DelegateReference>} */ this.DelegateReference
         /** @type {InstanceType<typeof ObjectEntity.attributes.EnabledState>} */ this.EnabledState
@@ -253,9 +256,10 @@ export default class ObjectEntity extends IEntity {
         /** @type {InstanceType<typeof ObjectEntity.attributes.Operation>} */ this.Operation
         /** @type {InstanceType<typeof ObjectEntity.attributes.OpName>} */ this.OpName
         /** @type {InstanceType<typeof ObjectEntity.attributes.OutputPins>} */ this.OutputPins
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ParameterName>} */ this.ParameterName
         /** @type {InstanceType<typeof ObjectEntity.attributes.PCGNode>} */ this.PCGNode
-        /** @type {InstanceType<typeof ObjectEntity.attributes.PinTags>} */ this.PinTags
         /** @type {InstanceType<typeof ObjectEntity.attributes.PinNames>} */ this.PinNames
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PinTags>} */ this.PinTags
         /** @type {InstanceType<typeof ObjectEntity.attributes.PositionX>} */ this.PositionX
         /** @type {InstanceType<typeof ObjectEntity.attributes.PositionY>} */ this.PositionY
         /** @type {InstanceType<typeof ObjectEntity.attributes.ProxyFactoryFunctionName>} */ this.ProxyFactoryFunctionName
@@ -565,24 +569,10 @@ export default class ObjectEntity extends IEntity {
     }
 
     isMaterial() {
-
-        return this.getClass() === Configuration.paths.materialGraphNode
-        // return [
-        //     Configuration.paths.materialExpressionConstant,
-        //     Configuration.paths.materialExpressionConstant2Vector,
-        //     Configuration.paths.materialExpressionConstant3Vector,
-        //     Configuration.paths.materialExpressionConstant4Vector,
-        //     Configuration.paths.materialExpressionLogarithm,
-        //     Configuration.paths.materialExpressionLogarithm10,
-        //     Configuration.paths.materialExpressionLogarithm2,
-        //     Configuration.paths.materialExpressionMaterialFunctionCall,
-        //     Configuration.paths.materialExpressionSquareRoot,
-        //     Configuration.paths.materialExpressionTextureCoordinate,
-        //     Configuration.paths.materialExpressionTextureSample,
-        //     Configuration.paths.materialGraphNode,
-        //     Configuration.paths.materialGraphNodeComment,
-        // ]
-        //     .includes(this.getClass())
+        const classValue = this.getClass()
+        return classValue.startsWith("/Script/Engine.MaterialExpression")
+            || classValue.startsWith("/Script/InterchangeImport.MaterialExpression")
+            || classValue.startsWith("/Script/UnrealEd.MaterialGraph")
     }
 
     /** @return {ObjectEntity} */

@@ -93,6 +93,7 @@
  * @typedef {import("./js/entity/UnknownPinEntity.js").default} UnknownPinEntity
  * @typedef {import("./js/entity/VariableReferenceEntity.js").default} VariableReferenceEntity
  * @typedef {import("./js/entity/Vector2DEntity.js").default} Vector2DEntity
+ * @typedef {import("./js/entity/Vector4DEntity.js").default} Vector4DEntity
  * @typedef {import("./js/entity/VectorEntity.js").default} VectorEntity
  * @typedef {import("./js/input/IInput.js").default} IInput
  * @typedef {import("./js/input/keyboard/KeyboardShortcut.js").default} KeyboardShortcut
@@ -102,7 +103,6 @@
  * @typedef {import("./js/template/ColorSliderTemplate.js").default} ColorSliderTemplate
  * @typedef {import("./js/template/IDraggableControlTemplate.js").default} IDraggableControlTemplate
  * @typedef {import("./js/template/IDraggablePositionedTemplate.js").default} IDraggablePositionedTemplate
- * @typedef {typeof import("./js/entity/ComputedTypeEntity.js").default} ComputedTypeEntityConstructor
  * @typedef {import("./js/template/IDraggableTemplate.js").default} IDraggableTemplate
  * @typedef {import("./js/template/IFromToPositionedTemplate.js").default} IFromToPositionedTemplate
  * @typedef {import("./js/template/IResizeableTemplate.js").default} IResizeableTemplate
@@ -142,6 +142,7 @@
  * @typedef {import("lit").CSSResult} CSSResult
  * @typedef {import("lit").PropertyValues} PropertyValues
  * @typedef {import("lit").TemplateResult} TemplateResult
+ * @typedef {typeof import("./js/entity/ComputedTypeEntity.js").default} ComputedTypeEntityConstructor
  */
 /**
  * @template T

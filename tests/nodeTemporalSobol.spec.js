@@ -1,4 +1,5 @@
 import Configuration from "../js/Configuration.js"
+import PinElement from "../js/element/PinElement.js"
 import { expect, testNode } from "./fixtures/test.js"
 
 testNode({

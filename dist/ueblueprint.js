@@ -3768,6 +3768,9 @@ function nodeColor(entity) {
     if (entity.bIsPureFunc?.valueOf()) {
         return Configuration.nodeColors.green
     }
+    if (entity["Input"]?.["Name"]) {
+        return Configuration.nodeColors.gray
+    }
     return Configuration.nodeColors.blue
 }
 
@@ -4218,8 +4221,9 @@ function nodeTitle(entity) {
     if (className === Configuration.paths.macro) {
         return Utility.formatStringName(entity.MacroGraphReference?.getMacroName())
     }
-    if (entity.isMaterial() && entity.getMaterialSubobject()) {
-        let result = nodeTitle(entity.getMaterialSubobject());
+    const materialSubobject = entity.getMaterialSubobject();
+    if (materialSubobject) {
+        let result = nodeTitle(materialSubobject);
         result = result.match(/Material Expression (.+)/)?.[1] ?? result;
         return result
     }
@@ -4425,7 +4429,10 @@ function nodeTitle(entity) {
         className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNodeParameter")
         || className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNode")
     ) {
-        return Utility.formatStringName(className.substring(prefix.length))
+        return entity["Input"]?.["Name"]?.toString() ?? Utility.formatStringName(className.substring(prefix.length))
+    }
+    if (entity.ParameterName) {
+        return entity.ParameterName.toString()
     }
     return Utility.formatStringName(entity.getNameAndCounter()[0])
 }
@@ -6282,8 +6289,11 @@ class ObjectEntity extends IEntity {
         SizeX: MirroredEntity.of(IntegerEntity),
         SizeY: MirroredEntity.of(IntegerEntity),
         Text: MirroredEntity.of(StringEntity),
+        ParameterName: StringEntity,
+        ExpressionGUID: GuidEntity,
         MaterialExpressionEditorX: MirroredEntity.of(IntegerEntity),
         MaterialExpressionEditorY: MirroredEntity.of(IntegerEntity),
+        MaterialExpressionGuid: GuidEntity,
         NodeTitle: StringEntity,
         NodeTitleColor: LinearColorEntity,
         PositionX: MirroredEntity.of(IntegerEntity),
@@ -6376,20 +6386,20 @@ class ObjectEntity extends IEntity {
         super(values);
 
         // Attributes
+        /** @type {ArrayEntity<typeof PinEntity | typeof UnknownPinEntity>} */ this.CustomProperties;
         /** @type {InstanceType<typeof ObjectEntity.attributes.AddedPins>} */ this.AddedPins;
         /** @type {InstanceType<typeof ObjectEntity.attributes.AdvancedPinDisplay>} */ this.AdvancedPinDisplay;
         /** @type {InstanceType<typeof ObjectEntity.attributes.Archetype>} */ this.Archetype;
         /** @type {InstanceType<typeof ObjectEntity.attributes.AxisKey>} */ this.AxisKey;
         /** @type {InstanceType<typeof ObjectEntity.attributes.bIsPureFunc>} */ this.bIsPureFunc;
         /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementInstance>} */ this.BlueprintElementInstance;
-        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstA>} */ this.ConstA;
-        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstB>} */ this.ConstB;
         /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementType>} */ this.BlueprintElementType;
         /** @type {InstanceType<typeof ObjectEntity.attributes.Class>} */ this.Class;
         /** @type {InstanceType<typeof ObjectEntity.attributes.CommentColor>} */ this.CommentColor;
         /** @type {InstanceType<typeof ObjectEntity.attributes.ComponentPropertyName>} */ this.ComponentPropertyName;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstA>} */ this.ConstA;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstB>} */ this.ConstB;
         /** @type {InstanceType<typeof ObjectEntity.attributes.CustomFunctionName>} */ this.CustomFunctionName;
-        /** @type {ArrayEntity<typeof PinEntity | typeof UnknownPinEntity>} */ this.CustomProperties;
         /** @type {InstanceType<typeof ObjectEntity.attributes.DelegatePropertyName>} */ this.DelegatePropertyName;
         /** @type {InstanceType<typeof ObjectEntity.attributes.DelegateReference>} */ this.DelegateReference;
         /** @type {InstanceType<typeof ObjectEntity.attributes.EnabledState>} */ this.EnabledState;
@@ -6428,9 +6438,10 @@ class ObjectEntity extends IEntity {
         /** @type {InstanceType<typeof ObjectEntity.attributes.Operation>} */ this.Operation;
         /** @type {InstanceType<typeof ObjectEntity.attributes.OpName>} */ this.OpName;
         /** @type {InstanceType<typeof ObjectEntity.attributes.OutputPins>} */ this.OutputPins;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ParameterName>} */ this.ParameterName;
         /** @type {InstanceType<typeof ObjectEntity.attributes.PCGNode>} */ this.PCGNode;
-        /** @type {InstanceType<typeof ObjectEntity.attributes.PinTags>} */ this.PinTags;
         /** @type {InstanceType<typeof ObjectEntity.attributes.PinNames>} */ this.PinNames;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PinTags>} */ this.PinTags;
         /** @type {InstanceType<typeof ObjectEntity.attributes.PositionX>} */ this.PositionX;
         /** @type {InstanceType<typeof ObjectEntity.attributes.PositionY>} */ this.PositionY;
         /** @type {InstanceType<typeof ObjectEntity.attributes.ProxyFactoryFunctionName>} */ this.ProxyFactoryFunctionName;
@@ -6738,24 +6749,10 @@ class ObjectEntity extends IEntity {
     }
 
     isMaterial() {
-
-        return this.getClass() === Configuration.paths.materialGraphNode
-        // return [
-        //     Configuration.paths.materialExpressionConstant,
-        //     Configuration.paths.materialExpressionConstant2Vector,
-        //     Configuration.paths.materialExpressionConstant3Vector,
-        //     Configuration.paths.materialExpressionConstant4Vector,
-        //     Configuration.paths.materialExpressionLogarithm,
-        //     Configuration.paths.materialExpressionLogarithm10,
-        //     Configuration.paths.materialExpressionLogarithm2,
-        //     Configuration.paths.materialExpressionMaterialFunctionCall,
-        //     Configuration.paths.materialExpressionSquareRoot,
-        //     Configuration.paths.materialExpressionTextureCoordinate,
-        //     Configuration.paths.materialExpressionTextureSample,
-        //     Configuration.paths.materialGraphNode,
-        //     Configuration.paths.materialGraphNodeComment,
-        // ]
-        //     .includes(this.getClass())
+        const classValue = this.getClass();
+        return classValue.startsWith("/Script/Engine.MaterialExpression")
+            || classValue.startsWith("/Script/InterchangeImport.MaterialExpression")
+            || classValue.startsWith("/Script/UnrealEd.MaterialGraph")
     }
 
     /** @return {ObjectEntity} */
@@ -8518,12 +8515,13 @@ function nodeSubtitle(entity) {
     switch (entity.getType()) {
         case Configuration.paths.addDelegate:
         case Configuration.paths.clearDelegate:
+        case Configuration.paths.callDelegate:
         case Configuration.paths.removeDelegate:
             return null
     }
     const targetPin = entity
         .getPinEntities()
-        .find(pin => pin.PinName?.toString() === "self" && pinTitle(pin) === "Target");
+        .find(pin => !pin.isHidden() && pin.PinName?.toString() === "self" && pinTitle(pin) === "Target");
     if (targetPin) {
         const target = entity.FunctionReference?.MemberParent?.getName()
             ?? targetPin.PinType?.PinSubCategoryObject?.getName()
