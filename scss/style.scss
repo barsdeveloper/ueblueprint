@@ -22,7 +22,8 @@ ueb-blueprint {
 }
 
 ueb-blueprint svg {
-    overflow: visible;
+    overflow: visible !important;
+    max-width: none !important;
 }
 
 .ueb-viewport-header {
