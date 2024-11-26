@@ -433,6 +433,7 @@ export default function nodeTitle(entity) {
             case "Matrix::MatrixMultiply": return "Multiply (Matrix * Matrix)"
             case "Matrix::MatrixVectorMultiply": return "Multiply (Matrix * Vector4)"
             case "Numeric::Abs": return "Abs"
+            case "Numeric::ArcCosine": return "ArcCosine"
             case "Numeric::Add": return "+"
             case "Numeric::DistancePos": return "Distance"
             case "Numeric::Mul": return String.fromCharCode(0x2a2f)
@@ -445,7 +446,7 @@ export default function nodeTitle(entity) {
             // case "Integer::BitOr": return "Bitwise OR"
             // case "Integer::BitOr": return "Bitwise OR"
         }
-        return Utility.formatStringName(entity.OpName.toString()).replaceAll("::", " ")
+        return Utility.formatStringName(entity.OpName.toString().replaceAll("::", " "))
     }
     if (entity.FunctionDisplayName) {
         return Utility.formatStringName(entity.FunctionDisplayName.toString())

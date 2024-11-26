@@ -42,6 +42,8 @@ export const test = /**
     }
 )
 
+test.setTimeout(3000)
+
 export const expect = base.expect
 export * from "@playwright/test"
 
@@ -192,8 +194,8 @@ export function testNode(testData) {
             async ({ blueprintPage }) => {
                 const variadic = blueprintPage.node.getByText("Add pin")
                 await expect(variadic).toBeVisible()
-                await variadic.hover()
-                await variadic.click()
+                await variadic.hover({ timeout: 1000 })
+                await variadic.click({ timeout: 1000 })
                 expect(await blueprintPage.node.locator("ueb-pin").all()).toHaveLength(testData.pins + 1)
                 await variadic.blur()
             }

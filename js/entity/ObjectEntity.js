@@ -157,7 +157,7 @@ export default class ObjectEntity extends IEntity {
             Grammar.symbolQuoted.map(v => [v, true]),
             Grammar.symbol.map(v => [v, false]),
         ),
-        P.reg(new RegExp(String.raw`\s*\(\s*(\d+)\s*\)\s*\=\s*`), 1).map(Number)
+        P.reg(new RegExp(String.raw`\s*\(\s*(\d+)\s*\)\s*\=\s*`), 1).map(Number) // Number in parentheses then equal
     ).chain(
         /** @param {[[keyof ObjectEntity.attributes, Boolean], Number]} param */
         ([[symbol, quoted], index]) =>

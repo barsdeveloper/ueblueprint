@@ -1,3 +1,4 @@
+import http from "http"
 import httpServer from "http-server"
 
 
@@ -54,6 +55,21 @@ export default class BlueprintFixture {
         }
     }
 
+    async checkServerReady(url) {
+        return new Promise((resolve, reject) => {
+            const request = http.get(url, res => {
+                if (res.statusCode === 200) {
+                    resolve()
+                } else {
+                    reject(new Error(`Server not ready, status code: ${res.statusCode}`))
+                }
+            })
+
+            request.on("error", error => reject(error))
+            request.end()
+        })
+    }
+
     createServer() {
         return new Promise((resolve, reject) => {
             const webserver = httpServer.createServer({
@@ -69,12 +85,22 @@ export default class BlueprintFixture {
                     resolve(null)
                 }
             })
-            webserver.listen(this.#port, "127.0.0.1", () => resolve(webserver))
+            webserver.listen(this.#port, "127.0.0.1", async () => {
+                console.log(`Server started on http://127.0.0.1:${this.#port}`)
+                const url = `http://127.0.0.1:${this.#port}/empty.html`
+                try {
+                    await this.checkServerReady(url)
+                    BlueprintFixture.server = webserver
+                    resolve(webserver)
+                } catch (error) {
+                    console.error("Server failed readiness check:", error)
+                    reject(error)
+                }
+            })
             process.addListener("SIGTERM", () => {
                 console.log("SIGTERM signal received: closing HTTP server")
                 webserver.close()
             })
-            BlueprintFixture.server = webserver
         })
     }
 
@@ -86,6 +112,8 @@ export default class BlueprintFixture {
             if (e.message.includes("ERR_CONNECTION_REFUSED")) {
                 await this.createServer()
                 await this.page.goto(url)
+            } else {
+                throw e
             }
         }
         this.#blueprintLocator = this.page.locator("ueb-blueprint")

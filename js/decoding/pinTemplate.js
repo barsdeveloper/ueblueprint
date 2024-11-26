@@ -28,6 +28,7 @@ const inputPinTemplates = {
     "string": StringPinTemplate,
     [Configuration.paths.linearColor]: LinearColorPinTemplate,
     [Configuration.paths.niagaraBool]: BoolPinTemplate,
+    [Configuration.paths.niagaraFloat]: RealPinTemplate,
     [Configuration.paths.NiagaraInt32]: IntPinTemplate,
     [Configuration.paths.niagaraPosition]: VectorPinTemplate,
     [Configuration.paths.rotator]: RotatorPinTemplate,

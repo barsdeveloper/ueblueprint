@@ -4404,6 +4404,7 @@ function nodeTitle(entity) {
             case "Matrix::MatrixMultiply": return "Multiply (Matrix * Matrix)"
             case "Matrix::MatrixVectorMultiply": return "Multiply (Matrix * Vector4)"
             case "Numeric::Abs": return "Abs"
+            case "Numeric::ArcCosine": return "ArcCosine"
             case "Numeric::Add": return "+"
             case "Numeric::DistancePos": return "Distance"
             case "Numeric::Mul": return String.fromCharCode(0x2a2f)
@@ -4416,7 +4417,7 @@ function nodeTitle(entity) {
             // case "Integer::BitOr": return "Bitwise OR"
             // case "Integer::BitOr": return "Bitwise OR"
         }
-        return Utility.formatStringName(entity.OpName.toString()).replaceAll("::", " ")
+        return Utility.formatStringName(entity.OpName.toString().replaceAll("::", " "))
     }
     if (entity.FunctionDisplayName) {
         return Utility.formatStringName(entity.FunctionDisplayName.toString())
@@ -5654,6 +5655,7 @@ class PinEntity extends IEntity {
         "string": StringEntity,
         [Configuration.paths.linearColor]: LinearColorEntity,
         [Configuration.paths.niagaraBool]: BooleanEntity,
+        [Configuration.paths.niagaraFloat]: NumberEntity,
         [Configuration.paths.niagaraPosition]: VectorEntity,
         [Configuration.paths.rotator]: RotatorEntity,
         [Configuration.paths.vector]: VectorEntity,
@@ -6168,7 +6170,7 @@ class UnknownPinEntity extends PinEntity {
     static createGrammar() {
         return Parsernostrum.seq(
             // Lookbehind
-            Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Symbol.source}\\s*)\\(\\s*`), 1),
+            Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`), 1),
             Grammar.createAttributeGrammar(this).sepBy(Grammar.commaSeparation),
             Parsernostrum.reg(/\s*(?:,\s*)?\)/)
         ).map(([lookbehind, attributes, _2]) => {
@@ -6339,7 +6341,7 @@ class ObjectEntity extends IEntity {
             Grammar.symbolQuoted.map(v => [v, true]),
             Grammar.symbol.map(v => [v, false]),
         ),
-        Parsernostrum.reg(new RegExp(String.raw`\s*\(\s*(\d+)\s*\)\s*\=\s*`), 1).map(Number)
+        Parsernostrum.reg(new RegExp(String.raw`\s*\(\s*(\d+)\s*\)\s*\=\s*`), 1).map(Number) // Number in parentheses then equal
     ).chain(
         /** @param {[[keyof ObjectEntity.attributes, Boolean], Number]} param */
         ([[symbol, quoted], index]) =>
@@ -12858,6 +12860,7 @@ const inputPinTemplates = {
     "string": StringPinTemplate,
     [Configuration.paths.linearColor]: LinearColorPinTemplate,
     [Configuration.paths.niagaraBool]: BoolPinTemplate,
+    [Configuration.paths.niagaraFloat]: RealPinTemplate,
     [Configuration.paths.NiagaraInt32]: IntPinTemplate,
     [Configuration.paths.niagaraPosition]: VectorPinTemplate,
     [Configuration.paths.rotator]: RotatorPinTemplate,
