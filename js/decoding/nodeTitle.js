@@ -466,6 +466,20 @@ export default function nodeTitle(entity) {
             case "Numeric::Madd": return `(A${String.fromCharCode(0x2a2f)}B)+C`
             case "Numeric::Mul": return String.fromCharCode(0x2a2f)
             case "Numeric::Negate": return "-A"
+            case "Numeric::OneMinus": return "1-A"
+            case "Numeric::PI": return String.fromCharCode(0x03C0)
+            case "Numeric::RadiansToDegrees": return "RadToDeg"
+            case "Numeric::Rand Float": return "Random Float"
+            case "Numeric::Rand Integer": return "Random Integer"
+            case "Numeric::Rand": return "Random"
+            case "Numeric::Rcp": return "Reciprocal"
+            case "Numeric::RSqrt": return "Rcp Sqrt"
+            case "Numeric::Sine(Degrees)": return "Sin(D)"
+            case "Numeric::Sine(Radians)": return "Sin(R)"
+            case "Numeric::Subtract": return "-"
+            case "Numeric::Tangent(Degrees)": return "Tan(D)"
+            case "Numeric::Tangent(Radians)": return "Tan(R)"
+            case "Numeric::TWO_PI": return `2 ${String.fromCharCode(0x03C0)}`
             // case "Integer::BitOr": return "Bitwise OR"
             // case "Integer::BitOr": return "Bitwise OR"
         }
