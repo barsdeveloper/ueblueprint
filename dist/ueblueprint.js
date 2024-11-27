@@ -4401,23 +4401,46 @@ function nodeTitle(entity) {
             case "Boolean::LogicNEq": return "!="
             case "Boolean::LogicNot": return "Logic NOT"
             case "Boolean::LogicOr": return "Logic OR"
-            case "Matrix::MatrixMultiply": return "Multiply (Matrix * Matrix)"
-            case "Matrix::MatrixVectorMultiply": return "Multiply (Matrix * Vector4)"
-            case "Numeric::Abs": return "Abs"
-            case "Numeric::ArcCosine": return "ArcCosine"
-            case "Numeric::Add": return "+"
-            case "Numeric::DistancePos": return "Distance"
-            case "Numeric::Mul": return String.fromCharCode(0x2a2f)
-            case "Integer::BitLShift": return "Bitwise Left Shift"
             case "Integer::BitAnd": return "Bitwise AND"
+            case "Integer::BitLShift": return "Bitwise Left Shift"
             case "Integer::BitNot": return "Bitwise NOT"
             case "Integer::BitOr": return "Bitwise OR"
             case "Integer::BitRShift": return "Bitwise Right Shift"
             case "Integer::BitXOr": return "Bitwise XOR"
+            case "Matrix::MatrixMultiply": return "Multiply (Matrix * Matrix)"
+            case "Matrix::MatrixVectorMultiply": return "Multiply (Matrix * Vector4)"
+            case "Numeric::Abs": return "Abs"
+            case "Numeric::Add": return "+"
+            case "Numeric::ArcCosine": return "ArcCosine"
+            case "Numeric::ArcCosine(Degrees)": return "ArcCos(D)"
+            case "Numeric::ArcCosine(Radians)": return "ArcCos(R)"
+            case "Numeric::ArcSine": return "ArcSine"
+            case "Numeric::ArcSine(Degrees)": return "ArcSin(D)"
+            case "Numeric::ArcSine(Radians)": return "ArcSin(R)"
+            case "Numeric::ArcTangent": return "ArcTangent"
+            case "Numeric::ArcTangent(Degrees)": return "ArcTan(D)"
+            case "Numeric::ArcTangent(Radians)": return "ArcTan(R)"
+            case "Numeric::CmpEQ": return "=="
+            case "Numeric::CmpGE": return ">="
+            case "Numeric::CmpGT": return ">"
+            case "Numeric::CmpLE": return "<="
+            case "Numeric::CmpLT": return "<"
+            case "Numeric::CmpNEQ": return "!="
+            case "Numeric::Cosine(Degrees)": return "Cos(D)"
+            case "Numeric::Cosine(Radians)": return "Cos(R)"
+            case "Numeric::DegreesToRadians": return "DegToRad"
+            case "Numeric::DistancePos": return "Distance"
+            case "Numeric::Div": return String.fromCharCode(0x00f7)
+            case "Numeric::FMod": return "%"
+            case "Numeric::FModFast": return "Modulo Fast"
+            case "Numeric::Length": return "Len"
+            case "Numeric::Madd": return `(A${String.fromCharCode(0x2a2f)}B)+C`
+            case "Numeric::Mul": return String.fromCharCode(0x2a2f)
+            case "Numeric::Negate": return "-A"
             // case "Integer::BitOr": return "Bitwise OR"
             // case "Integer::BitOr": return "Bitwise OR"
         }
-        return Utility.formatStringName(entity.OpName.toString().replaceAll("::", " "))
+        return Utility.formatStringName(entity.OpName.toString().replaceAll(/(?:^\w+(?<!^Matrix))?::/g, " "))
     }
     if (entity.FunctionDisplayName) {
         return Utility.formatStringName(entity.FunctionDisplayName.toString())
@@ -9800,7 +9823,40 @@ function nodeTemplateClass(nodeEntity) {
                     "Boolean::LogicNEq",
                     "Numeric::Abs",
                     "Numeric::Add",
+                    "Numeric::ArcCosine(Degrees)",
+                    "Numeric::ArcCosine(Radians)",
+                    "Numeric::ArcSine(Degrees)",
+                    "Numeric::ArcSine(Radians)",
+                    "Numeric::ArcTangent(Degrees)",
+                    "Numeric::ArcTangent(Radians)",
+                    "Numeric::Ceil",
+                    "Numeric::CmpEQ",
+                    "Numeric::CmpGE",
+                    "Numeric::CmpGT",
+                    "Numeric::CmpLE",
+                    "Numeric::CmpLT",
+                    "Numeric::CmpNEQ",
+                    "Numeric::Cosine(Degrees)",
+                    "Numeric::Cosine(Radians)",
+                    "Numeric::DegreesToRadians",
+                    "Numeric::Div",
+                    "Numeric::Dot",
+                    "Numeric::Exp",
+                    "Numeric::Exp2",
+                    "Numeric::Floor",
+                    "Numeric::FMod",
+                    "Numeric::Frac",
+                    "Numeric::Length",
+                    "Numeric::Lerp",
+                    "Numeric::Log",
+                    "Numeric::Log2",
+                    "Numeric::Madd",
+                    "Numeric::Max",
+                    "Numeric::Min",
                     "Numeric::Mul",
+                    "Numeric::Negate",
+                    "Numeric::Normalize",
+                    "Vector3::Cross",
                 ].includes(nodeEntity.OpName?.toString())
             ) {
                 return VariableOperationNodeTemplate
