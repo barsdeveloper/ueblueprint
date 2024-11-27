@@ -46,7 +46,7 @@ You can check `index.html` for a working example, the main steps are the followi
 4. Import the class Blueprint in JavaScript (this library uses modules).
 ```HTML
 <script type="module">
-    import { Blueprint } from "./dist/ueblueprint.js"
+    import { Blueprint } from "./dist/ueblueprint.min.js"
 </script>
 ```
 5. Define your blueprint by writing the code inside a `template`, inside a `ueb-blueprint` element.
