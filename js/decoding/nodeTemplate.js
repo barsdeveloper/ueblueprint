@@ -9,22 +9,86 @@ import VariableAccessNodeTemplate from "../template/node/VariableAccessNodeTempl
 import VariableConversionNodeTemplate from "../template/node/VariableConversionNodeTemplate.js"
 import VariableOperationNodeTemplate from "../template/node/VariableOperationNodeTemplate.js"
 
+const niagaraOperationNodes = [
+    "Boolean::LogicEq",
+    "Boolean::LogicNEq",
+    "Integer::EnumNEq",
+    "Integer::EnumEq",
+    ...[
+        "Abs",
+        "Add",
+        "ArcCosine(Degrees)",
+        "ArcCosine(Radians)",
+        "ArcSine(Degrees)",
+        "ArcSine(Radians)",
+        "ArcTangent(Degrees)",
+        "ArcTangent(Radians)",
+        "Ceil",
+        "CmpEQ",
+        "CmpGE",
+        "CmpGT",
+        "CmpLE",
+        "CmpLT",
+        "CmpNEQ",
+        "Cosine(Degrees)",
+        "Cosine(Radians)",
+        "DegreesToRadians",
+        "Div",
+        "Dot",
+        "Exp",
+        "Exp2",
+        "Floor",
+        "FMod",
+        "Frac",
+        "Length",
+        "Lerp",
+        "Log",
+        "Log2",
+        "Madd",
+        "Max",
+        "Min",
+        "Mul",
+        "Negate",
+        "Normalize",
+        "OneMinus",
+        "PI",
+        "RadiansToDegrees",
+        "Rcp",
+        "RcpFast",
+        "Round",
+        "RSqrt",
+        "Sign",
+        "Sine(Degrees)",
+        "Sine(Radians)",
+        "Sqrt",
+        "Step",
+        "Subtract",
+        "Tangent(Degrees)",
+        "Tangent(Radians)",
+        "Trunc",
+        "TWO_PI",
+    ].map(v => "Numeric::" + v),
+    "Vector3::Cross",
+]
+
+const paths = Configuration.paths
+
 /**
  * @param {ObjectEntity} nodeEntity
  * @return {new () => NodeTemplate}
  */
 export default function nodeTemplateClass(nodeEntity) {
     if (
-        nodeEntity.getClass() === Configuration.paths.callFunction
-        || nodeEntity.getClass() === Configuration.paths.commutativeAssociativeBinaryOperator
-        || nodeEntity.getClass() === Configuration.paths.callArrayFunction
+        nodeEntity.getClass() === paths.callFunction
+        || nodeEntity.getClass() === paths.commutativeAssociativeBinaryOperator
+        || nodeEntity.getClass() === paths.callArrayFunction
     ) {
         const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? ""
         const memberName = nodeEntity.FunctionReference?.MemberName?.toString()
         if (
             memberName && (
-                memberParent === Configuration.paths.kismetMathLibrary
-                || memberParent === Configuration.paths.kismetArrayLibrary
+                memberParent === paths.kismetMathLibrary
+                || memberParent === paths.kismetArrayLibrary
             )) {
             if (memberName.startsWith("Conv_")) {
                 return VariableConversionNodeTemplate
@@ -77,95 +141,37 @@ export default function nodeTemplateClass(nodeEntity) {
                     return VariableOperationNodeTemplate
             }
         }
-        if (memberParent === Configuration.paths.blueprintSetLibrary) {
+        if (memberParent === paths.blueprintSetLibrary) {
             return VariableOperationNodeTemplate
         }
-        if (memberParent === Configuration.paths.blueprintMapLibrary) {
+        if (memberParent === paths.blueprintMapLibrary) {
             return VariableOperationNodeTemplate
         }
     }
     switch (nodeEntity.getClass()) {
-        case Configuration.paths.comment:
-        case Configuration.paths.materialGraphNodeComment:
+        case paths.comment:
+        case paths.materialGraphNodeComment:
             return CommentNodeTemplate
-        case Configuration.paths.createDelegate:
+        case paths.createDelegate:
             return NodeTemplate
-        case Configuration.paths.metasoundEditorGraphExternalNode:
+        case paths.metasoundEditorGraphExternalNode:
             if (nodeEntity["ClassName"]?.["Name"] == "Add") {
                 return MetasoundOperationTemplate
             }
             return MetasoundNodeTemplate
-        case Configuration.paths.niagaraNodeOp:
-            if (
-                [
-                    "Boolean::LogicEq",
-                    "Boolean::LogicNEq",
-                    "Numeric::Abs",
-                    "Numeric::Add",
-                    "Numeric::ArcCosine(Degrees)",
-                    "Numeric::ArcCosine(Radians)",
-                    "Numeric::ArcSine(Degrees)",
-                    "Numeric::ArcSine(Radians)",
-                    "Numeric::ArcTangent(Degrees)",
-                    "Numeric::ArcTangent(Radians)",
-                    "Numeric::Ceil",
-                    "Numeric::CmpEQ",
-                    "Numeric::CmpGE",
-                    "Numeric::CmpGT",
-                    "Numeric::CmpLE",
-                    "Numeric::CmpLT",
-                    "Numeric::CmpNEQ",
-                    "Numeric::Cosine(Degrees)",
-                    "Numeric::Cosine(Radians)",
-                    "Numeric::DegreesToRadians",
-                    "Numeric::Div",
-                    "Numeric::Dot",
-                    "Numeric::Exp",
-                    "Numeric::Exp2",
-                    "Numeric::Floor",
-                    "Numeric::FMod",
-                    "Numeric::Frac",
-                    "Numeric::Length",
-                    "Numeric::Lerp",
-                    "Numeric::Log",
-                    "Numeric::Log2",
-                    "Numeric::Madd",
-                    "Numeric::Max",
-                    "Numeric::Min",
-                    "Numeric::Mul",
-                    "Numeric::Negate",
-                    "Numeric::Normalize",
-                    "Numeric::OneMinus",
-                    "Numeric::PI",
-                    "Numeric::RadiansToDegrees",
-                    "Numeric::Rcp",
-                    "Numeric::RcpFast",
-                    "Numeric::Round",
-                    "Numeric::RSqrt",
-                    "Numeric::Sign",
-                    "Numeric::Sine(Degrees)",
-                    "Numeric::Sine(Radians)",
-                    "Numeric::Sqrt",
-                    "Numeric::Step",
-                    "Numeric::Subtract",
-                    "Numeric::Tangent(Degrees)",
-                    "Numeric::Tangent(Radians)",
-                    "Numeric::Trunc",
-                    "Numeric::TWO_PI",
-                    "Vector3::Cross",
-                ].includes(nodeEntity.OpName?.toString())
-            ) {
+        case paths.niagaraNodeOp:
+            if (niagaraOperationNodes.includes(nodeEntity.OpName?.toString())) {
                 return VariableOperationNodeTemplate
             }
             break
-        case Configuration.paths.promotableOperator:
+        case paths.promotableOperator:
             return VariableOperationNodeTemplate
-        case Configuration.paths.knot:
+        case paths.knot:
             return KnotNodeTemplate
-        case Configuration.paths.literal:
-        case Configuration.paths.self:
-        case Configuration.paths.variableGet:
-        case Configuration.paths.variableSet:
+        case paths.literal:
+        case paths.self:
+        case paths.variableGet:
+        case paths.variableSet:
             return VariableAccessNodeTemplate
     }
     if (nodeEntity.isEvent()) {

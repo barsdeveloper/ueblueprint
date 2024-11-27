@@ -46,9 +46,9 @@ export default function pinTemplate(entity) {
     if (entity.PinType.bIsReference?.valueOf() && !entity.PinType.bIsConst?.valueOf()) {
         return inputPinTemplates["MUTABLE_REFERENCE"]
     }
-    const type = entity.getType()
-    if (type === "exec") {
+    if (entity.isExecution()) {
         return ExecPinTemplate
     }
+    const type = entity.getType()
     return (entity.isInput() ? inputPinTemplates[type] : PinTemplate) ?? PinTemplate
 }

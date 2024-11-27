@@ -37,6 +37,7 @@ const colors = {
     "Volume[]": css`230, 69, 188`,
     "wildcard": css`128, 120, 120`,
     [Configuration.paths.niagaraBool]: css`146, 0, 0`,
+    [Configuration.paths.niagaraDataInterfaceCurlNoise]: css`0, 168, 242`,
     [Configuration.paths.niagaraDataInterfaceVolumeTexture]: css`0, 168, 242`,
     [Configuration.paths.niagaraFloat]: css`160, 250, 68`,
     [Configuration.paths.NiagaraInt32]: css`30, 224, 172`,

@@ -259,6 +259,7 @@ export default class PinEntity extends IEntity {
 
     isExecution() {
         return this.PinType.PinCategory.toString() === "exec"
+            || this.getType() === Configuration.paths.niagaraParameterMap
     }
 
     isHidden() {

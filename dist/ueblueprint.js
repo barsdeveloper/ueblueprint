@@ -202,14 +202,17 @@ class Configuration {
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         niagaraBool: "/Script/Niagara.NiagaraBool",
         niagaraClipboardContent: "/Script/NiagaraEditor.NiagaraClipboardContent",
+        niagaraDataInterfaceCurlNoise: "/Script/Niagara.NiagaraDataInterfaceCurlNoise",
         niagaraDataInterfaceVolumeTexture: "/Script/Niagara.NiagaraDataInterfaceVolumeTexture",
         niagaraFloat: "/Script/Niagara.NiagaraFloat",
         NiagaraInt32: "/Script/Niagara.NiagaraInt32",
         niagaraMatrix: "/Script/Niagara.NiagaraMatrix",
         niagaraNodeConvert: "/Script/NiagaraEditor.NiagaraNodeConvert",
         niagaraNodeFunctionCall: "/Script/NiagaraEditor.NiagaraNodeFunctionCall",
+        niagaraNodeInput: "/Script/NiagaraEditor.NiagaraNodeInput",
         niagaraNodeOp: "/Script/NiagaraEditor.NiagaraNodeOp",
         niagaraNumeric: "/Script/Niagara.NiagaraNumeric",
+        niagaraParameterMap: "/Script/Niagara.NiagaraParameterMap",
         niagaraPosition: "/Script/Niagara.NiagaraPosition",
         pawn: "/Script/Engine.Pawn",
         pcgEditorGraphNode: "/Script/PCGEditor.PCGEditorGraphNode",
@@ -3712,6 +3715,15 @@ function nodeColor(entity) {
             return Configuration.nodeColors.blue
         case Configuration.paths.materialExpressionTextureSample:
             return Configuration.nodeColors.darkTurquoise
+        case Configuration.paths.niagaraNodeInput:
+            switch (entity["Usage"]?.toString()) {
+                case "Attribute": return Configuration.nodeColors.intenseGreen
+                case "Parameter": return Configuration.nodeColors.red
+                case "RapidIterationParameter": return Configuration.nodeColors.black
+                case "SystemConstant": return Configuration.nodeColors.gray
+                case "TranslatorConstant": return Configuration.nodeColors.gray
+                default: return Configuration.nodeColors.red
+            }
     }
     switch (entity.getClass()) {
         case Configuration.paths.callFunction:
@@ -3976,6 +3988,7 @@ class VectorEntity extends IEntity {
     }
 }
 
+const paths$1 = Configuration.paths;
 const sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/;
 const keyNameValue = {
     "A_AccentGrave": "à",
@@ -4004,6 +4017,66 @@ const keyNameValue = {
     "Section": "§",
     "Subtract": "Num -",
     "Tilde": "`",
+};
+const niagaraNodeNames = {
+    "Boolean::LogicAnd": "Logic AND",
+    "Boolean::LogicEq": "==",
+    "Boolean::LogicNEq": "!=",
+    "Boolean::LogicNot": "Logic NOT",
+    "Boolean::LogicOr": "Logic OR",
+    "Integer::BitAnd": "Bitwise AND",
+    "Integer::BitLShift": "Bitwise Left Shift",
+    "Integer::BitNot": "Bitwise NOT",
+    "Integer::BitOr": "Bitwise OR",
+    "Integer::BitRShift": "Bitwise Right Shift",
+    "Integer::BitXOr": "Bitwise XOR",
+    "Integer::EnumEq": "==",
+    "Integer::EnumNEq": "!=",
+    "Matrix::MatrixMultiply": "Multiply (Matrix * Matrix)",
+    "Matrix::MatrixVectorMultiply": "Multiply (Matrix * Vector4)",
+    // Numeric::
+    ...Object.fromEntries(Object.entries({
+        "Add": "+",
+        "ArcCosine": "ArcCosine",
+        "ArcCosine(Degrees)": "ArcCos(D)",
+        "ArcCosine(Radians)": "ArcCos(R)",
+        "ArcSine": "ArcSine",
+        "ArcSine(Degrees)": "ArcSin(D)",
+        "ArcSine(Radians)": "ArcSin(R)",
+        "ArcTangent(Degrees)": "ArcTan(D)",
+        "ArcTangent(Radians)": "ArcTan(R)",
+        "CmpEQ": "==",
+        "CmpGE": ">=",
+        "CmpGT": ">",
+        "CmpLE": "<=",
+        "CmpLT": "<",
+        "CmpNEQ": "!=",
+        "Cosine(Degrees)": "Cos(D)",
+        "Cosine(Radians)": "Cos(R)",
+        "DegreesToRadians": "DegToRad",
+        "DistancePos": "Distance",
+        "Div": String.fromCharCode(0x00f7),
+        "FMod": "%",
+        "FModFast": "Modulo Fast",
+        "Length": "Len",
+        "Madd": `(A${String.fromCharCode(0x2a2f)}B)+C`,
+        "Mul": String.fromCharCode(0x2a2f),
+        "Negate": "-A",
+        "OneMinus": "1-A",
+        "PI": String.fromCharCode(0x03C0),
+        "RadiansToDegrees": "RadToDeg",
+        "Rand Float": "Random Float",
+        "Rand Integer": "Random Integer",
+        "Rand": "Random",
+        "Rcp": "Reciprocal",
+        "RSqrt": "Rcp Sqrt",
+        "Sine(Degrees)": "Sin(D)",
+        "Sine(Radians)": "Sin(R)",
+        "Subtract": "-",
+        "Tangent(Degrees)": "Tan(D)",
+        "Tangent(Radians)": "Tan(R)",
+        "TWO_PI": `2 ${String.fromCharCode(0x03C0)}`,
+    }).map(([k, v]) => ["Numeric::" + k, v])),
 };
 
 /** @param {String} value */
@@ -4049,58 +4122,58 @@ function keyName(value) {
 function nodeTitle(entity) {
     let value;
     switch (entity.getType()) {
-        case Configuration.paths.addDelegate:
+        case paths$1.addDelegate:
             value ??= "Bind Event to ";
-        case Configuration.paths.clearDelegate:
+        case paths$1.clearDelegate:
             value ??= "Unbind all Events from ";
-        case Configuration.paths.removeDelegate:
+        case paths$1.removeDelegate:
             value ??= "Unbind Event from ";
             return value + Utility.formatStringName(
                 entity.DelegateReference?.MemberName?.toString().replace(/Delegate$/, "") ?? "None"
             )
-        case Configuration.paths.asyncAction:
+        case paths$1.asyncAction:
             if (entity.ProxyFactoryFunctionName) {
                 return Utility.formatStringName(entity.ProxyFactoryFunctionName?.toString())
             }
-        case Configuration.paths.actorBoundEvent:
-        case Configuration.paths.componentBoundEvent:
+        case paths$1.actorBoundEvent:
+        case paths$1.componentBoundEvent:
             return `${Utility.formatStringName(entity.DelegatePropertyName?.toString())} (${entity.ComponentPropertyName?.toString() ?? "Unknown"})`
-        case Configuration.paths.callDelegate:
+        case paths$1.callDelegate:
             return `Call ${entity.DelegateReference?.MemberName?.toString() ?? "None"}`
-        case Configuration.paths.createDelegate:
+        case paths$1.createDelegate:
             return "Create Event"
-        case Configuration.paths.customEvent:
+        case paths$1.customEvent:
             if (entity.CustomFunctionName) {
                 return entity.CustomFunctionName?.toString()
             }
-        case Configuration.paths.dynamicCast:
+        case paths$1.dynamicCast:
             if (!entity.TargetType) {
                 return "Bad cast node" // Target type not found
             }
             return `Cast To ${entity.TargetType?.getName()}`
-        case Configuration.paths.enumLiteral:
+        case paths$1.enumLiteral:
             return `Literal enum ${entity.Enum?.getName()}`
-        case Configuration.paths.event:
+        case paths$1.event:
             return `Event ${(entity.EventReference?.MemberName?.toString() ?? "").replace(/^Receive/, "")}`
-        case Configuration.paths.executionSequence:
+        case paths$1.executionSequence:
             return "Sequence"
-        case Configuration.paths.forEachElementInEnum:
+        case paths$1.forEachElementInEnum:
             return `For Each ${entity.Enum?.getName()}`
-        case Configuration.paths.forEachLoopWithBreak:
+        case paths$1.forEachLoopWithBreak:
             return "For Each Loop with Break"
-        case Configuration.paths.functionEntry:
+        case paths$1.functionEntry:
             return entity.FunctionReference?.MemberName?.toString() === "UserConstructionScript"
                 ? "Construction Script"
                 : entity.FunctionReference?.MemberName?.toString()
-        case Configuration.paths.functionResult:
+        case paths$1.functionResult:
             return "Return Node"
-        case Configuration.paths.ifThenElse:
+        case paths$1.ifThenElse:
             return "Branch"
-        case Configuration.paths.makeStruct:
+        case paths$1.makeStruct:
             if (entity.StructType) {
                 return `Make ${entity.StructType.getName()}`
             }
-        case Configuration.paths.materialExpressionComponentMask: {
+        case paths$1.materialExpressionComponentMask: {
             const materialObject = entity.getMaterialSubobject();
             if (materialObject) {
                 return `Mask ( ${Configuration.rgba
@@ -4109,15 +4182,15 @@ function nodeTitle(entity) {
                     .join("")})`
             }
         }
-        case Configuration.paths.materialExpressionConstant:
+        case paths$1.materialExpressionConstant:
             value ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName.toString() == "Value")?.DefaultValue];
-        case Configuration.paths.materialExpressionConstant2Vector:
+        case paths$1.materialExpressionConstant2Vector:
             value ??= [
                 entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "X")?.DefaultValue,
                 entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "Y")?.DefaultValue,
             ];
-        case Configuration.paths.materialExpressionConstant3Vector:
-        case Configuration.paths.materialExpressionConstant4Vector:
+        case paths$1.materialExpressionConstant3Vector:
+        case paths$1.materialExpressionConstant4Vector:
             if (!value) {
                 const vector = entity.getCustomproperties()
                     .find(pinEntity => pinEntity.PinName?.toString() == "Constant")
@@ -4131,32 +4204,32 @@ function nodeTitle(entity) {
             }
             value = undefined;
             break
-        case Configuration.paths.materialExpressionFunctionInput: {
+        case paths$1.materialExpressionFunctionInput: {
             const materialObject = entity.getMaterialSubobject();
             const inputName = materialObject?.InputName ?? "In";
             const inputType = materialObject?.InputType?.value.match(/^.+?_(\w+)$/)?.[1] ?? "Vector3";
             return `Input ${inputName} (${inputType})`
         }
-        case Configuration.paths.materialExpressionLogarithm:
+        case paths$1.materialExpressionLogarithm:
             return "Ln"
-        case Configuration.paths.materialExpressionLogarithm10:
+        case paths$1.materialExpressionLogarithm10:
             return "Log10"
-        case Configuration.paths.materialExpressionLogarithm2:
+        case paths$1.materialExpressionLogarithm2:
             return "Log2"
-        case Configuration.paths.materialExpressionMaterialFunctionCall:
+        case paths$1.materialExpressionMaterialFunctionCall:
             const materialFunction = entity.getMaterialSubobject()?.MaterialFunction;
             if (materialFunction) {
                 return materialFunction.getName()
             }
             break
-        case Configuration.paths.materialExpressionSquareRoot:
+        case paths$1.materialExpressionSquareRoot:
             return "Sqrt"
-        case Configuration.paths.materialExpressionSubtract:
+        case paths$1.materialExpressionSubtract:
             const materialObject = entity.getMaterialSubobject();
             if (materialObject) {
                 return `Subtract(${materialObject.ConstA ?? "1"},${materialObject.ConstB ?? "1"})`
             }
-        case Configuration.paths.metasoundEditorGraphExternalNode: {
+        case paths$1.metasoundEditorGraphExternalNode: {
             const name = entity["ClassName"]?.["Name"];
             if (name) {
                 switch (name) {
@@ -4165,7 +4238,7 @@ function nodeTitle(entity) {
                 }
             }
         }
-        case Configuration.paths.niagaraNodeConvert:
+        case paths$1.niagaraNodeConvert:
             /** @type {String} */
             const targetType = (entity["AutowireMakeType"]?.["ClassStructOrEnum"] ?? "")
                 .toString()
@@ -4173,11 +4246,11 @@ function nodeTitle(entity) {
                 ?.[1]
                 ?? "";
             return `Make ${targetType}`
-        case Configuration.paths.pcgEditorGraphNodeInput:
+        case paths$1.pcgEditorGraphNodeInput:
             return "Input"
-        case Configuration.paths.pcgEditorGraphNodeOutput:
+        case paths$1.pcgEditorGraphNodeOutput:
             return "Output"
-        case Configuration.paths.spawnActorFromClass:
+        case paths$1.spawnActorFromClass:
             let className = entity.getCustomproperties()
                 .find(pinEntity => pinEntity.PinName.toString() == "ReturnValue")
                 ?.PinType
@@ -4187,13 +4260,13 @@ function nodeTitle(entity) {
                 className = null;
             }
             return `SpawnActor ${Utility.formatStringName(className ?? "NONE")}`
-        case Configuration.paths.switchEnum:
+        case paths$1.switchEnum:
             return `Switch on ${entity.Enum?.getName() ?? "Enum"}`
-        case Configuration.paths.switchInteger:
+        case paths$1.switchInteger:
             return `Switch on Int`
-        case Configuration.paths.variableGet:
+        case paths$1.variableGet:
             return ""
-        case Configuration.paths.variableSet:
+        case paths$1.variableSet:
             return "SET"
     }
     const className = entity.getClass();
@@ -4211,14 +4284,14 @@ function nodeTitle(entity) {
     if (keyNameSymbol) {
         const name = keyNameSymbol.toString();
         let title = keyName(name) ?? Utility.formatStringName(name);
-        if (className === Configuration.paths.inputDebugKey) {
+        if (className === paths$1.inputDebugKey) {
             title = "Debug Key " + title;
-        } else if (className === Configuration.paths.getInputAxisKeyValue) {
+        } else if (className === paths$1.getInputAxisKeyValue) {
             title = "Get " + title;
         }
         return title
     }
-    if (className === Configuration.paths.macro) {
+    if (className === paths$1.macro) {
         return Utility.formatStringName(entity.MacroGraphReference?.getMacroName())
     }
     const materialSubobject = entity.getMaterialSubobject();
@@ -4238,7 +4311,7 @@ function nodeTitle(entity) {
     }
     const settingsObject = entity.getSettingsObject();
     if (settingsObject) {
-        if (settingsObject.ExportPath?.valueOf()?.type === Configuration.paths.pcgHiGenGridSizeSettings) {
+        if (settingsObject.ExportPath?.valueOf()?.type === paths$1.pcgHiGenGridSizeSettings) {
             return `Grid Size: ${(
                 settingsObject.HiGenGridSize?.toString().match(/\d+/)?.[0]?.concat("00")
                 ?? settingsObject.HiGenGridSize?.toString().match(/^\w+$/)?.[0]
@@ -4280,10 +4353,10 @@ function nodeTitle(entity) {
                 )
         }
         switch (memberParent) {
-            case Configuration.paths.blueprintGameplayTagLibrary:
-            case Configuration.paths.kismetMathLibrary:
-            case Configuration.paths.slateBlueprintLibrary:
-            case Configuration.paths.timeManagementBlueprintLibrary:
+            case paths$1.blueprintGameplayTagLibrary:
+            case paths$1.kismetMathLibrary:
+            case paths$1.slateBlueprintLibrary:
+            case paths$1.timeManagementBlueprintLibrary:
                 const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/);
                 if (leadingLetter) {
                     // Some functions start with B or F (Like FCeil, FMax, BMin)
@@ -4367,7 +4440,7 @@ function nodeTitle(entity) {
                     return "^"
                 }
                 break
-            case Configuration.paths.blueprintSetLibrary:
+            case paths$1.blueprintSetLibrary:
                 {
                     const setOperationMatch = memberName.match(/Set_(\w+)/);
                     if (setOperationMatch) {
@@ -4375,7 +4448,7 @@ function nodeTitle(entity) {
                     }
                 }
                 break
-            case Configuration.paths.blueprintMapLibrary:
+            case paths$1.blueprintMapLibrary:
                 {
                     const setOperationMatch = memberName.match(/Map_(\w+)/);
                     if (setOperationMatch) {
@@ -4383,7 +4456,7 @@ function nodeTitle(entity) {
                     }
                 }
                 break
-            case Configuration.paths.kismetArrayLibrary:
+            case paths$1.kismetArrayLibrary:
                 {
                     const arrayOperationMath = memberName.match(/Array_(\w+)/);
                     if (arrayOperationMath) {
@@ -4395,66 +4468,8 @@ function nodeTitle(entity) {
         return Utility.formatStringName(memberName)
     }
     if (entity.OpName) {
-        switch (entity.OpName.toString()) {
-            case "Boolean::LogicAnd": return "Logic AND"
-            case "Boolean::LogicEq": return "=="
-            case "Boolean::LogicNEq": return "!="
-            case "Boolean::LogicNot": return "Logic NOT"
-            case "Boolean::LogicOr": return "Logic OR"
-            case "Integer::BitAnd": return "Bitwise AND"
-            case "Integer::BitLShift": return "Bitwise Left Shift"
-            case "Integer::BitNot": return "Bitwise NOT"
-            case "Integer::BitOr": return "Bitwise OR"
-            case "Integer::BitRShift": return "Bitwise Right Shift"
-            case "Integer::BitXOr": return "Bitwise XOR"
-            case "Matrix::MatrixMultiply": return "Multiply (Matrix * Matrix)"
-            case "Matrix::MatrixVectorMultiply": return "Multiply (Matrix * Vector4)"
-            case "Numeric::Abs": return "Abs"
-            case "Numeric::Add": return "+"
-            case "Numeric::ArcCosine": return "ArcCosine"
-            case "Numeric::ArcCosine(Degrees)": return "ArcCos(D)"
-            case "Numeric::ArcCosine(Radians)": return "ArcCos(R)"
-            case "Numeric::ArcSine": return "ArcSine"
-            case "Numeric::ArcSine(Degrees)": return "ArcSin(D)"
-            case "Numeric::ArcSine(Radians)": return "ArcSin(R)"
-            case "Numeric::ArcTangent": return "ArcTangent"
-            case "Numeric::ArcTangent(Degrees)": return "ArcTan(D)"
-            case "Numeric::ArcTangent(Radians)": return "ArcTan(R)"
-            case "Numeric::CmpEQ": return "=="
-            case "Numeric::CmpGE": return ">="
-            case "Numeric::CmpGT": return ">"
-            case "Numeric::CmpLE": return "<="
-            case "Numeric::CmpLT": return "<"
-            case "Numeric::CmpNEQ": return "!="
-            case "Numeric::Cosine(Degrees)": return "Cos(D)"
-            case "Numeric::Cosine(Radians)": return "Cos(R)"
-            case "Numeric::DegreesToRadians": return "DegToRad"
-            case "Numeric::DistancePos": return "Distance"
-            case "Numeric::Div": return String.fromCharCode(0x00f7)
-            case "Numeric::FMod": return "%"
-            case "Numeric::FModFast": return "Modulo Fast"
-            case "Numeric::Length": return "Len"
-            case "Numeric::Madd": return `(A${String.fromCharCode(0x2a2f)}B)+C`
-            case "Numeric::Mul": return String.fromCharCode(0x2a2f)
-            case "Numeric::Negate": return "-A"
-            case "Numeric::OneMinus": return "1-A"
-            case "Numeric::PI": return String.fromCharCode(0x03C0)
-            case "Numeric::RadiansToDegrees": return "RadToDeg"
-            case "Numeric::Rand Float": return "Random Float"
-            case "Numeric::Rand Integer": return "Random Integer"
-            case "Numeric::Rand": return "Random"
-            case "Numeric::Rcp": return "Reciprocal"
-            case "Numeric::RSqrt": return "Rcp Sqrt"
-            case "Numeric::Sine(Degrees)": return "Sin(D)"
-            case "Numeric::Sine(Radians)": return "Sin(R)"
-            case "Numeric::Subtract": return "-"
-            case "Numeric::Tangent(Degrees)": return "Tan(D)"
-            case "Numeric::Tangent(Radians)": return "Tan(R)"
-            case "Numeric::TWO_PI": return `2 ${String.fromCharCode(0x03C0)}`
-            // case "Integer::BitOr": return "Bitwise OR"
-            // case "Integer::BitOr": return "Bitwise OR"
-        }
-        return Utility.formatStringName(entity.OpName.toString().replaceAll(/(?:^\w+(?<!^Matrix))?::/g, " "))
+        return niagaraNodeNames[entity.OpName.toString()]
+            ?? Utility.formatStringName(entity.OpName.toString().replaceAll(/(?:^\w+(?<!^Matrix))?::/g, " "))
     }
     if (entity.FunctionDisplayName) {
         return Utility.formatStringName(entity.FunctionDisplayName.toString())
@@ -4781,6 +4796,7 @@ const colors = {
     "Volume[]": i$3`230, 69, 188`,
     "wildcard": i$3`128, 120, 120`,
     [Configuration.paths.niagaraBool]: i$3`146, 0, 0`,
+    [Configuration.paths.niagaraDataInterfaceCurlNoise]: i$3`0, 168, 242`,
     [Configuration.paths.niagaraDataInterfaceVolumeTexture]: i$3`0, 168, 242`,
     [Configuration.paths.niagaraFloat]: i$3`160, 250, 68`,
     [Configuration.paths.NiagaraInt32]: i$3`30, 224, 172`,
@@ -5901,6 +5917,7 @@ class PinEntity extends IEntity {
 
     isExecution() {
         return this.PinType.PinCategory.toString() === "exec"
+            || this.getType() === Configuration.paths.niagaraParameterMap
     }
 
     isHidden() {
@@ -9744,22 +9761,86 @@ class VariableAccessNodeTemplate extends VariableManagementNodeTemplate {
     }
 }
 
+const niagaraOperationNodes = [
+    "Boolean::LogicEq",
+    "Boolean::LogicNEq",
+    "Integer::EnumNEq",
+    "Integer::EnumEq",
+    ...[
+        "Abs",
+        "Add",
+        "ArcCosine(Degrees)",
+        "ArcCosine(Radians)",
+        "ArcSine(Degrees)",
+        "ArcSine(Radians)",
+        "ArcTangent(Degrees)",
+        "ArcTangent(Radians)",
+        "Ceil",
+        "CmpEQ",
+        "CmpGE",
+        "CmpGT",
+        "CmpLE",
+        "CmpLT",
+        "CmpNEQ",
+        "Cosine(Degrees)",
+        "Cosine(Radians)",
+        "DegreesToRadians",
+        "Div",
+        "Dot",
+        "Exp",
+        "Exp2",
+        "Floor",
+        "FMod",
+        "Frac",
+        "Length",
+        "Lerp",
+        "Log",
+        "Log2",
+        "Madd",
+        "Max",
+        "Min",
+        "Mul",
+        "Negate",
+        "Normalize",
+        "OneMinus",
+        "PI",
+        "RadiansToDegrees",
+        "Rcp",
+        "RcpFast",
+        "Round",
+        "RSqrt",
+        "Sign",
+        "Sine(Degrees)",
+        "Sine(Radians)",
+        "Sqrt",
+        "Step",
+        "Subtract",
+        "Tangent(Degrees)",
+        "Tangent(Radians)",
+        "Trunc",
+        "TWO_PI",
+    ].map(v => "Numeric::" + v),
+    "Vector3::Cross",
+];
+
+const paths = Configuration.paths;
+
 /**
  * @param {ObjectEntity} nodeEntity
  * @return {new () => NodeTemplate}
  */
 function nodeTemplateClass(nodeEntity) {
     if (
-        nodeEntity.getClass() === Configuration.paths.callFunction
-        || nodeEntity.getClass() === Configuration.paths.commutativeAssociativeBinaryOperator
-        || nodeEntity.getClass() === Configuration.paths.callArrayFunction
+        nodeEntity.getClass() === paths.callFunction
+        || nodeEntity.getClass() === paths.commutativeAssociativeBinaryOperator
+        || nodeEntity.getClass() === paths.callArrayFunction
     ) {
         const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? "";
         const memberName = nodeEntity.FunctionReference?.MemberName?.toString();
         if (
             memberName && (
-                memberParent === Configuration.paths.kismetMathLibrary
-                || memberParent === Configuration.paths.kismetArrayLibrary
+                memberParent === paths.kismetMathLibrary
+                || memberParent === paths.kismetArrayLibrary
             )) {
             if (memberName.startsWith("Conv_")) {
                 return VariableConversionNodeTemplate
@@ -9812,95 +9893,37 @@ function nodeTemplateClass(nodeEntity) {
                     return VariableOperationNodeTemplate
             }
         }
-        if (memberParent === Configuration.paths.blueprintSetLibrary) {
+        if (memberParent === paths.blueprintSetLibrary) {
             return VariableOperationNodeTemplate
         }
-        if (memberParent === Configuration.paths.blueprintMapLibrary) {
+        if (memberParent === paths.blueprintMapLibrary) {
             return VariableOperationNodeTemplate
         }
     }
     switch (nodeEntity.getClass()) {
-        case Configuration.paths.comment:
-        case Configuration.paths.materialGraphNodeComment:
+        case paths.comment:
+        case paths.materialGraphNodeComment:
             return CommentNodeTemplate
-        case Configuration.paths.createDelegate:
+        case paths.createDelegate:
             return NodeTemplate
-        case Configuration.paths.metasoundEditorGraphExternalNode:
+        case paths.metasoundEditorGraphExternalNode:
             if (nodeEntity["ClassName"]?.["Name"] == "Add") {
                 return MetasoundOperationTemplate
             }
             return MetasoundNodeTemplate
-        case Configuration.paths.niagaraNodeOp:
-            if (
-                [
-                    "Boolean::LogicEq",
-                    "Boolean::LogicNEq",
-                    "Numeric::Abs",
-                    "Numeric::Add",
-                    "Numeric::ArcCosine(Degrees)",
-                    "Numeric::ArcCosine(Radians)",
-                    "Numeric::ArcSine(Degrees)",
-                    "Numeric::ArcSine(Radians)",
-                    "Numeric::ArcTangent(Degrees)",
-                    "Numeric::ArcTangent(Radians)",
-                    "Numeric::Ceil",
-                    "Numeric::CmpEQ",
-                    "Numeric::CmpGE",
-                    "Numeric::CmpGT",
-                    "Numeric::CmpLE",
-                    "Numeric::CmpLT",
-                    "Numeric::CmpNEQ",
-                    "Numeric::Cosine(Degrees)",
-                    "Numeric::Cosine(Radians)",
-                    "Numeric::DegreesToRadians",
-                    "Numeric::Div",
-                    "Numeric::Dot",
-                    "Numeric::Exp",
-                    "Numeric::Exp2",
-                    "Numeric::Floor",
-                    "Numeric::FMod",
-                    "Numeric::Frac",
-                    "Numeric::Length",
-                    "Numeric::Lerp",
-                    "Numeric::Log",
-                    "Numeric::Log2",
-                    "Numeric::Madd",
-                    "Numeric::Max",
-                    "Numeric::Min",
-                    "Numeric::Mul",
-                    "Numeric::Negate",
-                    "Numeric::Normalize",
-                    "Numeric::OneMinus",
-                    "Numeric::PI",
-                    "Numeric::RadiansToDegrees",
-                    "Numeric::Rcp",
-                    "Numeric::RcpFast",
-                    "Numeric::Round",
-                    "Numeric::RSqrt",
-                    "Numeric::Sign",
-                    "Numeric::Sine(Degrees)",
-                    "Numeric::Sine(Radians)",
-                    "Numeric::Sqrt",
-                    "Numeric::Step",
-                    "Numeric::Subtract",
-                    "Numeric::Tangent(Degrees)",
-                    "Numeric::Tangent(Radians)",
-                    "Numeric::Trunc",
-                    "Numeric::TWO_PI",
-                    "Vector3::Cross",
-                ].includes(nodeEntity.OpName?.toString())
-            ) {
+        case paths.niagaraNodeOp:
+            if (niagaraOperationNodes.includes(nodeEntity.OpName?.toString())) {
                 return VariableOperationNodeTemplate
             }
             break
-        case Configuration.paths.promotableOperator:
+        case paths.promotableOperator:
             return VariableOperationNodeTemplate
-        case Configuration.paths.knot:
+        case paths.knot:
             return KnotNodeTemplate
-        case Configuration.paths.literal:
-        case Configuration.paths.self:
-        case Configuration.paths.variableGet:
-        case Configuration.paths.variableSet:
+        case paths.literal:
+        case paths.self:
+        case paths.variableGet:
+        case paths.variableSet:
             return VariableAccessNodeTemplate
     }
     if (nodeEntity.isEvent()) {
@@ -12965,10 +12988,10 @@ function pinTemplate(entity) {
     if (entity.PinType.bIsReference?.valueOf() && !entity.PinType.bIsConst?.valueOf()) {
         return inputPinTemplates["MUTABLE_REFERENCE"]
     }
-    const type = entity.getType();
-    if (type === "exec") {
+    if (entity.isExecution()) {
         return ExecPinTemplate
     }
+    const type = entity.getType();
     return (entity.isInput() ? inputPinTemplates[type] : PinTemplate) ?? PinTemplate
 }
 
