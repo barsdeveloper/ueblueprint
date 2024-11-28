@@ -277,6 +277,18 @@ test("Boolean", () => {
     expect(BooleanEntity.flagSerialized().grammar.parse("true").serialize()).toEqual(`"true"`)
 })
 
+test("ColorChannelEntity", () => {
+    let grammar = ColorChannelEntity.grammar
+
+    let value = grammar.parse("0.45")
+    expect(value).toBeInstanceOf(ColorChannelEntity)
+    expect(value).toEqual(new ColorChannelEntity(0.45))
+    expect(value.serialize()).toBe("0.450000")
+    expect(value.equals(new (ColorChannelEntity.withDefault().flagNullable())(0.45))).toBeTruthy()
+    expect(value.valueOf()).toBe(0.45)
+    expect(value.toString()).toBe("0.45")
+})
+
 test("FormatTextEntity", () => {
     let grammar = FormatTextEntity.grammar
     let grammar2 = FormatTextEntity.flagSerialized().grammar

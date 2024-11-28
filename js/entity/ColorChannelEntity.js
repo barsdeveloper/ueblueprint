@@ -30,4 +30,8 @@ export default class ColorChannelEntity extends IEntity {
     valueOf() {
         return this.value
     }
+
+    toString() {
+        return this.value.toString()
+    }
 }
