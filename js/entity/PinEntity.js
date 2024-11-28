@@ -43,6 +43,7 @@ export default class PinEntity extends IEntity {
         "byte": ByteEntity,
         "enum": EnumEntity,
         "exec": StringEntity,
+        "float": NumberEntity,
         "int": IntegerEntity,
         "int64": Integer64Entity,
         "name": StringEntity,

@@ -19,6 +19,7 @@ const inputPinTemplates = {
     "bool": BoolPinTemplate,
     "byte": IntPinTemplate,
     "enum": EnumPinTemplate,
+    "float": RealPinTemplate,
     "int": IntPinTemplate,
     "int64": Int64PinTemplate,
     "MUTABLE_REFERENCE": ReferencePinTemplate,
