@@ -35,6 +35,7 @@ const inputPinTemplates = {
     [Configuration.paths.rotator]: RotatorPinTemplate,
     [Configuration.paths.vector]: VectorPinTemplate,
     [Configuration.paths.vector2D]: Vector2DPinTemplate,
+    [Configuration.paths.vector2f]: Vector2DPinTemplate,
     [Configuration.paths.vector3f]: VectorPinTemplate,
     [Configuration.paths.vector4f]: Vector4DPinTemplate,
 }

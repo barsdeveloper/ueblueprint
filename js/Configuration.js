@@ -218,6 +218,7 @@ export default class Configuration {
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
         vector: "/Script/CoreUObject.Vector",
         vector2D: "/Script/CoreUObject.Vector2D",
+        vector2f: "/Script/CoreUObject.Vector2f",
         vector3f: "/Script/CoreUObject.Vector3f",
         vector4f: "/Script/CoreUObject.Vector4f",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",

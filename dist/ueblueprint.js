@@ -242,6 +242,7 @@ class Configuration {
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
         vector: "/Script/CoreUObject.Vector",
         vector2D: "/Script/CoreUObject.Vector2D",
+        vector2f: "/Script/CoreUObject.Vector2f",
         vector3f: "/Script/CoreUObject.Vector3f",
         vector4f: "/Script/CoreUObject.Vector4f",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
@@ -1305,6 +1306,13 @@ class SVGIcon {
             <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M2 6C1.9996 7.10384 2.30372 8.1864 2.87889 9.12854C3.45406 10.0707 4.27798 10.8359 5.26 11.34L9 9L11.5 5L13.78 7.6C13.9251 7.07902 13.9991 6.54081 14 6C14 4.4087 13.3679 2.88258 12.2426 1.75736C11.1174 0.63214 9.5913 0 8 0C6.4087 0 4.88258 0.63214 3.75736 1.75736C2.63214 2.88258 2 4.4087 2 6V6Z" fill="white" />
             <path fill-rule="evenodd" clip-rule="evenodd" d="M8.22005 0.810059H8.00005C6.62265 0.810056 5.30153 1.35654 4.32663 2.32957C3.35172 3.30259 2.8027 4.62266 2.80005 6.00006C2.79984 7.03987 3.11257 8.05567 3.69756 8.91532C4.28255 9.77497 5.11271 10.4387 6.08005 10.8201L7.17005 10.1401C6.16687 9.86642 5.28119 9.27116 4.64894 8.44562C4.01669 7.62008 3.6728 6.60989 3.67005 5.57006C3.66886 4.34318 4.14143 3.16323 4.98917 2.27635C5.83692 1.38948 6.99437 0.864185 8.22005 0.810059V0.810059Z" fill="white" />
             <path d="M10.0401 5.16001C10.7028 5.16001 11.2401 4.62275 11.2401 3.96001C11.2401 3.29727 10.7028 2.76001 10.0401 2.76001C9.37735 2.76001 8.84009 3.29727 8.84009 3.96001C8.84009 4.62275 9.37735 5.16001 10.0401 5.16001Z" fill="white" />
+        </svg>
+    `
+
+    static staticPin = x`
+        <svg width="16" height="12" viewBox="1 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path class="ueb-pin-tofill" d="M1 7C1 4 3 1 7 1C10 1 14 3 17 6C18 7 18 7 17 8C14 11 10 13 7 13C3 13 1 10 1 7Z" fill="none" stroke="currentColor" stroke-width="2" />
+            <path class="ueb-pin-tostroke" d="M 9 4 V 3.5 H 5 V 7 H 9 V 10.5 H 5 V 10" stroke="currentColor" stroke-width="2" />
         </svg>
     `
 
@@ -4799,6 +4807,7 @@ const colors = {
     "Volume": i$3`230, 69, 188`,
     "Volume[]": i$3`230, 69, 188`,
     "wildcard": i$3`128, 120, 120`,
+    [Configuration.paths.linearColor]: i$3`0, 88, 200`,
     [Configuration.paths.niagaraBool]: i$3`146, 0, 0`,
     [Configuration.paths.niagaraDataInterfaceCurlNoise]: i$3`0, 168, 242`,
     [Configuration.paths.niagaraDataInterfaceVolumeTexture]: i$3`0, 168, 242`,
@@ -4811,6 +4820,7 @@ const colors = {
     [Configuration.paths.rotator]: i$3`157, 177, 251`,
     [Configuration.paths.transform]: i$3`227, 103, 0`,
     [Configuration.paths.vector]: i$3`251, 198, 34`,
+    [Configuration.paths.vector2f]: i$3`0, 88, 200`,
     [Configuration.paths.vector3f]: i$3`250, 200, 36`,
     [Configuration.paths.vector4f]: i$3`0, 88, 200`,
 };
@@ -5837,7 +5847,7 @@ class PinEntity extends IEntity {
 
     getType() {
         const category = this.PinType.PinCategory?.toString().toLocaleLowerCase();
-        if (category === "struct" || category === "class" || category === "object" || category === "type") {
+        if (["struct", "class", "object", "type", "statictype"].includes(category)) {
             return this.PinType.PinSubCategoryObject?.path
         }
         if (this.isEnum()) {
@@ -9500,6 +9510,9 @@ class PinTemplate extends ITemplate {
         if (this.element.nodeElement?.template instanceof VariableOperationNodeTemplate) {
             return SVGIcon.operationPin
         }
+        if (this.element.entity.PinType.PinCategory?.toString().toLocaleLowerCase() === "statictype") {
+            return SVGIcon.staticPin
+        }
         return SVGIcon.genericPin
     }
 
@@ -12982,6 +12995,7 @@ const inputPinTemplates = {
     [Configuration.paths.rotator]: RotatorPinTemplate,
     [Configuration.paths.vector]: VectorPinTemplate,
     [Configuration.paths.vector2D]: Vector2DPinTemplate,
+    [Configuration.paths.vector2f]: Vector2DPinTemplate,
     [Configuration.paths.vector3f]: VectorPinTemplate,
     [Configuration.paths.vector4f]: Vector4DPinTemplate,
 };

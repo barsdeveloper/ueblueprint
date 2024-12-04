@@ -36,6 +36,7 @@ const colors = {
     "Volume": css`230, 69, 188`,
     "Volume[]": css`230, 69, 188`,
     "wildcard": css`128, 120, 120`,
+    [Configuration.paths.linearColor]: css`0, 88, 200`,
     [Configuration.paths.niagaraBool]: css`146, 0, 0`,
     [Configuration.paths.niagaraDataInterfaceCurlNoise]: css`0, 168, 242`,
     [Configuration.paths.niagaraDataInterfaceVolumeTexture]: css`0, 168, 242`,
@@ -48,6 +49,7 @@ const colors = {
     [Configuration.paths.rotator]: css`157, 177, 251`,
     [Configuration.paths.transform]: css`227, 103, 0`,
     [Configuration.paths.vector]: css`251, 198, 34`,
+    [Configuration.paths.vector2f]: css`0, 88, 200`,
     [Configuration.paths.vector3f]: css`250, 200, 36`,
     [Configuration.paths.vector4f]: css`0, 88, 200`,
 }

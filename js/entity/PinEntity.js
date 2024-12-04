@@ -175,7 +175,7 @@ export default class PinEntity extends IEntity {
 
     getType() {
         const category = this.PinType.PinCategory?.toString().toLocaleLowerCase()
-        if (category === "struct" || category === "class" || category === "object" || category === "type") {
+        if (["struct", "class", "object", "type", "statictype"].includes(category)) {
             return this.PinType.PinSubCategoryObject?.path
         }
         if (this.isEnum()) {
