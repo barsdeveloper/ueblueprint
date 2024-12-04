@@ -121,6 +121,9 @@ export default class PinTemplate extends ITemplate {
         if (this.element.nodeElement?.template instanceof VariableOperationNodeTemplate) {
             return SVGIcon.operationPin
         }
+        if (this.element.entity.PinType.PinCategory?.toString().toLocaleLowerCase() === "statictype") {
+            return SVGIcon.staticPin
+        }
         return SVGIcon.genericPin
     }
 

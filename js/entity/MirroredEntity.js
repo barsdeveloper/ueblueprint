@@ -66,13 +66,13 @@ export default class MirroredEntity extends IEntity {
         return this.getter?.().equals(other)
     }
 
+    /** @returns {InstanceType<T>} */
     valueOf() {
-        this.valueOf = this.getter().valueOf.bind(this.getter())
-        return this.valueOf()
+        // @ts-expect-error
+        return this.getter().valueOf()
     }
 
     toString() {
-        this.toString = this.getter().toString.bind(this.getter())
-        return this.toString()
+        return this.getter().toString()
     }
 }

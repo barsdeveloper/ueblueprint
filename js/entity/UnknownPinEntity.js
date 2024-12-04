@@ -16,7 +16,7 @@ export default class UnknownPinEntity extends PinEntity {
     static createGrammar() {
         return P.seq(
             // Lookbehind
-            P.reg(new RegExp(`(${Grammar.Regex.Symbol.source}\\s*)\\(\\s*`), 1),
+            P.reg(new RegExp(`(${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`), 1),
             Grammar.createAttributeGrammar(this).sepBy(Grammar.commaSeparation),
             P.reg(/\s*(?:,\s*)?\)/)
         ).map(([lookbehind, attributes, _2]) => {

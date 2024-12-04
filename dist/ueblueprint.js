@@ -202,12 +202,15 @@ class Configuration {
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         niagaraBool: "/Script/Niagara.NiagaraBool",
         niagaraClipboardContent: "/Script/NiagaraEditor.NiagaraClipboardContent",
+        niagaraDataInterfaceCurlNoise: "/Script/Niagara.NiagaraDataInterfaceCurlNoise",
         niagaraDataInterfaceVolumeTexture: "/Script/Niagara.NiagaraDataInterfaceVolumeTexture",
         niagaraFloat: "/Script/Niagara.NiagaraFloat",
-        niagaraMatrix: "/Script/Niagara.NiagaraMatrix",
+        niagaraInt32: "/Script/Niagara.NiagaraInt32",
+        niagaraNodeConvert: "/Script/NiagaraEditor.NiagaraNodeConvert",
         niagaraNodeFunctionCall: "/Script/NiagaraEditor.NiagaraNodeFunctionCall",
+        niagaraNodeInput: "/Script/NiagaraEditor.NiagaraNodeInput",
         niagaraNodeOp: "/Script/NiagaraEditor.NiagaraNodeOp",
-        niagaraNumeric: "/Script/Niagara.NiagaraNumeric",
+        niagaraParameterMap: "/Script/Niagara.NiagaraParameterMap",
         niagaraPosition: "/Script/Niagara.NiagaraPosition",
         pawn: "/Script/Engine.Pawn",
         pcgEditorGraphNode: "/Script/PCGEditor.PCGEditorGraphNode",
@@ -237,6 +240,7 @@ class Configuration {
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
         vector: "/Script/CoreUObject.Vector",
         vector2D: "/Script/CoreUObject.Vector2D",
+        vector2f: "/Script/CoreUObject.Vector2f",
         vector3f: "/Script/CoreUObject.Vector3f",
         vector4f: "/Script/CoreUObject.Vector4f",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
@@ -1300,6 +1304,13 @@ class SVGIcon {
             <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M2 6C1.9996 7.10384 2.30372 8.1864 2.87889 9.12854C3.45406 10.0707 4.27798 10.8359 5.26 11.34L9 9L11.5 5L13.78 7.6C13.9251 7.07902 13.9991 6.54081 14 6C14 4.4087 13.3679 2.88258 12.2426 1.75736C11.1174 0.63214 9.5913 0 8 0C6.4087 0 4.88258 0.63214 3.75736 1.75736C2.63214 2.88258 2 4.4087 2 6V6Z" fill="white" />
             <path fill-rule="evenodd" clip-rule="evenodd" d="M8.22005 0.810059H8.00005C6.62265 0.810056 5.30153 1.35654 4.32663 2.32957C3.35172 3.30259 2.8027 4.62266 2.80005 6.00006C2.79984 7.03987 3.11257 8.05567 3.69756 8.91532C4.28255 9.77497 5.11271 10.4387 6.08005 10.8201L7.17005 10.1401C6.16687 9.86642 5.28119 9.27116 4.64894 8.44562C4.01669 7.62008 3.6728 6.60989 3.67005 5.57006C3.66886 4.34318 4.14143 3.16323 4.98917 2.27635C5.83692 1.38948 6.99437 0.864185 8.22005 0.810059V0.810059Z" fill="white" />
             <path d="M10.0401 5.16001C10.7028 5.16001 11.2401 4.62275 11.2401 3.96001C11.2401 3.29727 10.7028 2.76001 10.0401 2.76001C9.37735 2.76001 8.84009 3.29727 8.84009 3.96001C8.84009 4.62275 9.37735 5.16001 10.0401 5.16001Z" fill="white" />
+        </svg>
+    `
+
+    static staticPin = x`
+        <svg width="16" height="12" viewBox="1 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path class="ueb-pin-tofill" d="M1 7C1 4 3 1 7 1C10 1 14 3 17 6C18 7 18 7 17 8C14 11 10 13 7 13C3 13 1 10 1 7Z" fill="none" stroke="currentColor" stroke-width="2" />
+            <path class="ueb-pin-tostroke" d="M 9 4 V 3.5 H 5 V 7 H 9 V 10.5 H 5 V 10" stroke="currentColor" stroke-width="2" />
         </svg>
     `
 
@@ -2668,6 +2679,7 @@ class IEntity {
         this.#keys = [... new Set(value)];
     }
 
+    // @ts-expect-error
     #lookbehind = /** @type {String} */(this.constructor.lookbehind)
     get lookbehind() {
         return this.#lookbehind.trim()
@@ -3052,6 +3064,11 @@ class IEntity {
             }
         }
         return true
+    }
+
+    /** @returns {IEntity | Boolean | Number | String | BigInt | (IEntity | Boolean | Number | String | BigInt)[]} */
+    valueOf() {
+        return this
     }
 }
 
@@ -3708,6 +3725,15 @@ function nodeColor(entity) {
             return Configuration.nodeColors.blue
         case Configuration.paths.materialExpressionTextureSample:
             return Configuration.nodeColors.darkTurquoise
+        case Configuration.paths.niagaraNodeInput:
+            switch (entity["Usage"]?.toString()) {
+                case "Attribute": return Configuration.nodeColors.intenseGreen
+                case "Parameter": return Configuration.nodeColors.red
+                case "RapidIterationParameter": return Configuration.nodeColors.black
+                case "SystemConstant": return Configuration.nodeColors.gray
+                case "TranslatorConstant": return Configuration.nodeColors.gray
+                default: return Configuration.nodeColors.red
+            }
     }
     switch (entity.getClass()) {
         case Configuration.paths.callFunction:
@@ -3763,6 +3789,9 @@ function nodeColor(entity) {
     }
     if (entity.bIsPureFunc?.valueOf()) {
         return Configuration.nodeColors.green
+    }
+    if (entity["Input"]?.["Name"]) {
+        return Configuration.nodeColors.gray
     }
     return Configuration.nodeColors.blue
 }
@@ -3832,14 +3861,14 @@ class MirroredEntity extends IEntity {
         return this.getter?.().equals(other)
     }
 
+    /** @returns {InstanceType<T>} */
     valueOf() {
-        this.valueOf = this.getter().valueOf.bind(this.getter());
-        return this.valueOf()
+        // @ts-expect-error
+        return this.getter().valueOf()
     }
 
     toString() {
-        this.toString = this.getter().toString.bind(this.getter());
-        return this.toString()
+        return this.getter().toString()
     }
 }
 
@@ -3969,6 +3998,7 @@ class VectorEntity extends IEntity {
     }
 }
 
+const paths$1 = Configuration.paths;
 const sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/;
 const keyNameValue = {
     "A_AccentGrave": "à",
@@ -3997,6 +4027,66 @@ const keyNameValue = {
     "Section": "§",
     "Subtract": "Num -",
     "Tilde": "`",
+};
+const niagaraNodeNames = {
+    "Boolean::LogicAnd": "Logic AND",
+    "Boolean::LogicEq": "==",
+    "Boolean::LogicNEq": "!=",
+    "Boolean::LogicNot": "Logic NOT",
+    "Boolean::LogicOr": "Logic OR",
+    "Integer::BitAnd": "Bitwise AND",
+    "Integer::BitLShift": "Bitwise Left Shift",
+    "Integer::BitNot": "Bitwise NOT",
+    "Integer::BitOr": "Bitwise OR",
+    "Integer::BitRShift": "Bitwise Right Shift",
+    "Integer::BitXOr": "Bitwise XOR",
+    "Integer::EnumEq": "==",
+    "Integer::EnumNEq": "!=",
+    "Matrix::MatrixMultiply": "Multiply (Matrix * Matrix)",
+    "Matrix::MatrixVectorMultiply": "Multiply (Matrix * Vector4)",
+    // Numeric::
+    ...Object.fromEntries(Object.entries({
+        "Add": "+",
+        "ArcCosine": "ArcCosine",
+        "ArcCosine(Degrees)": "ArcCos(D)",
+        "ArcCosine(Radians)": "ArcCos(R)",
+        "ArcSine": "ArcSine",
+        "ArcSine(Degrees)": "ArcSin(D)",
+        "ArcSine(Radians)": "ArcSin(R)",
+        "ArcTangent(Degrees)": "ArcTan(D)",
+        "ArcTangent(Radians)": "ArcTan(R)",
+        "CmpEQ": "==",
+        "CmpGE": ">=",
+        "CmpGT": ">",
+        "CmpLE": "<=",
+        "CmpLT": "<",
+        "CmpNEQ": "!=",
+        "Cosine(Degrees)": "Cos(D)",
+        "Cosine(Radians)": "Cos(R)",
+        "DegreesToRadians": "DegToRad",
+        "DistancePos": "Distance",
+        "Div": String.fromCharCode(0x00f7),
+        "FMod": "%",
+        "FModFast": "Modulo Fast",
+        "Length": "Len",
+        "Madd": `(A${String.fromCharCode(0x2a2f)}B)+C`,
+        "Mul": String.fromCharCode(0x2a2f),
+        "Negate": "-A",
+        "OneMinus": "1-A",
+        "PI": String.fromCharCode(0x03C0),
+        "RadiansToDegrees": "RadToDeg",
+        "Rand Float": "Random Float",
+        "Rand Integer": "Random Integer",
+        "Rand": "Random",
+        "Rcp": "Reciprocal",
+        "RSqrt": "Rcp Sqrt",
+        "Sine(Degrees)": "Sin(D)",
+        "Sine(Radians)": "Sin(R)",
+        "Subtract": "-",
+        "Tangent(Degrees)": "Tan(D)",
+        "Tangent(Radians)": "Tan(R)",
+        "TWO_PI": `2 ${String.fromCharCode(0x03C0)}`,
+    }).map(([k, v]) => ["Numeric::" + k, v])),
 };
 
 /** @param {String} value */
@@ -4042,58 +4132,58 @@ function keyName(value) {
 function nodeTitle(entity) {
     let value;
     switch (entity.getType()) {
-        case Configuration.paths.addDelegate:
+        case paths$1.addDelegate:
             value ??= "Bind Event to ";
-        case Configuration.paths.clearDelegate:
+        case paths$1.clearDelegate:
             value ??= "Unbind all Events from ";
-        case Configuration.paths.removeDelegate:
+        case paths$1.removeDelegate:
             value ??= "Unbind Event from ";
             return value + Utility.formatStringName(
                 entity.DelegateReference?.MemberName?.toString().replace(/Delegate$/, "") ?? "None"
             )
-        case Configuration.paths.asyncAction:
+        case paths$1.asyncAction:
             if (entity.ProxyFactoryFunctionName) {
                 return Utility.formatStringName(entity.ProxyFactoryFunctionName?.toString())
             }
-        case Configuration.paths.actorBoundEvent:
-        case Configuration.paths.componentBoundEvent:
+        case paths$1.actorBoundEvent:
+        case paths$1.componentBoundEvent:
             return `${Utility.formatStringName(entity.DelegatePropertyName?.toString())} (${entity.ComponentPropertyName?.toString() ?? "Unknown"})`
-        case Configuration.paths.callDelegate:
+        case paths$1.callDelegate:
             return `Call ${entity.DelegateReference?.MemberName?.toString() ?? "None"}`
-        case Configuration.paths.createDelegate:
+        case paths$1.createDelegate:
             return "Create Event"
-        case Configuration.paths.customEvent:
+        case paths$1.customEvent:
             if (entity.CustomFunctionName) {
                 return entity.CustomFunctionName?.toString()
             }
-        case Configuration.paths.dynamicCast:
+        case paths$1.dynamicCast:
             if (!entity.TargetType) {
                 return "Bad cast node" // Target type not found
             }
             return `Cast To ${entity.TargetType?.getName()}`
-        case Configuration.paths.enumLiteral:
+        case paths$1.enumLiteral:
             return `Literal enum ${entity.Enum?.getName()}`
-        case Configuration.paths.event:
+        case paths$1.event:
             return `Event ${(entity.EventReference?.MemberName?.toString() ?? "").replace(/^Receive/, "")}`
-        case Configuration.paths.executionSequence:
+        case paths$1.executionSequence:
             return "Sequence"
-        case Configuration.paths.forEachElementInEnum:
+        case paths$1.forEachElementInEnum:
             return `For Each ${entity.Enum?.getName()}`
-        case Configuration.paths.forEachLoopWithBreak:
+        case paths$1.forEachLoopWithBreak:
             return "For Each Loop with Break"
-        case Configuration.paths.functionEntry:
+        case paths$1.functionEntry:
             return entity.FunctionReference?.MemberName?.toString() === "UserConstructionScript"
                 ? "Construction Script"
                 : entity.FunctionReference?.MemberName?.toString()
-        case Configuration.paths.functionResult:
+        case paths$1.functionResult:
             return "Return Node"
-        case Configuration.paths.ifThenElse:
+        case paths$1.ifThenElse:
             return "Branch"
-        case Configuration.paths.makeStruct:
+        case paths$1.makeStruct:
             if (entity.StructType) {
                 return `Make ${entity.StructType.getName()}`
             }
-        case Configuration.paths.materialExpressionComponentMask: {
+        case paths$1.materialExpressionComponentMask: {
             const materialObject = entity.getMaterialSubobject();
             if (materialObject) {
                 return `Mask ( ${Configuration.rgba
@@ -4102,15 +4192,15 @@ function nodeTitle(entity) {
                     .join("")})`
             }
         }
-        case Configuration.paths.materialExpressionConstant:
+        case paths$1.materialExpressionConstant:
             value ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName.toString() == "Value")?.DefaultValue];
-        case Configuration.paths.materialExpressionConstant2Vector:
+        case paths$1.materialExpressionConstant2Vector:
             value ??= [
                 entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "X")?.DefaultValue,
                 entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "Y")?.DefaultValue,
             ];
-        case Configuration.paths.materialExpressionConstant3Vector:
-        case Configuration.paths.materialExpressionConstant4Vector:
+        case paths$1.materialExpressionConstant3Vector:
+        case paths$1.materialExpressionConstant4Vector:
             if (!value) {
                 const vector = entity.getCustomproperties()
                     .find(pinEntity => pinEntity.PinName?.toString() == "Constant")
@@ -4124,32 +4214,32 @@ function nodeTitle(entity) {
             }
             value = undefined;
             break
-        case Configuration.paths.materialExpressionFunctionInput: {
+        case paths$1.materialExpressionFunctionInput: {
             const materialObject = entity.getMaterialSubobject();
             const inputName = materialObject?.InputName ?? "In";
             const inputType = materialObject?.InputType?.value.match(/^.+?_(\w+)$/)?.[1] ?? "Vector3";
             return `Input ${inputName} (${inputType})`
         }
-        case Configuration.paths.materialExpressionLogarithm:
+        case paths$1.materialExpressionLogarithm:
             return "Ln"
-        case Configuration.paths.materialExpressionLogarithm10:
+        case paths$1.materialExpressionLogarithm10:
             return "Log10"
-        case Configuration.paths.materialExpressionLogarithm2:
+        case paths$1.materialExpressionLogarithm2:
             return "Log2"
-        case Configuration.paths.materialExpressionMaterialFunctionCall:
+        case paths$1.materialExpressionMaterialFunctionCall:
             const materialFunction = entity.getMaterialSubobject()?.MaterialFunction;
             if (materialFunction) {
                 return materialFunction.getName()
             }
             break
-        case Configuration.paths.materialExpressionSquareRoot:
+        case paths$1.materialExpressionSquareRoot:
             return "Sqrt"
-        case Configuration.paths.materialExpressionSubtract:
+        case paths$1.materialExpressionSubtract:
             const materialObject = entity.getMaterialSubobject();
             if (materialObject) {
                 return `Subtract(${materialObject.ConstA ?? "1"},${materialObject.ConstB ?? "1"})`
             }
-        case Configuration.paths.metasoundEditorGraphExternalNode: {
+        case paths$1.metasoundEditorGraphExternalNode: {
             const name = entity["ClassName"]?.["Name"];
             if (name) {
                 switch (name) {
@@ -4158,11 +4248,19 @@ function nodeTitle(entity) {
                 }
             }
         }
-        case Configuration.paths.pcgEditorGraphNodeInput:
+        case paths$1.niagaraNodeConvert:
+            /** @type {String} */
+            const targetType = (entity["AutowireMakeType"]?.["ClassStructOrEnum"] ?? "")
+                .toString()
+                .match(/(?:Niagara)?(\w+)['"]*$/)
+                ?.[1]
+                ?? "";
+            return `Make ${targetType}`
+        case paths$1.pcgEditorGraphNodeInput:
             return "Input"
-        case Configuration.paths.pcgEditorGraphNodeOutput:
+        case paths$1.pcgEditorGraphNodeOutput:
             return "Output"
-        case Configuration.paths.spawnActorFromClass:
+        case paths$1.spawnActorFromClass:
             let className = entity.getCustomproperties()
                 .find(pinEntity => pinEntity.PinName.toString() == "ReturnValue")
                 ?.PinType
@@ -4172,15 +4270,16 @@ function nodeTitle(entity) {
                 className = null;
             }
             return `SpawnActor ${Utility.formatStringName(className ?? "NONE")}`
-        case Configuration.paths.switchEnum:
+        case paths$1.switchEnum:
             return `Switch on ${entity.Enum?.getName() ?? "Enum"}`
-        case Configuration.paths.switchInteger:
+        case paths$1.switchInteger:
             return `Switch on Int`
-        case Configuration.paths.variableGet:
+        case paths$1.variableGet:
             return ""
-        case Configuration.paths.variableSet:
+        case paths$1.variableSet:
             return "SET"
     }
+    const className = entity.getClass();
     let switchTarget = entity.switchTarget();
     if (switchTarget) {
         if (switchTarget[0] !== "E") {
@@ -4195,18 +4294,19 @@ function nodeTitle(entity) {
     if (keyNameSymbol) {
         const name = keyNameSymbol.toString();
         let title = keyName(name) ?? Utility.formatStringName(name);
-        if (entity.getClass() === Configuration.paths.inputDebugKey) {
+        if (className === paths$1.inputDebugKey) {
             title = "Debug Key " + title;
-        } else if (entity.getClass() === Configuration.paths.getInputAxisKeyValue) {
+        } else if (className === paths$1.getInputAxisKeyValue) {
             title = "Get " + title;
         }
         return title
     }
-    if (entity.getClass() === Configuration.paths.macro) {
+    if (className === paths$1.macro) {
         return Utility.formatStringName(entity.MacroGraphReference?.getMacroName())
     }
-    if (entity.isMaterial() && entity.getMaterialSubobject()) {
-        let result = nodeTitle(entity.getMaterialSubobject());
+    const materialSubobject = entity.getMaterialSubobject();
+    if (materialSubobject) {
+        let result = nodeTitle(materialSubobject);
         result = result.match(/Material Expression (.+)/)?.[1] ?? result;
         return result
     }
@@ -4221,7 +4321,7 @@ function nodeTitle(entity) {
     }
     const settingsObject = entity.getSettingsObject();
     if (settingsObject) {
-        if (settingsObject.ExportPath.type === Configuration.paths.pcgHiGenGridSizeSettings) {
+        if (settingsObject.ExportPath?.valueOf()?.type === paths$1.pcgHiGenGridSizeSettings) {
             return `Grid Size: ${(
                 settingsObject.HiGenGridSize?.toString().match(/\d+/)?.[0]?.concat("00")
                 ?? settingsObject.HiGenGridSize?.toString().match(/^\w+$/)?.[0]
@@ -4263,10 +4363,10 @@ function nodeTitle(entity) {
                 )
         }
         switch (memberParent) {
-            case Configuration.paths.blueprintGameplayTagLibrary:
-            case Configuration.paths.kismetMathLibrary:
-            case Configuration.paths.slateBlueprintLibrary:
-            case Configuration.paths.timeManagementBlueprintLibrary:
+            case paths$1.blueprintGameplayTagLibrary:
+            case paths$1.kismetMathLibrary:
+            case paths$1.slateBlueprintLibrary:
+            case paths$1.timeManagementBlueprintLibrary:
                 const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/);
                 if (leadingLetter) {
                     // Some functions start with B or F (Like FCeil, FMax, BMin)
@@ -4350,7 +4450,7 @@ function nodeTitle(entity) {
                     return "^"
                 }
                 break
-            case Configuration.paths.blueprintSetLibrary:
+            case paths$1.blueprintSetLibrary:
                 {
                     const setOperationMatch = memberName.match(/Set_(\w+)/);
                     if (setOperationMatch) {
@@ -4358,7 +4458,7 @@ function nodeTitle(entity) {
                     }
                 }
                 break
-            case Configuration.paths.blueprintMapLibrary:
+            case paths$1.blueprintMapLibrary:
                 {
                     const setOperationMatch = memberName.match(/Map_(\w+)/);
                     if (setOperationMatch) {
@@ -4366,7 +4466,7 @@ function nodeTitle(entity) {
                     }
                 }
                 break
-            case Configuration.paths.kismetArrayLibrary:
+            case paths$1.kismetArrayLibrary:
                 {
                     const arrayOperationMath = memberName.match(/Array_(\w+)/);
                     if (arrayOperationMath) {
@@ -4378,26 +4478,24 @@ function nodeTitle(entity) {
         return Utility.formatStringName(memberName)
     }
     if (entity.OpName) {
-        switch (entity.OpName.toString()) {
-            case "Boolean::LogicAnd": return "Logic AND"
-            case "Boolean::LogicEq": return "=="
-            case "Boolean::LogicNEq": return "!="
-            case "Boolean::LogicNot": return "Logic NOT"
-            case "Boolean::LogicOr": return "Logic OR"
-            case "Matrix::MatrixMultiply": return "Multiply (Matrix * Matrix)"
-            case "Matrix::MatrixVectorMultiply": return "Multiply (Matrix * Vector4)"
-            case "Numeric::Abs": return "Abs"
-            case "Numeric::Add": return "+"
-            case "Numeric::DistancePos": return "Distance"
-            case "Numeric::Mul": return String.fromCharCode(0x2a2f)
-        }
-        return Utility.formatStringName(entity.OpName.toString()).replaceAll("::", " ")
+        return niagaraNodeNames[entity.OpName.toString()]
+            ?? Utility.formatStringName(entity.OpName.toString().replaceAll(/(?:^\w+(?<!^Matrix))?::/g, " "))
     }
     if (entity.FunctionDisplayName) {
         return Utility.formatStringName(entity.FunctionDisplayName.toString())
     }
     if (entity.ObjectRef) {
         return entity.ObjectRef.getName()
+    }
+    let prefix;
+    if (
+        className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNodeParameter")
+        || className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNode")
+    ) {
+        return entity["Input"]?.["Name"]?.toString() ?? Utility.formatStringName(className.substring(prefix.length))
+    }
+    if (entity.ParameterName) {
+        return entity.ParameterName.toString()
     }
     return Utility.formatStringName(entity.getNameAndCounter()[0])
 }
@@ -4510,8 +4608,7 @@ class ArrayEntity extends IEntity {
                 if ((trailing !== undefined) !== Self.trailing) {
                     Self = Self.flagTrailing(trailing !== undefined);
                 }
-                const result = new Self(values);
-                return result
+                return new Self(values)
             }).label(`ArrayEntity of ${this.type?.className() ?? "unknown values"}`)
     }
 
@@ -4674,24 +4771,12 @@ class NaturalNumberEntity extends IntegerEntity {
 }
 
 const colors = {
-    [Configuration.paths.niagaraBool]: i$3`146, 0, 0`,
-    [Configuration.paths.niagaraDataInterfaceVolumeTexture]: i$3`0, 168, 242`,
-    [Configuration.paths.niagaraFloat]: i$3`160, 250, 68`,
-    [Configuration.paths.niagaraMatrix]: i$3`0, 88, 200`,
-    [Configuration.paths.niagaraNumeric]: i$3`0, 88, 200`,
-    [Configuration.paths.niagaraPosition]: i$3`251, 146, 251`,
-    [Configuration.paths.quat4f]: i$3`0, 88, 200`,
-    [Configuration.paths.rotator]: i$3`157, 177, 251`,
-    [Configuration.paths.transform]: i$3`227, 103, 0`,
-    [Configuration.paths.vector]: i$3`251, 198, 34`,
-    [Configuration.paths.vector3f]: i$3`250, 200, 36`,
-    [Configuration.paths.vector4f]: i$3`0, 88, 200`,
     "Any": i$3`132, 132, 132`,
     "Any[]": i$3`132, 132, 132`,
     "audio": i$3`252, 148, 252`,
     "blue": i$3`0, 0, 255`,
     "bool": i$3`146, 0, 0`,
-    "byte": i$3`0, 109, 99`,
+    "byte": i$3`0, 110, 100`,
     "class": i$3`88, 0, 186`,
     "default": i$3`255, 255, 255`,
     "delegate": i$3`255, 56, 56`,
@@ -4699,16 +4784,16 @@ const colors = {
     "exec": i$3`240, 240, 240`,
     "float": i$3`160, 252, 70`,
     "green": i$3`0, 255, 0`,
-    "int": i$3`31, 224, 172`,
+    "int": i$3`30, 224, 172`,
     "int32": i$3`30, 224, 172`,
-    "int64": i$3`169, 223, 172`,
+    "int64": i$3`170, 224, 172`,
     "interface": i$3`238, 252, 168`,
-    "name": i$3`201, 128, 251`,
+    "name": i$3`200, 128, 252`,
     "object": i$3`0, 168, 242`,
-    "Param": i$3`255, 166, 39`,
-    "Param[]": i$3`255, 166, 39`,
-    "Point": i$3`63, 137, 255`,
-    "Point[]": i$3`63, 137, 255`,
+    "Param": i$3`255, 166, 40`,
+    "Param[]": i$3`255, 166, 40`,
+    "Point": i$3`64, 138, 255`,
+    "Point[]": i$3`64, 137, 255`,
     "real": i$3`54, 208, 0`,
     "red": i$3`255, 0, 0`,
     "string": i$3`251, 0, 208`,
@@ -4720,6 +4805,20 @@ const colors = {
     "Volume": i$3`230, 69, 188`,
     "Volume[]": i$3`230, 69, 188`,
     "wildcard": i$3`128, 120, 120`,
+    [Configuration.paths.linearColor]: i$3`0, 88, 200`,
+    [Configuration.paths.niagaraBool]: i$3`146, 0, 0`,
+    [Configuration.paths.niagaraDataInterfaceCurlNoise]: i$3`0, 168, 242`,
+    [Configuration.paths.niagaraDataInterfaceVolumeTexture]: i$3`0, 168, 242`,
+    [Configuration.paths.niagaraFloat]: i$3`160, 250, 68`,
+    [Configuration.paths.niagaraInt32]: i$3`30, 224, 172`,
+    [Configuration.paths.niagaraPosition]: i$3`251, 146, 251`,
+    [Configuration.paths.quat4f]: i$3`0, 88, 200`,
+    [Configuration.paths.rotator]: i$3`157, 177, 251`,
+    [Configuration.paths.transform]: i$3`227, 103, 0`,
+    [Configuration.paths.vector]: i$3`251, 198, 34`,
+    [Configuration.paths.vector2f]: i$3`0, 88, 200`,
+    [Configuration.paths.vector3f]: i$3`250, 200, 36`,
+    [Configuration.paths.vector4f]: i$3`0, 88, 200`,
 };
 
 const pinColorMaterial = i$3`120, 120, 120`;
@@ -4734,9 +4833,10 @@ function pinColor(entity) {
     } else if (entity.PinType.PinCategory?.toString() === "optional") {
         return pinColorMaterial
     }
-    return colors[entity.getType()]
+    const type = entity.getType();
+    return colors[type]
         ?? colors[entity.PinType.PinCategory?.toString().toLowerCase()]
-        ?? colors["default"]
+        ?? (type.startsWith("/Script/Niagara.") ? colors["struct"] : colors["default"])
 }
 
 /** @param {PinEntity<IEntity>} entity */
@@ -4750,6 +4850,7 @@ function pinTitle(entity) {
             return match[1] // In case they match, then keep the case of the PinToolTip
         }
     }
+    result = result.replace(/^Module\./, "");
     return result
 }
 
@@ -4928,18 +5029,22 @@ class InvariantTextEntity extends IEntity {
                 Parsernostrum.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
                 Parsernostrum.doubleQuotedString,
                 Parsernostrum.reg(/\s*\)/)
-            ).map(([_0, value, _2]) => Number(value)),
-            Parsernostrum.reg(new RegExp(this.lookbehind)).map(() => 0) // InvariantTextEntity can not have arguments
+            ).map(([_0, value, _2]) => value),
+            Parsernostrum.reg(new RegExp(this.lookbehind)).map(() => "") // InvariantTextEntity can have no arguments
         )
             .map(value => new this(value))
             .label("InvariantTextEntity")
     }
 
     doSerialize() {
-        return this.lookbehind + "(" + this.value + ")"
+        return this.lookbehind + '("' + this.value + '")'
     }
 
     valueOf() {
+        return this.value
+    }
+
+    toString() {
         return this.value
     }
 }
@@ -5112,12 +5217,6 @@ class Integer64Entity extends IEntity {
 
 class ObjectReferenceEntity extends IEntity {
 
-    /** @protected */
-    static _quotedParser = Parsernostrum.regArray(new RegExp(
-        `'"(${Grammar.Regex.InsideString.source})"'`
-        + "|"
-        + `'(${Grammar.Regex.InsideSingleQuotedString.source})'`
-    )).map(([_0, a, b]) => a ?? b)
     static typeReference = Parsernostrum.reg(
         // @ts-expect-error
         new RegExp(Grammar.Regex.Path.source + "|" + Grammar.symbol.getParser().regexp.source)
@@ -5141,8 +5240,6 @@ class ObjectReferenceEntity extends IEntity {
         this.#path = value;
     }
 
-    #fullEscaped
-    /** @type {String} */
     #full
     get full() {
         return this.#full
@@ -5151,16 +5248,17 @@ class ObjectReferenceEntity extends IEntity {
         this.#full = value;
     }
 
-
-    constructor(type = "None", path = "", full = null) {
+    /** @param {(t: String, p: String) => String} full */
+    constructor(
+        type = "None",
+        path = "",
+        full = type.includes("/") || path
+            ? (t, p) => `"${t + (p ? (`'${p}'`) : "")}"`
+            : (t, p) => t) {
         super();
         this.#type = type;
         this.#path = path;
-        this.#full = full ?? (
-            this.type.includes("/") || this.path
-                ? `"${this.type + (this.path ? (`'${this.path}'`) : "")}"`
-                : this.type
-        );
+        this.#full = full;
     }
 
     /** @returns {P<ObjectReferenceEntity>} */
@@ -5178,10 +5276,21 @@ class ObjectReferenceEntity extends IEntity {
             new RegExp(
                 // @ts-expect-error
                 "(" + this.typeReference.getParser().regexp.source + ")"
-                // @ts-expect-error
-                + "(?:" + this._quotedParser.getParser().parser.regexp.source + ")"
+                + "(?:"
+                + `'"(${Grammar.Regex.InsideString.source})"'`
+                + "|"
+                + `'(${Grammar.Regex.InsideSingleQuotedString.source})'`
+                + ")"
             )
-        ).map(([full, type, ...path]) => new this(type, path.find(v => v), full))
+        ).map(([full, type, fullQuotedPath, simpleQuotedPath]) => {
+            let fullQuoted = fullQuotedPath ? true : false;
+            let quotes = fullQuoted ? [`'"`, `"'`] : ["'", "'"];
+            return new this(
+                type,
+                fullQuoted ? fullQuotedPath : simpleQuotedPath,
+                (t, p) => t + quotes[0] + p + quotes[1]
+            )
+        })
     }
 
     /** @returns {P<ObjectReferenceEntity>} */
@@ -5191,16 +5300,16 @@ class ObjectReferenceEntity extends IEntity {
                 '"(' + Grammar.Regex.InsideString.source + "?)"
                 + "(?:'(" + Grammar.Regex.InsideSingleQuotedString.source + `?)')?"`
             )
-        ).map(([full, type, path]) => new this(type, path, full))
+        ).map(([_0, type, path]) => new this(type, path, (t, p) => `"${t}${p ? `'${p}'` : ""}"`))
     }
 
     /** @returns {P<ObjectReferenceEntity>} */
     static createTypeReferenceGrammar() {
-        return this.typeReference.map(v => new this(v, "", v))
+        return this.typeReference.map(v => new this(v, "", (t, p) => t))
     }
 
     static createNoneInstance() {
-        return new ObjectReferenceEntity("None", "", "None")
+        return new this("None")
     }
 
     getName(dropCounter = false) {
@@ -5208,13 +5317,11 @@ class ObjectReferenceEntity extends IEntity {
     }
 
     doSerialize(insideString = false) {
+        let result = this.full(this.type, this.path);
         if (insideString) {
-            if (this.#fullEscaped === undefined) {
-                this.#fullEscaped = Utility.escapeString(this.#full, false);
-            }
-            return this.#fullEscaped
+            result = Utility.escapeString(result, false);
         }
-        return this.full
+        return result
     }
 
     /** @param {IEntity} other */
@@ -5223,6 +5330,10 @@ class ObjectReferenceEntity extends IEntity {
             return false
         }
         return this.type == other.type && this.path == other.path
+    }
+
+    toString() {
+        return this.full(this.type, this.path)
     }
 }
 
@@ -5601,12 +5712,15 @@ class PinEntity extends IEntity {
         "byte": ByteEntity,
         "enum": EnumEntity,
         "exec": StringEntity,
+        "float": NumberEntity,
         "int": IntegerEntity,
         "int64": Integer64Entity,
         "name": StringEntity,
         "real": NumberEntity,
         "string": StringEntity,
         [Configuration.paths.linearColor]: LinearColorEntity,
+        [Configuration.paths.niagaraBool]: BooleanEntity,
+        [Configuration.paths.niagaraFloat]: NumberEntity,
         [Configuration.paths.niagaraPosition]: VectorEntity,
         [Configuration.paths.rotator]: RotatorEntity,
         [Configuration.paths.vector]: VectorEntity,
@@ -5728,9 +5842,10 @@ class PinEntity extends IEntity {
         return new PinEntity(objectEntity)
     }
 
+    /** @returns {String} */
     getType() {
         const category = this.PinType.PinCategory?.toString().toLocaleLowerCase();
-        if (category === "struct" || category === "class" || category === "object" || category === "type") {
+        if (["struct", "class", "object", "type", "statictype"].includes(category)) {
             return this.PinType.PinSubCategoryObject?.path
         }
         if (this.isEnum()) {
@@ -5815,6 +5930,7 @@ class PinEntity extends IEntity {
 
     isExecution() {
         return this.PinType.PinCategory.toString() === "exec"
+            || this.getType() === Configuration.paths.niagaraParameterMap
     }
 
     isHidden() {
@@ -6121,7 +6237,7 @@ class UnknownPinEntity extends PinEntity {
     static createGrammar() {
         return Parsernostrum.seq(
             // Lookbehind
-            Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Symbol.source}\\s*)\\(\\s*`), 1),
+            Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`), 1),
             Grammar.createAttributeGrammar(this).sepBy(Grammar.commaSeparation),
             Parsernostrum.reg(/\s*(?:,\s*)?\)/)
         ).map(([lookbehind, attributes, _2]) => {
@@ -6182,7 +6298,7 @@ class ObjectEntity extends IEntity {
         Class: ObjectReferenceEntity,
         Name: StringEntity,
         Archetype: ObjectReferenceEntity,
-        ExportPath: ObjectReferenceEntity,
+        ExportPath: MirroredEntity.of(ObjectReferenceEntity),
         ObjectRef: ObjectReferenceEntity,
         BlueprintElementType: ObjectReferenceEntity,
         BlueprintElementInstance: ObjectReferenceEntity,
@@ -6242,8 +6358,11 @@ class ObjectEntity extends IEntity {
         SizeX: MirroredEntity.of(IntegerEntity),
         SizeY: MirroredEntity.of(IntegerEntity),
         Text: MirroredEntity.of(StringEntity),
+        ParameterName: StringEntity,
+        ExpressionGUID: GuidEntity,
         MaterialExpressionEditorX: MirroredEntity.of(IntegerEntity),
         MaterialExpressionEditorY: MirroredEntity.of(IntegerEntity),
+        MaterialExpressionGuid: GuidEntity,
         NodeTitle: StringEntity,
         NodeTitleColor: LinearColorEntity,
         PositionX: MirroredEntity.of(IntegerEntity),
@@ -6271,7 +6390,7 @@ class ObjectEntity extends IEntity {
         NodeGuid: GuidEntity,
         ErrorType: IntegerEntity,
         ErrorMsg: StringEntity,
-        ScriptVariables: ArrayEntity.of(ScriptVariableEntity),
+        ScriptVariables: ArrayEntity.flagInlined().of(ScriptVariableEntity),
         Node: MirroredEntity.of(ObjectReferenceEntity),
         ExportedNodes: StringEntity,
         CustomProperties: ArrayEntity.of(AlternativesEntity.accepting(PinEntity, UnknownPinEntity)).withDefault().flagSilent(),
@@ -6289,29 +6408,28 @@ class ObjectEntity extends IEntity {
             Grammar.symbolQuoted.map(v => [v, true]),
             Grammar.symbol.map(v => [v, false]),
         ),
-        Parsernostrum.reg(new RegExp(String.raw`\s*\(\s*(\d+)\s*\)\s*\=\s*`), 1).map(Number)
-    )
-        .chain(
-            /** @param {[[keyof ObjectEntity.attributes, Boolean], Number]} param */
-            ([[symbol, quoted], index]) =>
-                (this.attributes[symbol]?.grammar ?? IEntity.unknownEntityGrammar).map(currentValue =>
-                    values => {
-                        if (values[symbol] === undefined) {
-                            let arrayEntity = ArrayEntity;
-                            if (quoted != arrayEntity.quoted) {
-                                arrayEntity = arrayEntity.flagQuoted(quoted);
-                            }
-                            if (!arrayEntity.inlined) {
-                                arrayEntity = arrayEntity.flagInlined();
-                            }
-                            values[symbol] = new arrayEntity();
+        Parsernostrum.reg(new RegExp(String.raw`\s*\(\s*(\d+)\s*\)\s*\=\s*`), 1).map(Number) // Number in parentheses then equal
+    ).chain(
+        /** @param {[[keyof ObjectEntity.attributes, Boolean], Number]} param */
+        ([[symbol, quoted], index]) =>
+            (this.attributes[symbol]?.grammar ?? IEntity.unknownEntityGrammar).map(currentValue =>
+                values => {
+                    if (values[symbol] === undefined) {
+                        let arrayEntity = ArrayEntity;
+                        if (quoted != arrayEntity.quoted) {
+                            arrayEntity = arrayEntity.flagQuoted(quoted);
                         }
-                        /** @type {ArrayEntity} */
-                        const target = values[symbol];
-                        target.values[index] = currentValue;
+                        if (!arrayEntity.inlined) {
+                            arrayEntity = arrayEntity.flagInlined();
+                        }
+                        values[symbol] = new arrayEntity();
                     }
-                )
-        )
+                    /** @type {ArrayEntity} */
+                    const target = values[symbol];
+                    target.values[index] = currentValue;
+                }
+            )
+    )
     static grammar = this.createGrammar()
     static grammarMultipleObjects = Parsernostrum.seq(
         Parsernostrum.whitespaceOpt,
@@ -6337,20 +6455,20 @@ class ObjectEntity extends IEntity {
         super(values);
 
         // Attributes
+        /** @type {ArrayEntity<typeof PinEntity | typeof UnknownPinEntity>} */ this.CustomProperties;
         /** @type {InstanceType<typeof ObjectEntity.attributes.AddedPins>} */ this.AddedPins;
         /** @type {InstanceType<typeof ObjectEntity.attributes.AdvancedPinDisplay>} */ this.AdvancedPinDisplay;
         /** @type {InstanceType<typeof ObjectEntity.attributes.Archetype>} */ this.Archetype;
         /** @type {InstanceType<typeof ObjectEntity.attributes.AxisKey>} */ this.AxisKey;
         /** @type {InstanceType<typeof ObjectEntity.attributes.bIsPureFunc>} */ this.bIsPureFunc;
         /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementInstance>} */ this.BlueprintElementInstance;
-        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstA>} */ this.ConstA;
-        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstB>} */ this.ConstB;
         /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementType>} */ this.BlueprintElementType;
         /** @type {InstanceType<typeof ObjectEntity.attributes.Class>} */ this.Class;
         /** @type {InstanceType<typeof ObjectEntity.attributes.CommentColor>} */ this.CommentColor;
         /** @type {InstanceType<typeof ObjectEntity.attributes.ComponentPropertyName>} */ this.ComponentPropertyName;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstA>} */ this.ConstA;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstB>} */ this.ConstB;
         /** @type {InstanceType<typeof ObjectEntity.attributes.CustomFunctionName>} */ this.CustomFunctionName;
-        /** @type {ArrayEntity<typeof PinEntity | typeof UnknownPinEntity>} */ this.CustomProperties;
         /** @type {InstanceType<typeof ObjectEntity.attributes.DelegatePropertyName>} */ this.DelegatePropertyName;
         /** @type {InstanceType<typeof ObjectEntity.attributes.DelegateReference>} */ this.DelegateReference;
         /** @type {InstanceType<typeof ObjectEntity.attributes.EnabledState>} */ this.EnabledState;
@@ -6389,9 +6507,10 @@ class ObjectEntity extends IEntity {
         /** @type {InstanceType<typeof ObjectEntity.attributes.Operation>} */ this.Operation;
         /** @type {InstanceType<typeof ObjectEntity.attributes.OpName>} */ this.OpName;
         /** @type {InstanceType<typeof ObjectEntity.attributes.OutputPins>} */ this.OutputPins;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ParameterName>} */ this.ParameterName;
         /** @type {InstanceType<typeof ObjectEntity.attributes.PCGNode>} */ this.PCGNode;
-        /** @type {InstanceType<typeof ObjectEntity.attributes.PinTags>} */ this.PinTags;
         /** @type {InstanceType<typeof ObjectEntity.attributes.PinNames>} */ this.PinNames;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PinTags>} */ this.PinTags;
         /** @type {InstanceType<typeof ObjectEntity.attributes.PositionX>} */ this.PositionX;
         /** @type {InstanceType<typeof ObjectEntity.attributes.PositionY>} */ this.PositionY;
         /** @type {InstanceType<typeof ObjectEntity.attributes.ProxyFactoryFunctionName>} */ this.ProxyFactoryFunctionName;
@@ -6499,6 +6618,17 @@ class ObjectEntity extends IEntity {
                     ? outputIndex++
                     : i;
         });
+        const reference = this.ExportPath?.valueOf();
+        if (reference?.path.endsWith(this.Name?.valueOf())) {
+            const mirroredEntity = /** @type {typeof ObjectEntity} */(this.constructor).attributes.ExportPath;
+            const objectReferenceEntity = /** @type {typeof ObjectReferenceEntity} */(mirroredEntity.type);
+            const nameLength = this.Name.valueOf().length;
+            this.ExportPath = new mirroredEntity(() => new objectReferenceEntity(
+                reference.type,
+                reference.path.substring(0, reference.path.length - nameLength) + this.Name,
+                reference.full,
+            ));
+        }
     }
 
     /** @returns {P<ObjectEntity>} */
@@ -6549,7 +6679,7 @@ class ObjectEntity extends IEntity {
     getClass() {
         if (!this.#class) {
             this.#class = (this.Class?.path ? this.Class.path : this.Class?.type)
-                ?? this.ExportPath?.type
+                ?? this.ExportPath?.valueOf()?.type
                 ?? "";
             if (this.#class && !this.#class.startsWith("/")) {
                 // Old path names did not start with /Script or /Engine, check tests/resources/LegacyNodes.js
@@ -6688,24 +6818,10 @@ class ObjectEntity extends IEntity {
     }
 
     isMaterial() {
-
-        return this.getClass() === Configuration.paths.materialGraphNode
-        // return [
-        //     Configuration.paths.materialExpressionConstant,
-        //     Configuration.paths.materialExpressionConstant2Vector,
-        //     Configuration.paths.materialExpressionConstant3Vector,
-        //     Configuration.paths.materialExpressionConstant4Vector,
-        //     Configuration.paths.materialExpressionLogarithm,
-        //     Configuration.paths.materialExpressionLogarithm10,
-        //     Configuration.paths.materialExpressionLogarithm2,
-        //     Configuration.paths.materialExpressionMaterialFunctionCall,
-        //     Configuration.paths.materialExpressionSquareRoot,
-        //     Configuration.paths.materialExpressionTextureCoordinate,
-        //     Configuration.paths.materialExpressionTextureSample,
-        //     Configuration.paths.materialGraphNode,
-        //     Configuration.paths.materialGraphNodeComment,
-        // ]
-        //     .includes(this.getClass())
+        const classValue = this.getClass();
+        return classValue.startsWith("/Script/Engine.MaterialExpression")
+            || classValue.startsWith("/Script/InterchangeImport.MaterialExpression")
+            || classValue.startsWith("/Script/UnrealEd.MaterialGraph")
     }
 
     /** @return {ObjectEntity} */
@@ -6823,9 +6939,9 @@ class ObjectEntity extends IEntity {
                 ? ` Archetype${keySeparator}${this.Archetype.serialize(insideString)}`
                 : ""
             )
-            + ((this.ExportPath?.type || this.ExportPath?.path)
-                // && Self.attributes.ExportPath.ignored !== true
-                // && this.ExportPath.ignored !== true
+            + ((this.ExportPath?.valueOf()?.type || this.ExportPath?.valueOf()?.path)
+                // && Self.attributes.ExportPath.valueOf().ignored !== true
+                // && this.ExportPath.valueOf().ignored !== true
                 ? ` ExportPath${keySeparator}${this.ExportPath.serialize(insideString)}`
                 : ""
             )
@@ -6870,7 +6986,7 @@ class KnotEntity extends ObjectEntity {
             inputPinEntity.copyTypeFrom(pinReferenceForType);
             outputPinEntity.copyTypeFrom(pinReferenceForType);
         }
-        values["CustomProperties"] = new (ObjectEntity.attributes.CustomProperties)([inputPinEntity, outputPinEntity]);
+        values.CustomProperties = new (ObjectEntity.attributes.CustomProperties)([inputPinEntity, outputPinEntity]);
         super(values);
     }
 }
@@ -8468,12 +8584,13 @@ function nodeSubtitle(entity) {
     switch (entity.getType()) {
         case Configuration.paths.addDelegate:
         case Configuration.paths.clearDelegate:
+        case Configuration.paths.callDelegate:
         case Configuration.paths.removeDelegate:
             return null
     }
     const targetPin = entity
         .getPinEntities()
-        .find(pin => pin.PinName?.toString() === "self" && pinTitle(pin) === "Target");
+        .find(pin => !pin.isHidden() && pin.PinName?.toString() === "self" && pinTitle(pin) === "Target");
     if (targetPin) {
         const target = entity.FunctionReference?.MemberParent?.getName()
             ?? targetPin.PinType?.PinSubCategoryObject?.getName()
@@ -9391,6 +9508,9 @@ class PinTemplate extends ITemplate {
         if (this.element.nodeElement?.template instanceof VariableOperationNodeTemplate) {
             return SVGIcon.operationPin
         }
+        if (this.element.entity.PinType.PinCategory?.toString().toLocaleLowerCase() === "statictype") {
+            return SVGIcon.staticPin
+        }
         return SVGIcon.genericPin
     }
 
@@ -9657,22 +9777,86 @@ class VariableAccessNodeTemplate extends VariableManagementNodeTemplate {
     }
 }
 
+const niagaraOperationNodes = [
+    "Boolean::LogicEq",
+    "Boolean::LogicNEq",
+    "Integer::EnumNEq",
+    "Integer::EnumEq",
+    ...[
+        "Abs",
+        "Add",
+        "ArcCosine(Degrees)",
+        "ArcCosine(Radians)",
+        "ArcSine(Degrees)",
+        "ArcSine(Radians)",
+        "ArcTangent(Degrees)",
+        "ArcTangent(Radians)",
+        "Ceil",
+        "CmpEQ",
+        "CmpGE",
+        "CmpGT",
+        "CmpLE",
+        "CmpLT",
+        "CmpNEQ",
+        "Cosine(Degrees)",
+        "Cosine(Radians)",
+        "DegreesToRadians",
+        "Div",
+        "Dot",
+        "Exp",
+        "Exp2",
+        "Floor",
+        "FMod",
+        "Frac",
+        "Length",
+        "Lerp",
+        "Log",
+        "Log2",
+        "Madd",
+        "Max",
+        "Min",
+        "Mul",
+        "Negate",
+        "Normalize",
+        "OneMinus",
+        "PI",
+        "RadiansToDegrees",
+        "Rcp",
+        "RcpFast",
+        "Round",
+        "RSqrt",
+        "Sign",
+        "Sine(Degrees)",
+        "Sine(Radians)",
+        "Sqrt",
+        "Step",
+        "Subtract",
+        "Tangent(Degrees)",
+        "Tangent(Radians)",
+        "Trunc",
+        "TWO_PI",
+    ].map(v => "Numeric::" + v),
+    "Vector3::Cross",
+];
+
+const paths = Configuration.paths;
+
 /**
  * @param {ObjectEntity} nodeEntity
  * @return {new () => NodeTemplate}
  */
 function nodeTemplateClass(nodeEntity) {
     if (
-        nodeEntity.getClass() === Configuration.paths.callFunction
-        || nodeEntity.getClass() === Configuration.paths.commutativeAssociativeBinaryOperator
-        || nodeEntity.getClass() === Configuration.paths.callArrayFunction
+        nodeEntity.getClass() === paths.callFunction
+        || nodeEntity.getClass() === paths.commutativeAssociativeBinaryOperator
+        || nodeEntity.getClass() === paths.callArrayFunction
     ) {
         const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? "";
         const memberName = nodeEntity.FunctionReference?.MemberName?.toString();
         if (
             memberName && (
-                memberParent === Configuration.paths.kismetMathLibrary
-                || memberParent === Configuration.paths.kismetArrayLibrary
+                memberParent === paths.kismetMathLibrary
+                || memberParent === paths.kismetArrayLibrary
             )) {
             if (memberName.startsWith("Conv_")) {
                 return VariableConversionNodeTemplate
@@ -9725,45 +9909,37 @@ function nodeTemplateClass(nodeEntity) {
                     return VariableOperationNodeTemplate
             }
         }
-        if (memberParent === Configuration.paths.blueprintSetLibrary) {
+        if (memberParent === paths.blueprintSetLibrary) {
             return VariableOperationNodeTemplate
         }
-        if (memberParent === Configuration.paths.blueprintMapLibrary) {
+        if (memberParent === paths.blueprintMapLibrary) {
             return VariableOperationNodeTemplate
         }
     }
     switch (nodeEntity.getClass()) {
-        case Configuration.paths.comment:
-        case Configuration.paths.materialGraphNodeComment:
+        case paths.comment:
+        case paths.materialGraphNodeComment:
             return CommentNodeTemplate
-        case Configuration.paths.createDelegate:
+        case paths.createDelegate:
             return NodeTemplate
-        case Configuration.paths.metasoundEditorGraphExternalNode:
+        case paths.metasoundEditorGraphExternalNode:
             if (nodeEntity["ClassName"]?.["Name"] == "Add") {
                 return MetasoundOperationTemplate
             }
             return MetasoundNodeTemplate
-        case Configuration.paths.niagaraNodeOp:
-            if (
-                [
-                    "Boolean::LogicEq",
-                    "Boolean::LogicNEq",
-                    "Numeric::Abs",
-                    "Numeric::Add",
-                    "Numeric::Mul",
-                ].includes(nodeEntity.OpName?.toString())
-            ) {
+        case paths.niagaraNodeOp:
+            if (niagaraOperationNodes.includes(nodeEntity.OpName?.toString())) {
                 return VariableOperationNodeTemplate
             }
             break
-        case Configuration.paths.promotableOperator:
+        case paths.promotableOperator:
             return VariableOperationNodeTemplate
-        case Configuration.paths.knot:
+        case paths.knot:
             return KnotNodeTemplate
-        case Configuration.paths.literal:
-        case Configuration.paths.self:
-        case Configuration.paths.variableGet:
-        case Configuration.paths.variableSet:
+        case paths.literal:
+        case paths.self:
+        case paths.variableGet:
+        case paths.variableSet:
             return VariableAccessNodeTemplate
     }
     if (nodeEntity.isEvent()) {
@@ -10137,6 +10313,32 @@ class BlueprintEntity extends ObjectEntity {
     }
 }
 
+class NiagaraClipboardContent extends ObjectEntity {
+
+    /**
+     * @param {BlueprintEntity} blueprint
+     * @param {ObjectEntity[]} nodes
+     */
+    constructor(blueprint, nodes) {
+        const typePath = Configuration.paths.niagaraClipboardContent;
+        const name = blueprint.takeFreeName("NiagaraClipboardContent");
+        const exportPath = `/Engine/Transient.${name}`;
+        let exported = "";
+        for (const node of nodes) {
+            if (node.exported) {
+                exported += node.serialize();
+            }
+        }
+        nodes.filter(n => !n.exported).map(n => n.serialize());
+        super({
+            Class: new ObjectReferenceEntity(typePath),
+            Name: new StringEntity(name),
+            ExportPath: new ObjectReferenceEntity(typePath, exportPath),
+            ExportedNodes: new StringEntity(btoa(exported))
+        });
+    }
+}
+
 /**
  * @typedef {import("../IInput.js").Options & {
  *     listenOnFocus?: Boolean,
@@ -10166,15 +10368,19 @@ class Copy extends IInput {
     }
 
     getSerializedText() {
-        const allNodes = this.blueprint.getNodes(true).map(n => n.entity);
-        const exported = allNodes.filter(n => n.exported).map(n => n.serialize());
-        const result = allNodes.filter(n => !n.exported).map(n => n.serialize());
-        if (exported.length) {
-            this.blueprint.entity.ExportedNodes.value = btoa(exported.join(""));
-            result.splice(0, 0, this.blueprint.entity.serialize(false));
-            delete this.blueprint.entity.ExportedNodes;
+        const nodes = this.blueprint.getNodes(true).map(n => n.entity);
+        let exports = false;
+        let result = nodes
+            .filter(n => {
+                exports ||= n.exported;
+                return !n.exported
+            })
+            .reduce((acc, cur) => acc + cur.serialize(), "");
+        if (exports) {
+            const object = new NiagaraClipboardContent(this.blueprint.entity, nodes);
+            result = object.serialize() + result;
         }
-        return result.join("")
+        return result
     }
 
     copied() {
@@ -11281,7 +11487,7 @@ class Blueprint extends IElement {
                     this.entity = this.entity.mergeWith(element.entity);
                     const additionalSerialization = atob(element.entity.ExportedNodes.toString());
                     this.template.getPasteInputObject().pasted(additionalSerialization)
-                        .forEach(node => node.entity._exported = true);
+                        .forEach(node => node.entity.exported = true);
                     continue
                 }
                 const name = element.entity.getObjectName();
@@ -11720,7 +11926,7 @@ class BoolPinTemplate extends PinTemplate {
     #input
 
     #onChangeHandler = () => {
-        const entity = this.element.getDefaultValue();
+        const entity = this.element.getDefaultValue(true);
         entity.value = this.#input.checked;
         this.element.setDefaultValue(entity);
     }
@@ -12771,6 +12977,7 @@ const inputPinTemplates = {
     "bool": BoolPinTemplate,
     "byte": IntPinTemplate,
     "enum": EnumPinTemplate,
+    "float": RealPinTemplate,
     "int": IntPinTemplate,
     "int64": Int64PinTemplate,
     "MUTABLE_REFERENCE": ReferencePinTemplate,
@@ -12780,10 +12987,13 @@ const inputPinTemplates = {
     "string": StringPinTemplate,
     [Configuration.paths.linearColor]: LinearColorPinTemplate,
     [Configuration.paths.niagaraBool]: BoolPinTemplate,
+    [Configuration.paths.niagaraFloat]: RealPinTemplate,
+    [Configuration.paths.niagaraInt32]: IntPinTemplate,
     [Configuration.paths.niagaraPosition]: VectorPinTemplate,
     [Configuration.paths.rotator]: RotatorPinTemplate,
     [Configuration.paths.vector]: VectorPinTemplate,
     [Configuration.paths.vector2D]: Vector2DPinTemplate,
+    [Configuration.paths.vector2f]: Vector2DPinTemplate,
     [Configuration.paths.vector3f]: VectorPinTemplate,
     [Configuration.paths.vector4f]: Vector4DPinTemplate,
 };
@@ -12796,10 +13006,10 @@ function pinTemplate(entity) {
     if (entity.PinType.bIsReference?.valueOf() && !entity.PinType.bIsConst?.valueOf()) {
         return inputPinTemplates["MUTABLE_REFERENCE"]
     }
-    const type = entity.getType();
-    if (type === "exec") {
+    if (entity.isExecution()) {
         return ExecPinTemplate
     }
+    const type = entity.getType();
     return (entity.isInput() ? inputPinTemplates[type] : PinTemplate) ?? PinTemplate
 }
 
@@ -13483,7 +13693,7 @@ function initializeSerializerFactory() {
                 Parsernostrum.regArray(new RegExp(
                     // @ts-expect-error
                     `"(${Grammar.Regex.Path.source})'(${Grammar.Regex.Path.source}|${Grammar.symbol.getParser().regexp.source})'"`
-                )).map(([full, type, path]) => new ObjectReferenceEntity(type, path, full))
+                )).map(([_0, type, path]) => new ObjectReferenceEntity(type, path, (t, p) => `"${t}'${p}'"`))
             ),
             StringEntity.grammar,
             LocalizedTextEntity.grammar,
