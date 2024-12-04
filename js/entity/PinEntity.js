@@ -173,6 +173,7 @@ export default class PinEntity extends IEntity {
         return new PinEntity(objectEntity)
     }
 
+    /** @returns {String} */
     getType() {
         const category = this.PinType.PinCategory?.toString().toLocaleLowerCase()
         if (["struct", "class", "object", "type", "statictype"].includes(category)) {

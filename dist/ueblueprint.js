@@ -205,13 +205,11 @@ class Configuration {
         niagaraDataInterfaceCurlNoise: "/Script/Niagara.NiagaraDataInterfaceCurlNoise",
         niagaraDataInterfaceVolumeTexture: "/Script/Niagara.NiagaraDataInterfaceVolumeTexture",
         niagaraFloat: "/Script/Niagara.NiagaraFloat",
-        NiagaraInt32: "/Script/Niagara.NiagaraInt32",
-        niagaraMatrix: "/Script/Niagara.NiagaraMatrix",
+        niagaraInt32: "/Script/Niagara.NiagaraInt32",
         niagaraNodeConvert: "/Script/NiagaraEditor.NiagaraNodeConvert",
         niagaraNodeFunctionCall: "/Script/NiagaraEditor.NiagaraNodeFunctionCall",
         niagaraNodeInput: "/Script/NiagaraEditor.NiagaraNodeInput",
         niagaraNodeOp: "/Script/NiagaraEditor.NiagaraNodeOp",
-        niagaraNumeric: "/Script/Niagara.NiagaraNumeric",
         niagaraParameterMap: "/Script/Niagara.NiagaraParameterMap",
         niagaraPosition: "/Script/Niagara.NiagaraPosition",
         pawn: "/Script/Engine.Pawn",
@@ -4812,9 +4810,7 @@ const colors = {
     [Configuration.paths.niagaraDataInterfaceCurlNoise]: i$3`0, 168, 242`,
     [Configuration.paths.niagaraDataInterfaceVolumeTexture]: i$3`0, 168, 242`,
     [Configuration.paths.niagaraFloat]: i$3`160, 250, 68`,
-    [Configuration.paths.NiagaraInt32]: i$3`30, 224, 172`,
-    [Configuration.paths.niagaraMatrix]: i$3`0, 88, 200`,
-    [Configuration.paths.niagaraNumeric]: i$3`0, 88, 200`,
+    [Configuration.paths.niagaraInt32]: i$3`30, 224, 172`,
     [Configuration.paths.niagaraPosition]: i$3`251, 146, 251`,
     [Configuration.paths.quat4f]: i$3`0, 88, 200`,
     [Configuration.paths.rotator]: i$3`157, 177, 251`,
@@ -4837,9 +4833,10 @@ function pinColor(entity) {
     } else if (entity.PinType.PinCategory?.toString() === "optional") {
         return pinColorMaterial
     }
-    return colors[entity.getType()]
+    const type = entity.getType();
+    return colors[type]
         ?? colors[entity.PinType.PinCategory?.toString().toLowerCase()]
-        ?? colors["default"]
+        ?? (type.startsWith("/Script/Niagara.") ? colors["struct"] : colors["default"])
 }
 
 /** @param {PinEntity<IEntity>} entity */
@@ -5845,6 +5842,7 @@ class PinEntity extends IEntity {
         return new PinEntity(objectEntity)
     }
 
+    /** @returns {String} */
     getType() {
         const category = this.PinType.PinCategory?.toString().toLocaleLowerCase();
         if (["struct", "class", "object", "type", "statictype"].includes(category)) {
@@ -12990,7 +12988,7 @@ const inputPinTemplates = {
     [Configuration.paths.linearColor]: LinearColorPinTemplate,
     [Configuration.paths.niagaraBool]: BoolPinTemplate,
     [Configuration.paths.niagaraFloat]: RealPinTemplate,
-    [Configuration.paths.NiagaraInt32]: IntPinTemplate,
+    [Configuration.paths.niagaraInt32]: IntPinTemplate,
     [Configuration.paths.niagaraPosition]: VectorPinTemplate,
     [Configuration.paths.rotator]: RotatorPinTemplate,
     [Configuration.paths.vector]: VectorPinTemplate,

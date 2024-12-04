@@ -41,9 +41,7 @@ const colors = {
     [Configuration.paths.niagaraDataInterfaceCurlNoise]: css`0, 168, 242`,
     [Configuration.paths.niagaraDataInterfaceVolumeTexture]: css`0, 168, 242`,
     [Configuration.paths.niagaraFloat]: css`160, 250, 68`,
-    [Configuration.paths.NiagaraInt32]: css`30, 224, 172`,
-    [Configuration.paths.niagaraMatrix]: css`0, 88, 200`,
-    [Configuration.paths.niagaraNumeric]: css`0, 88, 200`,
+    [Configuration.paths.niagaraInt32]: css`30, 224, 172`,
     [Configuration.paths.niagaraPosition]: css`251, 146, 251`,
     [Configuration.paths.quat4f]: css`0, 88, 200`,
     [Configuration.paths.rotator]: css`157, 177, 251`,
@@ -66,7 +64,8 @@ export default function pinColor(entity) {
     } else if (entity.PinType.PinCategory?.toString() === "optional") {
         return pinColorMaterial
     }
-    return colors[entity.getType()]
+    const type = entity.getType()
+    return colors[type]
         ?? colors[entity.PinType.PinCategory?.toString().toLowerCase()]
-        ?? colors["default"]
+        ?? (type.startsWith("/Script/Niagara.") ? colors["struct"] : colors["default"])
 }
