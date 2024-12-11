@@ -112,6 +112,39 @@ test("mergeArrays method test", () => {
     )).toStrictEqual(
         [2, 4, 5, 6, 8, 1]
     )
+    expect(Utility.mergeArrays(
+        [[0, ' '], [1, 'A'], [2, 'A'], [3, 'C']],
+        [[2, 'B'], [3, 'C'], [4, 'D'], [5, 'E']],
+        (l, r) => l[0] == r[0]
+    )).toEqual(
+        [[0, ' '], [1, 'A'], [2, 'A'], [3, 'C'], [4, 'D'], [5, 'E']]
+    )
+    expect(Utility.mergeArrays(
+        [
+            { id: 3, b: 1, a: 3 },
+            { id: 7, b: 2, a: 9 },
+            { id: 4, b: -6, a: 12 },
+            { id: 9, b: 6, a: 20 },
+            { id: 6, b: 1, a: 26 },
+        ],
+        [
+            { id: 4, b: -6, a: 12 },
+            { id: 6, b: 41, a: 76 },
+            { id: 3, b: 5, a: 31 },
+            { id: 13, b: 1, a: 22 },
+            { id: 9, b: 55, a: 39 },
+        ],
+        (l, r) => l.id == r.id
+    )).toEqual(
+        [
+            { id: 3, b: 1, a: 3 },
+            { id: 7, b: 2, a: 9 },
+            { id: 4, b: -6, a: 12 },
+            { id: 9, b: 6, a: 20 },
+            { id: 6, b: 1, a: 26 },
+            { id: 13, b: 1, a: 22 },
+        ]
+    )
 })
 
 test("capitalFirstLetter method test", () => {

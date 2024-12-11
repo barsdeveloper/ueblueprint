@@ -47,7 +47,7 @@ export default class ObjectEntity extends IEntity {
         Class: ObjectReferenceEntity,
         Name: StringEntity,
         Archetype: ObjectReferenceEntity,
-        ExportPath: ObjectReferenceEntity,
+        ExportPath: MirroredEntity.of(ObjectReferenceEntity),
         ObjectRef: ObjectReferenceEntity,
         BlueprintElementType: ObjectReferenceEntity,
         BlueprintElementInstance: ObjectReferenceEntity,
@@ -107,8 +107,11 @@ export default class ObjectEntity extends IEntity {
         SizeX: MirroredEntity.of(IntegerEntity),
         SizeY: MirroredEntity.of(IntegerEntity),
         Text: MirroredEntity.of(StringEntity),
+        ParameterName: StringEntity,
+        ExpressionGUID: GuidEntity,
         MaterialExpressionEditorX: MirroredEntity.of(IntegerEntity),
         MaterialExpressionEditorY: MirroredEntity.of(IntegerEntity),
+        MaterialExpressionGuid: GuidEntity,
         NodeTitle: StringEntity,
         NodeTitleColor: LinearColorEntity,
         PositionX: MirroredEntity.of(IntegerEntity),
@@ -136,7 +139,7 @@ export default class ObjectEntity extends IEntity {
         NodeGuid: GuidEntity,
         ErrorType: IntegerEntity,
         ErrorMsg: StringEntity,
-        ScriptVariables: ArrayEntity.of(ScriptVariableEntity),
+        ScriptVariables: ArrayEntity.flagInlined().of(ScriptVariableEntity),
         Node: MirroredEntity.of(ObjectReferenceEntity),
         ExportedNodes: StringEntity,
         CustomProperties: ArrayEntity.of(AlternativesEntity.accepting(PinEntity, UnknownPinEntity)).withDefault().flagSilent(),
@@ -154,29 +157,28 @@ export default class ObjectEntity extends IEntity {
             Grammar.symbolQuoted.map(v => [v, true]),
             Grammar.symbol.map(v => [v, false]),
         ),
-        P.reg(new RegExp(String.raw`\s*\(\s*(\d+)\s*\)\s*\=\s*`), 1).map(Number)
-    )
-        .chain(
-            /** @param {[[keyof ObjectEntity.attributes, Boolean], Number]} param */
-            ([[symbol, quoted], index]) =>
-                (this.attributes[symbol]?.grammar ?? IEntity.unknownEntityGrammar).map(currentValue =>
-                    values => {
-                        if (values[symbol] === undefined) {
-                            let arrayEntity = ArrayEntity
-                            if (quoted != arrayEntity.quoted) {
-                                arrayEntity = arrayEntity.flagQuoted(quoted)
-                            }
-                            if (!arrayEntity.inlined) {
-                                arrayEntity = arrayEntity.flagInlined()
-                            }
-                            values[symbol] = new arrayEntity()
+        P.reg(new RegExp(String.raw`\s*\(\s*(\d+)\s*\)\s*\=\s*`), 1).map(Number) // Number in parentheses then equal
+    ).chain(
+        /** @param {[[keyof ObjectEntity.attributes, Boolean], Number]} param */
+        ([[symbol, quoted], index]) =>
+            (this.attributes[symbol]?.grammar ?? IEntity.unknownEntityGrammar).map(currentValue =>
+                values => {
+                    if (values[symbol] === undefined) {
+                        let arrayEntity = ArrayEntity
+                        if (quoted != arrayEntity.quoted) {
+                            arrayEntity = arrayEntity.flagQuoted(quoted)
                         }
-                        /** @type {ArrayEntity} */
-                        const target = values[symbol]
-                        target.values[index] = currentValue
+                        if (!arrayEntity.inlined) {
+                            arrayEntity = arrayEntity.flagInlined()
+                        }
+                        values[symbol] = new arrayEntity()
                     }
-                )
-        )
+                    /** @type {ArrayEntity} */
+                    const target = values[symbol]
+                    target.values[index] = currentValue
+                }
+            )
+    )
     static grammar = this.createGrammar()
     static grammarMultipleObjects = P.seq(
         P.whitespaceOpt,
@@ -202,20 +204,20 @@ export default class ObjectEntity extends IEntity {
         super(values)
 
         // Attributes
+        /** @type {ArrayEntity<typeof PinEntity | typeof UnknownPinEntity>} */ this.CustomProperties
         /** @type {InstanceType<typeof ObjectEntity.attributes.AddedPins>} */ this.AddedPins
         /** @type {InstanceType<typeof ObjectEntity.attributes.AdvancedPinDisplay>} */ this.AdvancedPinDisplay
         /** @type {InstanceType<typeof ObjectEntity.attributes.Archetype>} */ this.Archetype
         /** @type {InstanceType<typeof ObjectEntity.attributes.AxisKey>} */ this.AxisKey
         /** @type {InstanceType<typeof ObjectEntity.attributes.bIsPureFunc>} */ this.bIsPureFunc
         /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementInstance>} */ this.BlueprintElementInstance
-        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstA>} */ this.ConstA
-        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstB>} */ this.ConstB
         /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementType>} */ this.BlueprintElementType
         /** @type {InstanceType<typeof ObjectEntity.attributes.Class>} */ this.Class
         /** @type {InstanceType<typeof ObjectEntity.attributes.CommentColor>} */ this.CommentColor
         /** @type {InstanceType<typeof ObjectEntity.attributes.ComponentPropertyName>} */ this.ComponentPropertyName
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstA>} */ this.ConstA
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstB>} */ this.ConstB
         /** @type {InstanceType<typeof ObjectEntity.attributes.CustomFunctionName>} */ this.CustomFunctionName
-        /** @type {ArrayEntity<typeof PinEntity | typeof UnknownPinEntity>} */ this.CustomProperties
         /** @type {InstanceType<typeof ObjectEntity.attributes.DelegatePropertyName>} */ this.DelegatePropertyName
         /** @type {InstanceType<typeof ObjectEntity.attributes.DelegateReference>} */ this.DelegateReference
         /** @type {InstanceType<typeof ObjectEntity.attributes.EnabledState>} */ this.EnabledState
@@ -254,9 +256,10 @@ export default class ObjectEntity extends IEntity {
         /** @type {InstanceType<typeof ObjectEntity.attributes.Operation>} */ this.Operation
         /** @type {InstanceType<typeof ObjectEntity.attributes.OpName>} */ this.OpName
         /** @type {InstanceType<typeof ObjectEntity.attributes.OutputPins>} */ this.OutputPins
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ParameterName>} */ this.ParameterName
         /** @type {InstanceType<typeof ObjectEntity.attributes.PCGNode>} */ this.PCGNode
-        /** @type {InstanceType<typeof ObjectEntity.attributes.PinTags>} */ this.PinTags
         /** @type {InstanceType<typeof ObjectEntity.attributes.PinNames>} */ this.PinNames
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PinTags>} */ this.PinTags
         /** @type {InstanceType<typeof ObjectEntity.attributes.PositionX>} */ this.PositionX
         /** @type {InstanceType<typeof ObjectEntity.attributes.PositionY>} */ this.PositionY
         /** @type {InstanceType<typeof ObjectEntity.attributes.ProxyFactoryFunctionName>} */ this.ProxyFactoryFunctionName
@@ -364,6 +367,17 @@ export default class ObjectEntity extends IEntity {
                     ? outputIndex++
                     : i
         })
+        const reference = this.ExportPath?.valueOf()
+        if (reference?.path.endsWith(this.Name?.toString())) {
+            const mirroredEntity = /** @type {typeof ObjectEntity} */(this.constructor).attributes.ExportPath
+            const objectReferenceEntity = /** @type {typeof ObjectReferenceEntity} */(mirroredEntity.type)
+            const nameLength = this.Name.valueOf().length
+            this.ExportPath = new mirroredEntity(() => new objectReferenceEntity(
+                reference.type,
+                reference.path.substring(0, reference.path.length - nameLength) + this.Name,
+                reference.full,
+            ))
+        }
     }
 
     /** @returns {P<ObjectEntity>} */
@@ -414,7 +428,7 @@ export default class ObjectEntity extends IEntity {
     getClass() {
         if (!this.#class) {
             this.#class = (this.Class?.path ? this.Class.path : this.Class?.type)
-                ?? this.ExportPath?.type
+                ?? this.ExportPath?.valueOf()?.type
                 ?? ""
             if (this.#class && !this.#class.startsWith("/")) {
                 // Old path names did not start with /Script or /Engine, check tests/resources/LegacyNodes.js
@@ -428,14 +442,14 @@ export default class ObjectEntity extends IEntity {
     }
 
     getType() {
-        let classValue = this.getClass()
-        if (this.MacroGraphReference?.MacroGraph?.path) {
-            return this.MacroGraphReference.MacroGraph.path
+        const path = this.MacroGraphReference?.MacroGraph?.path
+        if (path) {
+            return path
         }
         if (this.MaterialExpression) {
             return this.MaterialExpression.type
         }
-        return classValue
+        return this.getClass()
     }
 
     getObjectName(dropCounter = false) {
@@ -555,24 +569,10 @@ export default class ObjectEntity extends IEntity {
     }
 
     isMaterial() {
-
-        return this.getClass() === Configuration.paths.materialGraphNode
-        // return [
-        //     Configuration.paths.materialExpressionConstant,
-        //     Configuration.paths.materialExpressionConstant2Vector,
-        //     Configuration.paths.materialExpressionConstant3Vector,
-        //     Configuration.paths.materialExpressionConstant4Vector,
-        //     Configuration.paths.materialExpressionLogarithm,
-        //     Configuration.paths.materialExpressionLogarithm10,
-        //     Configuration.paths.materialExpressionLogarithm2,
-        //     Configuration.paths.materialExpressionMaterialFunctionCall,
-        //     Configuration.paths.materialExpressionSquareRoot,
-        //     Configuration.paths.materialExpressionTextureCoordinate,
-        //     Configuration.paths.materialExpressionTextureSample,
-        //     Configuration.paths.materialGraphNode,
-        //     Configuration.paths.materialGraphNodeComment,
-        // ]
-        //     .includes(this.getClass())
+        const classValue = this.getClass()
+        return classValue.startsWith("/Script/Engine.MaterialExpression")
+            || classValue.startsWith("/Script/InterchangeImport.MaterialExpression")
+            || classValue.startsWith("/Script/UnrealEd.MaterialGraph")
     }
 
     /** @return {ObjectEntity} */
@@ -690,9 +690,9 @@ export default class ObjectEntity extends IEntity {
                 ? ` Archetype${keySeparator}${this.Archetype.serialize(insideString)}`
                 : ""
             )
-            + ((this.ExportPath?.type || this.ExportPath?.path)
-                // && Self.attributes.ExportPath.ignored !== true
-                // && this.ExportPath.ignored !== true
+            + ((this.ExportPath?.valueOf()?.type || this.ExportPath?.valueOf()?.path)
+                // && Self.attributes.ExportPath.valueOf().ignored !== true
+                // && this.ExportPath.valueOf().ignored !== true
                 ? ` ExportPath${keySeparator}${this.ExportPath.serialize(insideString)}`
                 : ""
             )

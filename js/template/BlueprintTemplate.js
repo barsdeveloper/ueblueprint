@@ -55,6 +55,7 @@ export default class BlueprintTemplate extends ITemplate {
     /** @type {HTMLElement} */ linksContainerElement
     /** @type {HTMLElement} */ nodesContainerElement
     viewportSize = [0, 0]
+    #removeZoomChanged = () => this.headerElement.classList.remove("ueb-zoom-changed")
 
     /** @param {Blueprint} element */
     initialize(element) {
@@ -176,11 +177,12 @@ export default class BlueprintTemplate extends ITemplate {
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties)
         if (this.headerElement && changedProperties.has("zoom")) {
+            if (this.headerElement.classList.contains("ueb-zoom-changed")) {
+                this.headerElement.classList.remove("ueb-zoom-changed")
+                void this.headerElement.offsetWidth // To trigger the reflow
+            }
             this.headerElement.classList.add("ueb-zoom-changed")
-            this.headerElement.addEventListener(
-                "animationend",
-                () => this.headerElement.classList.remove("ueb-zoom-changed")
-            )
+            this.headerElement.addEventListener("animationend", this.#removeZoomChanged, { once: true })
         }
     }
 

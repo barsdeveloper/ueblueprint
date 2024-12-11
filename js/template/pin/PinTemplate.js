@@ -121,6 +121,9 @@ export default class PinTemplate extends ITemplate {
         if (this.element.nodeElement?.template instanceof VariableOperationNodeTemplate) {
             return SVGIcon.operationPin
         }
+        if (this.element.entity.PinType.PinCategory?.toString().toLocaleLowerCase() === "statictype") {
+            return SVGIcon.staticPin
+        }
         return SVGIcon.genericPin
     }
 
@@ -140,9 +143,7 @@ export default class PinTemplate extends ITemplate {
     }
 
     isInputRendered() {
-        return this.element.isInput()
-            && !this.element.entity.bDefaultValueIsIgnored?.valueOf()
-            && !this.element.entity.PinType.bIsReference?.valueOf()
+        return this.element.isInput() && !this.element.entity.PinType.bIsReference?.valueOf()
     }
 
     renderInput() {

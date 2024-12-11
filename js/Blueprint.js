@@ -5,6 +5,7 @@ import LinkElement from "./element/LinkElement.js"
 import NodeElement from "./element/NodeElement.js"
 import BlueprintEntity from "./entity/BlueprintEntity.js"
 import BooleanEntity from "./entity/BooleanEntity.js"
+import NiagaraClipboardContent from "./entity/objects/NiagaraClipboardContent.js"
 import BlueprintTemplate from "./template/BlueprintTemplate.js"
 
 /** @extends {IElement<BlueprintEntity, BlueprintTemplate>} */
@@ -297,28 +298,10 @@ export default class Blueprint extends IElement {
         return [x, y]
     }
 
-    getNodes(
-        selected = false,
-        [t, r, b, l] = [
-            Number.MIN_SAFE_INTEGER,
-            Number.MAX_SAFE_INTEGER,
-            Number.MAX_SAFE_INTEGER,
-            Number.MIN_SAFE_INTEGER,
-        ]
-    ) {
+    getNodes(selected = false) {
         let result = this.nodes
         if (selected) {
             result = result.filter(n => n.selected)
-        }
-        if (
-            t > Number.MIN_SAFE_INTEGER
-            || r < Number.MAX_SAFE_INTEGER
-            || b < Number.MAX_SAFE_INTEGER
-            || l > Number.MIN_SAFE_INTEGER
-        ) {
-            result = result.filter(n => {
-                return n.topBoundary() >= t && n.rightBoundary() <= r && n.bottomBoundary() <= b && n.leftBoundary() >= l
-            })
         }
         return result
     }
@@ -384,6 +367,22 @@ export default class Blueprint extends IElement {
         this.getNodes().forEach(node => Blueprint.nodeSelectToggleFunction(node, false))
     }
 
+    getSerializedText() {
+        const nodes = this.blueprint.getNodes(true).map(n => n.entity)
+        let exports = false
+        let result = nodes
+            .filter(n => {
+                exports ||= n.exported
+                return !n.exported
+            })
+            .reduce((acc, cur) => acc + cur.serialize(), "")
+        if (exports) {
+            const object = new NiagaraClipboardContent(this.blueprint.entity, nodes)
+            result = object.serialize() + result
+        }
+        return result
+    }
+
     /** @param  {...IElement} graphElements */
     addGraphElement(...graphElements) {
         /** @param {CustomEvent} event */
@@ -414,7 +413,7 @@ export default class Blueprint extends IElement {
                     this.entity = this.entity.mergeWith(element.entity)
                     const additionalSerialization = atob(element.entity.ExportedNodes.toString())
                     this.template.getPasteInputObject().pasted(additionalSerialization)
-                        .forEach(node => node.entity._exported = true)
+                        .forEach(node => node.entity.exported = true)
                     continue
                 }
                 const name = element.entity.getObjectName()
