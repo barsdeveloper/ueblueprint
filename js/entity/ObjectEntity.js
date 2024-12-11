@@ -368,7 +368,7 @@ export default class ObjectEntity extends IEntity {
                     : i
         })
         const reference = this.ExportPath?.valueOf()
-        if (reference?.path.endsWith(this.Name?.valueOf())) {
+        if (reference?.path.endsWith(this.Name?.toString())) {
             const mirroredEntity = /** @type {typeof ObjectEntity} */(this.constructor).attributes.ExportPath
             const objectReferenceEntity = /** @type {typeof ObjectReferenceEntity} */(mirroredEntity.type)
             const nameLength = this.Name.valueOf().length
@@ -442,14 +442,14 @@ export default class ObjectEntity extends IEntity {
     }
 
     getType() {
-        let classValue = this.getClass()
-        if (this.MacroGraphReference?.MacroGraph?.path) {
-            return this.MacroGraphReference.MacroGraph.path
+        const path = this.MacroGraphReference?.MacroGraph?.path
+        if (path) {
+            return path
         }
         if (this.MaterialExpression) {
             return this.MaterialExpression.type
         }
-        return classValue
+        return this.getClass()
     }
 
     getObjectName(dropCounter = false) {

@@ -25,6 +25,7 @@ export default class ObjectReferenceEntity extends IEntity {
         return this.#path
     }
     set path(value) {
+        this.#name = ""
         this.#path = value
     }
 
@@ -35,6 +36,8 @@ export default class ObjectReferenceEntity extends IEntity {
     set full(value) {
         this.#full = value
     }
+
+    #name = ""
 
     /** @param {(t: String, p: String) => String} full */
     constructor(
@@ -101,7 +104,13 @@ export default class ObjectReferenceEntity extends IEntity {
     }
 
     getName(dropCounter = false) {
-        return Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
+        if (!this.#name) {
+            if (!dropCounter) {
+                return this.#name = Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
+            }
+            return Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
+        }
+        return this.#name
     }
 
     doSerialize(insideString = false) {

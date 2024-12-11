@@ -178,6 +178,7 @@ export default class Configuration {
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         niagaraBool: "/Script/Niagara.NiagaraBool",
         niagaraClipboardContent: "/Script/NiagaraEditor.NiagaraClipboardContent",
+        niagaraDataInterfaceCollisionQuery: "/Script/Niagara.NiagaraDataInterfaceCollisionQuery",
         niagaraDataInterfaceCurlNoise: "/Script/Niagara.NiagaraDataInterfaceCurlNoise",
         niagaraDataInterfaceVolumeTexture: "/Script/Niagara.NiagaraDataInterfaceVolumeTexture",
         niagaraFloat: "/Script/Niagara.NiagaraFloat",

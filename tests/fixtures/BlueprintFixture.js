@@ -153,7 +153,7 @@ export default class BlueprintFixture {
     getSerializedNodes() {
         return this.blueprintLocator.evaluate(blueprint => {
             blueprint.selectAll()
-            return blueprint.template.getCopyInputObject().getSerializedText()
+            return blueprint.getSerializedText()
         })
     }
 }

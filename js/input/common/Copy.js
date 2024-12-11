@@ -29,24 +29,8 @@ export default class Copy extends IInput {
         window.removeEventListener("copy", this.#copyHandler)
     }
 
-    getSerializedText() {
-        const nodes = this.blueprint.getNodes(true).map(n => n.entity)
-        let exports = false
-        let result = nodes
-            .filter(n => {
-                exports ||= n.exported
-                return !n.exported
-            })
-            .reduce((acc, cur) => acc + cur.serialize(), "")
-        if (exports) {
-            const object = new NiagaraClipboardContent(this.blueprint.entity, nodes)
-            result = object.serialize() + result
-        }
-        return result
-    }
-
     copied() {
-        const value = this.getSerializedText()
+        const value = this.blueprint.getSerializedText()
         navigator.clipboard.writeText(value)
         return value
     }

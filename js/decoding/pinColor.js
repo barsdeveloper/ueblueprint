@@ -38,6 +38,7 @@ const colors = {
     "wildcard": css`128, 120, 120`,
     [Configuration.paths.linearColor]: css`0, 88, 200`,
     [Configuration.paths.niagaraBool]: css`146, 0, 0`,
+    [Configuration.paths.niagaraDataInterfaceCollisionQuery]: css`0, 168, 242`,
     [Configuration.paths.niagaraDataInterfaceCurlNoise]: css`0, 168, 242`,
     [Configuration.paths.niagaraDataInterfaceVolumeTexture]: css`0, 168, 242`,
     [Configuration.paths.niagaraFloat]: css`160, 250, 68`,

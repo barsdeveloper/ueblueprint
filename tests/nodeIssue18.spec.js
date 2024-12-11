@@ -57,7 +57,7 @@ testNode({
         await expect(node.locator(".ueb-node-name")).toHaveText("Mask ( B A )")
         const resultSerialization = await blueprintPage.blueprintLocator.evaluate(blueprint => {
             blueprint.selectAll()
-            return blueprint.template.getCopyInputObject().getSerializedText()
+            return blueprint.getSerializedText()
         })
         const expectedSerialization = String.raw`
             Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="MaterialGraphNode_37" ExportPath="/Script/UnrealEd.MaterialGraphNode'/Engine/Transient.NewMaterial:MaterialGraph_0.MaterialGraphNode_37'"

@@ -202,6 +202,7 @@ class Configuration {
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         niagaraBool: "/Script/Niagara.NiagaraBool",
         niagaraClipboardContent: "/Script/NiagaraEditor.NiagaraClipboardContent",
+        niagaraDataInterfaceCollisionQuery: "/Script/Niagara.NiagaraDataInterfaceCollisionQuery",
         niagaraDataInterfaceCurlNoise: "/Script/Niagara.NiagaraDataInterfaceCurlNoise",
         niagaraDataInterfaceVolumeTexture: "/Script/Niagara.NiagaraDataInterfaceVolumeTexture",
         niagaraFloat: "/Script/Niagara.NiagaraFloat",
@@ -528,7 +529,7 @@ class Utility {
     }
 
     /**
-     * @param {Attribute} entity
+     * @param {IEntity} entity
      * @param {String} key
      * @returns {Boolean}
      */
@@ -595,29 +596,30 @@ class Utility {
 
     /**
      * @template T
-     * @param {Array<T>} a
-     * @param {Array<T>} b
+     * @param {Array<T>} reference
+     * @param {Array<T>} additional
+     * @param {(v: T) => void} adding - Process added element
      * @param {(l: T, r: T) => Boolean} predicate
      */
-    static mergeArrays(a = [], b = [], predicate = (l, r) => l == r) {
+    static mergeArrays(reference = [], additional = [], predicate = (l, r) => l == r, adding = v => { }) {
         let result = [];
-        a = [...a];
-        b = [...b];
+        reference = [...reference];
+        additional = [...additional];
         restart:
         while (true) {
-            for (let j = 0; j < b.length; ++j) {
-                for (let i = 0; i < a.length; ++i) {
-                    if (predicate(a[i], b[j])) {
+            for (let j = 0; j < additional.length; ++j) {
+                for (let i = 0; i < reference.length; ++i) {
+                    if (predicate(reference[i], additional[j])) {
                         // Found an element in common in the two arrays
                         result.push(
                             // Take and append all the elements skipped from a
-                            ...a.splice(0, i),
+                            ...reference.splice(0, i),
                             // Take and append all the elements skippend from b
-                            ...b.splice(0, j),
+                            ...additional.splice(0, j).map(v => (adding(v), v)),
                             // Take and append the element in common
-                            ...a.splice(0, 1)
+                            ...reference.splice(0, 1)
                         );
-                        b.shift(); // Remove the same element from b
+                        additional.shift(); // Remove the same element from b
                         continue restart
                     }
                 }
@@ -625,7 +627,9 @@ class Utility {
             break restart
         }
         // Append remaining the elements in the arrays and make it unique
-        return [...(new Set(result.concat(...a, ...b)))]
+        result.push(...reference);
+        result.push(...additional.filter(vb => !result.some(vr => predicate(vr, vb))));
+        return result
     }
 
     /** @param {String} value */
@@ -2781,9 +2785,9 @@ class IEntity {
      * @this {T}
      * @returns {T}
      */
-    static asUniqueClass() {
+    static asUniqueClass(alwaysCreate = false) {
         let result = this;
-        if (this.name.length) {
+        if (this.name.length || alwaysCreate) {
             // @ts-expect-error
             result = (() => class extends this { })(); // Comes from a lambda otherwise the class will have name "result"
             result.grammar = result.createGrammar(); // Reassign grammar to capture the correct this from subclass
@@ -4807,6 +4811,7 @@ const colors = {
     "wildcard": i$3`128, 120, 120`,
     [Configuration.paths.linearColor]: i$3`0, 88, 200`,
     [Configuration.paths.niagaraBool]: i$3`146, 0, 0`,
+    [Configuration.paths.niagaraDataInterfaceCollisionQuery]: i$3`0, 168, 242`,
     [Configuration.paths.niagaraDataInterfaceCurlNoise]: i$3`0, 168, 242`,
     [Configuration.paths.niagaraDataInterfaceVolumeTexture]: i$3`0, 168, 242`,
     [Configuration.paths.niagaraFloat]: i$3`160, 250, 68`,
@@ -5248,6 +5253,8 @@ class ObjectReferenceEntity extends IEntity {
         this.#full = value;
     }
 
+    #name = ""
+
     /** @param {(t: String, p: String) => String} full */
     constructor(
         type = "None",
@@ -5313,7 +5320,13 @@ class ObjectReferenceEntity extends IEntity {
     }
 
     getName(dropCounter = false) {
-        return Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
+        if (!this.#name) {
+            if (!dropCounter) {
+                return this.#name = Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
+            }
+            return Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
+        }
+        return this.#name
     }
 
     doSerialize(insideString = false) {
@@ -6619,7 +6632,7 @@ class ObjectEntity extends IEntity {
                     : i;
         });
         const reference = this.ExportPath?.valueOf();
-        if (reference?.path.endsWith(this.Name?.valueOf())) {
+        if (reference?.path.endsWith(this.Name?.toString())) {
             const mirroredEntity = /** @type {typeof ObjectEntity} */(this.constructor).attributes.ExportPath;
             const objectReferenceEntity = /** @type {typeof ObjectReferenceEntity} */(mirroredEntity.type);
             const nameLength = this.Name.valueOf().length;
@@ -6693,14 +6706,14 @@ class ObjectEntity extends IEntity {
     }
 
     getType() {
-        let classValue = this.getClass();
-        if (this.MacroGraphReference?.MacroGraph?.path) {
-            return this.MacroGraphReference.MacroGraph.path
+        const path = this.MacroGraphReference?.MacroGraph?.path;
+        if (path) {
+            return path
         }
         if (this.MaterialExpression) {
             return this.MaterialExpression.type
         }
-        return classValue
+        return this.getClass()
     }
 
     getObjectName(dropCounter = false) {
@@ -9530,9 +9543,7 @@ class PinTemplate extends ITemplate {
     }
 
     isInputRendered() {
-        return this.element.isInput()
-            && !this.element.entity.bDefaultValueIsIgnored?.valueOf()
-            && !this.element.entity.PinType.bIsReference?.valueOf()
+        return this.element.isInput() && !this.element.entity.PinType.bIsReference?.valueOf()
     }
 
     renderInput() {
@@ -10232,11 +10243,17 @@ class BlueprintEntity extends ObjectEntity {
 
     /** @type {Map<String, Number>} */
     #objectEntitiesNameCounter = new Map()
+    #variableNames = new Set()
 
     /** @type {ObjectEntity[]}" */
     #objectEntities = []
     get objectEntities() {
         return this.#objectEntities
+    }
+
+    static attributes = {
+        ...super.attributes,
+        ScriptVariables: super.attributes.ScriptVariables.asUniqueClass(true).withDefault(),
     }
 
     /** @param {ObjectEntity} entity */
@@ -10280,36 +10297,91 @@ class BlueprintEntity extends ObjectEntity {
         return false
     }
 
+    /**
+     * @param {ObjectReferenceEntity} variable
+     * @param {IEntity} entity
+     */
+    renameScriptVariable(variable, entity) {
+        const name = variable.getName();
+        const newName = this.takeFreeName(name);
+        {
+            [true, false].forEach(v => {
+                /** @type {ObjectEntity} */
+                let object = this[Configuration.subObjectAttributeNameFromReference(variable, v)];
+                object.Name.value = newName;
+                object.Name = object.Name;
+            });
+        }
+        variable.path.replace(name, newName);
+    }
+
     /** @param {ObjectEntity} entity */
     mergeWith(entity) {
-        if (!entity.ScriptVariables || entity.ScriptVariables.length === 0) {
+        if ((entity.ScriptVariables?.length ?? 0) === 0) {
+            // The entity does not add new variables
             return this
-        }
-        if (!this.ScriptVariables || this.ScriptVariables.length === 0) {
-            this.ScriptVariables = entity.ScriptVariables;
         }
         let scriptVariables = Utility.mergeArrays(
             this.ScriptVariables.valueOf(),
             entity.ScriptVariables.valueOf(),
-            (l, r) => l.OriginalChangeId.value == r.OriginalChangeId.value
+            (l, r) => l.OriginalChangeId.value == r.OriginalChangeId.value,
+            added => {
+                const name = added.ScriptVariable.getName();
+                if (this.#variableNames.has(name)) {
+                    this.renameScriptVariable(added.ScriptVariable, entity);
+                }
+            }
         );
         if (scriptVariables.length === this.ScriptVariables.length) {
+            // The entity does not add new variables
             return this
         }
+        scriptVariables.reverse();
         const entries = scriptVariables.concat(scriptVariables).map((v, i) => {
-            const name = Configuration.subObjectAttributeNameFromReference(v.ScriptVariable, i >= scriptVariables.length);
-            return [
-                name,
-                this[name] ?? entity[name]
-            ]
-        });
+            const name = Configuration.subObjectAttributeNameFromReference(
+                v.ScriptVariable,
+                i >= scriptVariables.length // First take all the small objects then all name only
+            );
+            const object = this[name] ?? entity[name];
+            return object ? [name, object] : null
+        }).filter(v => v);
         entries.push(
             ...Object.entries(this).filter(([k, v]) =>
                 !k.startsWith(Configuration.subObjectAttributeNamePrefix)
                 && k !== "ExportedNodes"
-            )
+            ),
+            ["ScriptVariables", new (BlueprintEntity.attributes.ScriptVariables)(scriptVariables.reverse())]
         );
         return new BlueprintEntity(Object.fromEntries(entries))
+    }
+
+    /** @param {ObjectEntity[]} entities */
+    getVariablesAttributesReferringTo(...entities) {
+        let pins = new Set(...entities.flatMap(entity => entity.getPinEntities()).map(pin => pin.PinName.toString()));
+        this.ScriptVariables
+            .valueOf()
+            .map(v => {
+                const keySimple = Configuration.subObjectAttributeNameFromReference(v.ScriptVariable, false);
+                const keyFull = Configuration.subObjectAttributeNameFromReference(v.ScriptVariable, true);
+                return {
+                    simple: [keySimple, this[keySimple]],
+                    full: [keyFull, this[keyFull]],
+                    variable: v,
+                }
+            })
+            .filter(v => pins.has(v.full?.["Variable"]?.["Name"]))
+            .reduce(
+                (acc, cur) => {
+                    acc.simple.push([cur.simple[0], cur.simple[1]]);
+                    acc.full.push([cur.full[0], cur.full[1]]);
+                    acc.ScriptVariables.push(cur.variable);
+                    return acc
+                },
+                ({ simple: [], full: [], ScriptVariables: [] })
+            );
+        return {
+
+        }
     }
 }
 
@@ -10367,24 +10439,8 @@ class Copy extends IInput {
         window.removeEventListener("copy", this.#copyHandler);
     }
 
-    getSerializedText() {
-        const nodes = this.blueprint.getNodes(true).map(n => n.entity);
-        let exports = false;
-        let result = nodes
-            .filter(n => {
-                exports ||= n.exported;
-                return !n.exported
-            })
-            .reduce((acc, cur) => acc + cur.serialize(), "");
-        if (exports) {
-            const object = new NiagaraClipboardContent(this.blueprint.entity, nodes);
-            result = object.serialize() + result;
-        }
-        return result
-    }
-
     copied() {
-        const value = this.getSerializedText();
+        const value = this.blueprint.getSerializedText();
         navigator.clipboard.writeText(value);
         return value
     }
@@ -10421,13 +10477,6 @@ class Cut extends IInput {
 
     unlistenEvents() {
         window.removeEventListener("cut", this.#cutHandler);
-    }
-
-    getSerializedText() {
-        return this.blueprint
-            .getNodes(true)
-            .map(node => node.entity.serialize())
-            .join("")
     }
 
     cut() {
@@ -10840,6 +10889,7 @@ class BlueprintTemplate extends ITemplate {
     /** @type {HTMLElement} */ linksContainerElement
     /** @type {HTMLElement} */ nodesContainerElement
     viewportSize = [0, 0]
+    #removeZoomChanged = () => this.headerElement.classList.remove("ueb-zoom-changed")
 
     /** @param {Blueprint} element */
     initialize(element) {
@@ -10961,11 +11011,12 @@ class BlueprintTemplate extends ITemplate {
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties);
         if (this.headerElement && changedProperties.has("zoom")) {
+            if (this.headerElement.classList.contains("ueb-zoom-changed")) {
+                this.headerElement.classList.remove("ueb-zoom-changed");
+                void this.headerElement.offsetWidth; // To trigger the reflow
+            }
             this.headerElement.classList.add("ueb-zoom-changed");
-            this.headerElement.addEventListener(
-                "animationend",
-                () => this.headerElement.classList.remove("ueb-zoom-changed")
-            );
+            this.headerElement.addEventListener("animationend", this.#removeZoomChanged, { once: true });
         }
     }
 
@@ -11370,28 +11421,10 @@ class Blueprint extends IElement {
         return [x, y]
     }
 
-    getNodes(
-        selected = false,
-        [t, r, b, l] = [
-            Number.MIN_SAFE_INTEGER,
-            Number.MAX_SAFE_INTEGER,
-            Number.MAX_SAFE_INTEGER,
-            Number.MIN_SAFE_INTEGER,
-        ]
-    ) {
+    getNodes(selected = false) {
         let result = this.nodes;
         if (selected) {
             result = result.filter(n => n.selected);
-        }
-        if (
-            t > Number.MIN_SAFE_INTEGER
-            || r < Number.MAX_SAFE_INTEGER
-            || b < Number.MAX_SAFE_INTEGER
-            || l > Number.MIN_SAFE_INTEGER
-        ) {
-            result = result.filter(n => {
-                return n.topBoundary() >= t && n.rightBoundary() <= r && n.bottomBoundary() <= b && n.leftBoundary() >= l
-            });
         }
         return result
     }
@@ -11455,6 +11488,22 @@ class Blueprint extends IElement {
 
     unselectAll() {
         this.getNodes().forEach(node => Blueprint.nodeSelectToggleFunction(node, false));
+    }
+
+    getSerializedText() {
+        const nodes = this.blueprint.getNodes(true).map(n => n.entity);
+        let exports = false;
+        let result = nodes
+            .filter(n => {
+                exports ||= n.exported;
+                return !n.exported
+            })
+            .reduce((acc, cur) => acc + cur.serialize(), "");
+        if (exports) {
+            const object = new NiagaraClipboardContent(this.blueprint.entity, nodes);
+            result = object.serialize() + result;
+        }
+        return result
     }
 
     /** @param  {...IElement} graphElements */
@@ -12125,7 +12174,7 @@ class EnumPinTemplate extends IInputPinTemplate {
                     : [k, Utility.formatStringName(k)]
             )
             ?? [];
-        const defaultEntry = this.element.getDefaultValue().toString();
+        const defaultEntry = this.element.getDefaultValue()?.toString();
         if (!this.#dropdownEntries.find(([k, v]) => k === defaultEntry)) {
             this.#dropdownEntries.push([defaultEntry, Utility.formatStringName(defaultEntry)]);
         }
@@ -13648,6 +13697,10 @@ function defineElements() {
 
 class UnknownKeysEntity extends IEntity {
 
+    static attributes = {
+        ...super.attributes,
+        VariableGuid: GuidEntity,
+    }
     static grammar = this.createGrammar()
 
     static {

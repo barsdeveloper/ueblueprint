@@ -33,13 +33,6 @@ export default class Cut extends IInput {
         window.removeEventListener("cut", this.#cutHandler)
     }
 
-    getSerializedText() {
-        return this.blueprint
-            .getNodes(true)
-            .map(node => node.entity.serialize())
-            .join("")
-    }
-
     cut() {
         this.blueprint.template.getCopyInputObject().copied()
         this.blueprint.removeGraphElement(...this.blueprint.getNodes(true))

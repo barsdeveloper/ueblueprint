@@ -143,9 +143,7 @@ export default class PinTemplate extends ITemplate {
     }
 
     isInputRendered() {
-        return this.element.isInput()
-            && !this.element.entity.bDefaultValueIsIgnored?.valueOf()
-            && !this.element.entity.PinType.bIsReference?.valueOf()
+        return this.element.isInput() && !this.element.entity.PinType.bIsReference?.valueOf()
     }
 
     renderInput() {

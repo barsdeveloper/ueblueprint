@@ -38,7 +38,7 @@ testNode({
         await expect(inputs[3]).toContainText("-4.0")
         const resultSerialization = await blueprintPage.blueprintLocator.evaluate(blueprint => {
             blueprint.selectAll()
-            return blueprint.template.getCopyInputObject().getSerializedText()
+            return blueprint.getSerializedText()
         })
         const expectedSerialization = String.raw`
             Begin Object Class=/Script/NiagaraEditor.NiagaraNodeOp Name="NiagaraNodeOp_92" ExportPath="/Script/NiagaraEditor.NiagaraNodeOp'/Engine/Transient.NewNiagaraScript:NiagaraScriptSource_0.NiagaraGraph_0.NiagaraNodeOp_92'"
