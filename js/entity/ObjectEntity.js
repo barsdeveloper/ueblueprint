@@ -142,7 +142,10 @@ export default class ObjectEntity extends IEntity {
         ScriptVariables: ArrayEntity.flagInlined().of(ScriptVariableEntity),
         Node: MirroredEntity.of(ObjectReferenceEntity),
         ExportedNodes: StringEntity,
-        CustomProperties: ArrayEntity.of(AlternativesEntity.accepting(PinEntity, UnknownPinEntity)).withDefault().flagSilent(),
+        CustomProperties: ArrayEntity
+            .of(AlternativesEntity.accepting(PinEntity, UnknownPinEntity))
+            .withDefault()
+            .flagSilent(),
     }
     static customPropertyGrammar = P.seq(
         P.reg(/CustomProperties\s+/),
@@ -367,16 +370,41 @@ export default class ObjectEntity extends IEntity {
                     ? outputIndex++
                     : i
         })
-        const reference = this.ExportPath?.valueOf()
-        if (reference?.path.endsWith(this.Name?.toString())) {
+
+        // Mirror name part of the object in ExportPath
+        const exportPath = this.ExportPath?.valueOf()
+        if (exportPath?.path.endsWith(this.Name?.toString())) {
             const mirroredEntity = /** @type {typeof ObjectEntity} */(this.constructor).attributes.ExportPath
-            const objectReferenceEntity = /** @type {typeof ObjectReferenceEntity} */(mirroredEntity.type)
-            const nameLength = this.Name.valueOf().length
-            this.ExportPath = new mirroredEntity(() => new objectReferenceEntity(
-                reference.type,
-                reference.path.substring(0, reference.path.length - nameLength) + this.Name,
-                reference.full,
-            ))
+            const prefix = exportPath.path.substring(0, exportPath.path.length - this.Name.toString().length)
+            this.ExportPath = new mirroredEntity(
+                () => new (mirroredEntity.type)(exportPath.type, prefix + this.Name.toString(), exportPath.full)
+            )
+        }
+
+        // Mirror name part of the nested object in ExportPath
+        if (this.Name) {
+            for (const k of Object.keys(this)) {
+                if (!k.startsWith(Configuration.subObjectAttributeNamePrefix)) {
+                    continue
+                }
+                /** @type {ObjectEntity} */
+                const subObject = this[k]
+                if (!subObject.ExportPath?.valueOf().path.includes(this.Name.toString())) {
+                    continue
+                }
+                const originalExportPath = subObject.ExportPath.valueOf()
+                const position = originalExportPath.path.indexOf(this.Name.toString())
+                const prefix = originalExportPath.path.substring(0, position)
+                const suffix = originalExportPath.path.substring(position + this.Name.toString().length)
+                const mirroredEntity = /** @type {typeof ObjectEntity} */(subObject.constructor).attributes.ExportPath
+                subObject.ExportPath = new mirroredEntity(
+                    () => new (mirroredEntity.type)(
+                        originalExportPath.type,
+                        prefix + (this.Name ?? "").toString() + suffix,
+                        originalExportPath.full
+                    )
+                )
+            }
         }
     }
 
@@ -666,9 +694,10 @@ export default class ObjectEntity extends IEntity {
         attributeSeparator = Self.attributeSeparator,
         wrap = Self.wrap,
     ) {
+        const isSelfOverriden = Self !== this.constructor
         const deeperIndentation = indentation + Configuration.indentation
         const initial_trailing = this.trailing
-        this.trailing = false
+        this.trailing = true
         const content = super.doSerialize(insideString, deeperIndentation, Self, printKey, keySeparator, attributeSeparator, wrap)
         this.trailing = initial_trailing
         let result = indentation + "Begin Object"
@@ -696,21 +725,21 @@ export default class ObjectEntity extends IEntity {
                 ? ` ExportPath${keySeparator}${this.ExportPath.serialize(insideString)}`
                 : ""
             )
-            + (content ? attributeSeparator + content : "")
+            + attributeSeparator
+            + content
             + (Self.attributes.CustomProperties.ignored !== true && this.CustomProperties.ignored !== true
                 ? this.getCustomproperties()
                     .map(pin =>
-                        attributeSeparator
-                        + deeperIndentation
+                        deeperIndentation
                         + printKey("CustomProperties ")
                         + pin.serialize(insideString)
+                        + attributeSeparator
                     )
                     .join("")
                 : ""
             )
-            + attributeSeparator
             + indentation + "End Object"
-            + (this.trailing ? attributeSeparator : "")
+            + (isSelfOverriden && Self.trailing || this.trailing ? attributeSeparator : "")
         return result
     }
 }

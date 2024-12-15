@@ -29,27 +29,27 @@ export default class ObjectReferenceEntity extends IEntity {
         this.#path = value
     }
 
-    #full
+    #serializer
     get full() {
-        return this.#full
+        return this.#serializer
     }
     set full(value) {
-        this.#full = value
+        this.#serializer = value
     }
 
     #name = ""
 
-    /** @param {(t: String, p: String) => String} full */
+    /** @param {(t: String, p: String) => String} serializer */
     constructor(
         type = "None",
         path = "",
-        full = type.includes("/") || path
+        serializer = type.includes("/") || path
             ? (t, p) => `"${t + (p ? (`'${p}'`) : "")}"`
             : (t, p) => t) {
         super()
         this.#type = type
         this.#path = path
-        this.#full = full
+        this.#serializer = serializer
     }
 
     /** @returns {P<ObjectReferenceEntity>} */
