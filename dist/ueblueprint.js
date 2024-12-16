@@ -3866,9 +3866,9 @@ class MirroredEntity extends IEntity {
     }
 
     /** @returns {InstanceType<T>} */
-    valueOf() {
+    valueOf(arg) {
         // @ts-expect-error
-        return this.getter().valueOf()
+        return this.getter(arg).valueOf()
     }
 
     toString() {
@@ -6654,18 +6654,18 @@ class ObjectEntity extends IEntity {
                 }
                 /** @type {ObjectEntity} */
                 const subObject = this[k];
-                if (!subObject.ExportPath?.valueOf().path.includes(this.Name.toString())) {
+                if (!subObject.ExportPath?.valueOf(this).path.includes(this.Name.toString())) {
                     continue
                 }
-                const originalExportPath = subObject.ExportPath.valueOf();
+                const originalExportPath = subObject.ExportPath.valueOf(this);
                 const position = originalExportPath.path.indexOf(this.Name.toString());
                 const prefix = originalExportPath.path.substring(0, position);
                 const suffix = originalExportPath.path.substring(position + this.Name.toString().length);
                 const mirroredEntity = /** @type {typeof ObjectEntity} */(subObject.constructor).attributes.ExportPath;
                 subObject.ExportPath = new mirroredEntity(
-                    () => new (mirroredEntity.type)(
+                    (self = this) => new (mirroredEntity.type)(
                         originalExportPath.type,
-                        prefix + (this.Name ?? "").toString() + suffix,
+                        prefix + (self.Name ?? "").toString() + suffix,
                         originalExportPath.full
                     )
                 );
@@ -10286,6 +10286,13 @@ class BlueprintEntity extends ObjectEntity {
     static attributes = {
         ...super.attributes,
         ScriptVariables: super.attributes.ScriptVariables.asUniqueClass(true).withDefault(),
+    }
+
+    constructor(...args) {
+        super(...args);
+        if (!this.Name) {
+            this.Name = new (/** @type {typeof ObjectEntity} */(this.constructor).attributes.Name)("Blueprint");
+        }
     }
 
     /** @param {ObjectEntity} entity */

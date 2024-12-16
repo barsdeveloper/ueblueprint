@@ -67,9 +67,9 @@ export default class MirroredEntity extends IEntity {
     }
 
     /** @returns {InstanceType<T>} */
-    valueOf() {
+    valueOf(arg) {
         // @ts-expect-error
-        return this.getter().valueOf()
+        return this.getter(arg).valueOf()
     }
 
     toString() {

@@ -19,6 +19,13 @@ export default class BlueprintEntity extends ObjectEntity {
         ScriptVariables: super.attributes.ScriptVariables.asUniqueClass(true).withDefault(),
     }
 
+    constructor(...args) {
+        super(...args)
+        if (!this.Name) {
+            this.Name = new (/** @type {typeof ObjectEntity} */(this.constructor).attributes.Name)("Blueprint")
+        }
+    }
+
     /** @param {ObjectEntity} entity */
     getHomonymObjectEntity(entity) {
         const name = entity.getObjectName()
