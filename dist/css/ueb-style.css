@@ -43,7 +43,7 @@ ueb-blueprint svg {
   }
 }
 .ueb-zoom-changed .ueb-viewport-zoom {
-  animation: 600ms ueb-zoom-animation;
+  animation: 1500ms ueb-zoom-animation;
 }
 
 .ueb-viewport-zoom {
@@ -809,6 +809,23 @@ ueb-node[data-type="/Script/BlueprintGraph.K2Node_VariableSet"] ueb-pin[data-dir
 .ueb-pin-input:hover, .ueb-pin-input:active, .ueb-pin-input:focus, .ueb-pin-input:focus-within {
   background: rgba(255, 255, 255, 0.2745098039);
   outline: none;
+}
+
+.ueb-pin-input[type=checkbox] {
+  display: grid;
+  place-content: center;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 1px solid #353535;
+  background: #0f0f0f;
+}
+.ueb-pin-input[type=checkbox]:checked::before {
+  content: "";
+  height: 0.7em;
+  width: 0.8em;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  background: #0070e0;
 }
 
 ueb-pin[data-linked=true] .ueb-pin-input,

@@ -33,8 +33,7 @@ export default class ArrayEntity extends IEntity {
                 if ((trailing !== undefined) !== Self.trailing) {
                     Self = Self.flagTrailing(trailing !== undefined)
                 }
-                const result = new Self(values)
-                return result
+                return new Self(values)
             }).label(`ArrayEntity of ${this.type?.className() ?? "unknown values"}`)
     }
 

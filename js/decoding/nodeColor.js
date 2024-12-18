@@ -20,6 +20,15 @@ export default function nodeColor(entity) {
             return Configuration.nodeColors.blue
         case Configuration.paths.materialExpressionTextureSample:
             return Configuration.nodeColors.darkTurquoise
+        case Configuration.paths.niagaraNodeInput:
+            switch (entity["Usage"]?.toString()) {
+                case "Attribute": return Configuration.nodeColors.intenseGreen
+                case "Parameter": return Configuration.nodeColors.red
+                case "RapidIterationParameter": return Configuration.nodeColors.black
+                case "SystemConstant": return Configuration.nodeColors.gray
+                case "TranslatorConstant": return Configuration.nodeColors.gray
+                default: return Configuration.nodeColors.red
+            }
     }
     switch (entity.getClass()) {
         case Configuration.paths.callFunction:
@@ -75,6 +84,9 @@ export default function nodeColor(entity) {
     }
     if (entity.bIsPureFunc?.valueOf()) {
         return Configuration.nodeColors.green
+    }
+    if (entity["Input"]?.["Name"]) {
+        return Configuration.nodeColors.gray
     }
     return Configuration.nodeColors.blue
 }

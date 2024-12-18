@@ -35,7 +35,7 @@ export default class EnumPinTemplate extends IInputPinTemplate {
                     : [k, Utility.formatStringName(k)]
             )
             ?? []
-        const defaultEntry = this.element.getDefaultValue().toString()
+        const defaultEntry = this.element.getDefaultValue()?.toString()
         if (!this.#dropdownEntries.find(([k, v]) => k === defaultEntry)) {
             this.#dropdownEntries.push([defaultEntry, Utility.formatStringName(defaultEntry)])
         }

@@ -19,18 +19,22 @@ export default class InvariantTextEntity extends IEntity {
                 P.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
                 P.doubleQuotedString,
                 P.reg(/\s*\)/)
-            ).map(([_0, value, _2]) => Number(value)),
-            P.reg(new RegExp(this.lookbehind)).map(() => 0) // InvariantTextEntity can not have arguments
+            ).map(([_0, value, _2]) => value),
+            P.reg(new RegExp(this.lookbehind)).map(() => "") // InvariantTextEntity can have no arguments
         )
             .map(value => new this(value))
             .label("InvariantTextEntity")
     }
 
     doSerialize() {
-        return this.lookbehind + "(" + this.value + ")"
+        return this.lookbehind + '("' + this.value + '")'
     }
 
     valueOf() {
+        return this.value
+    }
+
+    toString() {
         return this.value
     }
 }

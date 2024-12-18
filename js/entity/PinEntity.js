@@ -43,12 +43,15 @@ export default class PinEntity extends IEntity {
         "byte": ByteEntity,
         "enum": EnumEntity,
         "exec": StringEntity,
+        "float": NumberEntity,
         "int": IntegerEntity,
         "int64": Integer64Entity,
         "name": StringEntity,
         "real": NumberEntity,
         "string": StringEntity,
         [Configuration.paths.linearColor]: LinearColorEntity,
+        [Configuration.paths.niagaraBool]: BooleanEntity,
+        [Configuration.paths.niagaraFloat]: NumberEntity,
         [Configuration.paths.niagaraPosition]: VectorEntity,
         [Configuration.paths.rotator]: RotatorEntity,
         [Configuration.paths.vector]: VectorEntity,
@@ -170,9 +173,10 @@ export default class PinEntity extends IEntity {
         return new PinEntity(objectEntity)
     }
 
+    /** @returns {String} */
     getType() {
         const category = this.PinType.PinCategory?.toString().toLocaleLowerCase()
-        if (category === "struct" || category === "class" || category === "object" || category === "type") {
+        if (["struct", "class", "object", "type", "statictype"].includes(category)) {
             return this.PinType.PinSubCategoryObject?.path
         }
         if (this.isEnum()) {
@@ -257,6 +261,7 @@ export default class PinEntity extends IEntity {
 
     isExecution() {
         return this.PinType.PinCategory.toString() === "exec"
+            || this.getType() === Configuration.paths.niagaraParameterMap
     }
 
     isHidden() {

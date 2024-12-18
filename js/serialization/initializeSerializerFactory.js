@@ -35,7 +35,7 @@ export default function initializeSerializerFactory() {
                 Parsernostrum.regArray(new RegExp(
                     // @ts-expect-error
                     `"(${Grammar.Regex.Path.source})'(${Grammar.Regex.Path.source}|${Grammar.symbol.getParser().regexp.source})'"`
-                )).map(([full, type, path]) => new ObjectReferenceEntity(type, path, full))
+                )).map(([_0, type, path]) => new ObjectReferenceEntity(type, path, (t, p) => `"${t}'${p}'"`))
             ),
             StringEntity.grammar,
             LocalizedTextEntity.grammar,

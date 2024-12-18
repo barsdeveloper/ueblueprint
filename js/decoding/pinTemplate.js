@@ -19,6 +19,7 @@ const inputPinTemplates = {
     "bool": BoolPinTemplate,
     "byte": IntPinTemplate,
     "enum": EnumPinTemplate,
+    "float": RealPinTemplate,
     "int": IntPinTemplate,
     "int64": Int64PinTemplate,
     "MUTABLE_REFERENCE": ReferencePinTemplate,
@@ -28,10 +29,13 @@ const inputPinTemplates = {
     "string": StringPinTemplate,
     [Configuration.paths.linearColor]: LinearColorPinTemplate,
     [Configuration.paths.niagaraBool]: BoolPinTemplate,
+    [Configuration.paths.niagaraFloat]: RealPinTemplate,
+    [Configuration.paths.niagaraInt32]: IntPinTemplate,
     [Configuration.paths.niagaraPosition]: VectorPinTemplate,
     [Configuration.paths.rotator]: RotatorPinTemplate,
     [Configuration.paths.vector]: VectorPinTemplate,
     [Configuration.paths.vector2D]: Vector2DPinTemplate,
+    [Configuration.paths.vector2f]: Vector2DPinTemplate,
     [Configuration.paths.vector3f]: VectorPinTemplate,
     [Configuration.paths.vector4f]: Vector4DPinTemplate,
 }
@@ -44,9 +48,9 @@ export default function pinTemplate(entity) {
     if (entity.PinType.bIsReference?.valueOf() && !entity.PinType.bIsConst?.valueOf()) {
         return inputPinTemplates["MUTABLE_REFERENCE"]
     }
-    const type = entity.getType()
-    if (type === "exec") {
+    if (entity.isExecution()) {
         return ExecPinTemplate
     }
+    const type = entity.getType()
     return (entity.isInput() ? inputPinTemplates[type] : PinTemplate) ?? PinTemplate
 }
