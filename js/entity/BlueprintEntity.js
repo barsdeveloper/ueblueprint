@@ -1,12 +1,12 @@
 import Configuration from "../Configuration.js"
 import Utility from "../Utility.js"
 import ObjectEntity from "./ObjectEntity.js"
+import ScriptVariableEntity from "./ScriptVariableEntity.js"
 
 export default class BlueprintEntity extends ObjectEntity {
 
     /** @type {Map<String, Number>} */
     #objectEntitiesNameCounter = new Map()
-    #variableNames = new Set()
 
     /** @type {ObjectEntity[]}" */
     #objectEntities = []
@@ -38,6 +38,16 @@ export default class BlueprintEntity extends ObjectEntity {
         const counter = (this.#objectEntitiesNameCounter.get(name) ?? -1) + 1
         this.#objectEntitiesNameCounter.set(name, counter)
         return Configuration.nodeTitle(name, counter)
+    }
+
+    /** @param {String} name */
+    updateNameIndex(name) {
+        const match = name.match(/(.+)_(\d+)$/)
+        if (match) {
+            name = match[1]
+            const index = Number(match[2])
+            this.#objectEntitiesNameCounter.set(name, Math.max(index, this.#objectEntitiesNameCounter.get(name) ?? 0))
+        }
     }
 
     /** @param {ObjectEntity} entity */
@@ -83,6 +93,29 @@ export default class BlueprintEntity extends ObjectEntity {
             })
         }
         variable.path.replace(name, newName)
+        return newName
+    }
+
+    /**
+     * @param {ScriptVariableEntity} scriptVariableEntity
+     * @returns {String}
+     */
+    variableName(scriptVariableEntity) {
+        return this[Configuration.subObjectAttributeNameFromReference(scriptVariableEntity.ScriptVariable, true)]
+            ?.["Variable"]
+            ?.["Name"]
+            ?.toString()
+    }
+
+    /** @param {String} variableName */
+    variableIndex(variableName) {
+        let i = 0
+        for (const v of this.ScriptVariables?.valueOf()) {
+            if (variableName == this.variableName(v)) {
+                return i
+            }
+            ++i
+        }
     }
 
     /** @param {ObjectEntity} entity */
@@ -91,15 +124,17 @@ export default class BlueprintEntity extends ObjectEntity {
             // The entity does not add new variables
             return this
         }
+        const variableObjectNames = this.ScriptVariables.valueOf().map(v => v.ScriptVariable.getName())
         let scriptVariables = Utility.mergeArrays(
             this.ScriptVariables.valueOf(),
             entity.ScriptVariables.valueOf(),
-            (l, r) => l.OriginalChangeId.value == r.OriginalChangeId.value,
+            (l, r) => this.variableName(l) == this.variableName(r),
             added => {
-                const name = added.ScriptVariable.getName()
-                if (this.#variableNames.has(name)) {
-                    this.renameScriptVariable(added.ScriptVariable, entity)
+                let name = added.ScriptVariable.getName()
+                if (variableObjectNames.includes(name)) {
+                    name = this.renameScriptVariable(added.ScriptVariable, entity)
                 }
+                this.updateNameIndex(name)
             }
         )
         if (scriptVariables.length === this.ScriptVariables.length) {
@@ -107,6 +142,7 @@ export default class BlueprintEntity extends ObjectEntity {
             return this
         }
         scriptVariables.reverse()
+        const blueprintEntity = /** @type {typeof BlueprintEntity} */(this.constructor)
         const entries = scriptVariables.concat(scriptVariables).map((v, i) => {
             const name = Configuration.subObjectAttributeNameFromReference(
                 v.ScriptVariable,
@@ -114,15 +150,19 @@ export default class BlueprintEntity extends ObjectEntity {
             )
             const object = this[name] ?? entity[name]
             return object ? [name, object] : null
-        }).filter(v => v)
+        })
+            .filter(v => v)
         entries.push(
             ...Object.entries(this).filter(([k, v]) =>
                 !k.startsWith(Configuration.subObjectAttributeNamePrefix)
                 && k !== "ExportedNodes"
             ),
-            ["ScriptVariables", new (BlueprintEntity.attributes.ScriptVariables)(scriptVariables.reverse())]
+            ["ScriptVariables", new (blueprintEntity.attributes.ScriptVariables)(scriptVariables.reverse())]
         )
-        return new BlueprintEntity(Object.fromEntries(entries))
+        const result = new BlueprintEntity(Object.fromEntries(entries))
+        result.#objectEntitiesNameCounter = this.#objectEntitiesNameCounter
+        result.#objectEntities = this.#objectEntities
+        return result
     }
 
     /** @param {ObjectEntity[]} entities */

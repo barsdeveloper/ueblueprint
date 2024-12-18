@@ -147,10 +147,11 @@ export default class Utility {
 
     /**
      * @template T
-     * @param {Array<T>} reference
-     * @param {Array<T>} additional
+     * @param {T[]} reference
+     * @param {T[]} additional
      * @param {(v: T) => void} adding - Process added element
      * @param {(l: T, r: T) => Boolean} predicate
+     * @returns {T[]}
      */
     static mergeArrays(reference = [], additional = [], predicate = (l, r) => l == r, adding = v => { }) {
         let result = []
@@ -179,7 +180,11 @@ export default class Utility {
         }
         // Append remaining the elements in the arrays and make it unique
         result.push(...reference)
-        result.push(...additional.filter(vb => !result.some(vr => predicate(vr, vb))))
+        result.push(
+            ...additional
+                .filter(vb => !result.some(vr => predicate(vr, vb)))
+                .map((v, k) => (adding(v), v))
+        )
         return result
     }
 

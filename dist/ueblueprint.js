@@ -596,10 +596,11 @@ class Utility {
 
     /**
      * @template T
-     * @param {Array<T>} reference
-     * @param {Array<T>} additional
+     * @param {T[]} reference
+     * @param {T[]} additional
      * @param {(v: T) => void} adding - Process added element
      * @param {(l: T, r: T) => Boolean} predicate
+     * @returns {T[]}
      */
     static mergeArrays(reference = [], additional = [], predicate = (l, r) => l == r, adding = v => { }) {
         let result = [];
@@ -628,7 +629,11 @@ class Utility {
         }
         // Append remaining the elements in the arrays and make it unique
         result.push(...reference);
-        result.push(...additional.filter(vb => !result.some(vr => predicate(vr, vb))));
+        result.push(
+            ...additional
+                .filter(vb => !result.some(vr => predicate(vr, vb)))
+                .map((v, k) => (adding(v), v))
+        );
         return result
     }
 
@@ -10275,7 +10280,6 @@ class BlueprintEntity extends ObjectEntity {
 
     /** @type {Map<String, Number>} */
     #objectEntitiesNameCounter = new Map()
-    #variableNames = new Set()
 
     /** @type {ObjectEntity[]}" */
     #objectEntities = []
@@ -10307,6 +10311,16 @@ class BlueprintEntity extends ObjectEntity {
         const counter = (this.#objectEntitiesNameCounter.get(name) ?? -1) + 1;
         this.#objectEntitiesNameCounter.set(name, counter);
         return Configuration.nodeTitle(name, counter)
+    }
+
+    /** @param {String} name */
+    updateNameIndex(name) {
+        const match = name.match(/(.+)_(\d+)$/);
+        if (match) {
+            name = match[1];
+            const index = Number(match[2]);
+            this.#objectEntitiesNameCounter.set(name, Math.max(index, this.#objectEntitiesNameCounter.get(name) ?? 0));
+        }
     }
 
     /** @param {ObjectEntity} entity */
@@ -10352,6 +10366,29 @@ class BlueprintEntity extends ObjectEntity {
             });
         }
         variable.path.replace(name, newName);
+        return newName
+    }
+
+    /**
+     * @param {ScriptVariableEntity} scriptVariableEntity
+     * @returns {String}
+     */
+    variableName(scriptVariableEntity) {
+        return this[Configuration.subObjectAttributeNameFromReference(scriptVariableEntity.ScriptVariable, true)]
+            ?.["Variable"]
+            ?.["Name"]
+            ?.toString()
+    }
+
+    /** @param {String} variableName */
+    variableIndex(variableName) {
+        let i = 0;
+        for (const v of this.ScriptVariables?.valueOf()) {
+            if (variableName == this.variableName(v)) {
+                return i
+            }
+            ++i;
+        }
     }
 
     /** @param {ObjectEntity} entity */
@@ -10360,15 +10397,17 @@ class BlueprintEntity extends ObjectEntity {
             // The entity does not add new variables
             return this
         }
+        const variableObjectNames = this.ScriptVariables.valueOf().map(v => v.ScriptVariable.getName());
         let scriptVariables = Utility.mergeArrays(
             this.ScriptVariables.valueOf(),
             entity.ScriptVariables.valueOf(),
-            (l, r) => l.OriginalChangeId.value == r.OriginalChangeId.value,
+            (l, r) => this.variableName(l) == this.variableName(r),
             added => {
-                const name = added.ScriptVariable.getName();
-                if (this.#variableNames.has(name)) {
-                    this.renameScriptVariable(added.ScriptVariable, entity);
+                let name = added.ScriptVariable.getName();
+                if (variableObjectNames.includes(name)) {
+                    name = this.renameScriptVariable(added.ScriptVariable, entity);
                 }
+                this.updateNameIndex(name);
             }
         );
         if (scriptVariables.length === this.ScriptVariables.length) {
@@ -10376,6 +10415,7 @@ class BlueprintEntity extends ObjectEntity {
             return this
         }
         scriptVariables.reverse();
+        const blueprintEntity = /** @type {typeof BlueprintEntity} */(this.constructor);
         const entries = scriptVariables.concat(scriptVariables).map((v, i) => {
             const name = Configuration.subObjectAttributeNameFromReference(
                 v.ScriptVariable,
@@ -10383,15 +10423,19 @@ class BlueprintEntity extends ObjectEntity {
             );
             const object = this[name] ?? entity[name];
             return object ? [name, object] : null
-        }).filter(v => v);
+        })
+            .filter(v => v);
         entries.push(
             ...Object.entries(this).filter(([k, v]) =>
                 !k.startsWith(Configuration.subObjectAttributeNamePrefix)
                 && k !== "ExportedNodes"
             ),
-            ["ScriptVariables", new (BlueprintEntity.attributes.ScriptVariables)(scriptVariables.reverse())]
+            ["ScriptVariables", new (blueprintEntity.attributes.ScriptVariables)(scriptVariables.reverse())]
         );
-        return new BlueprintEntity(Object.fromEntries(entries))
+        const result = new BlueprintEntity(Object.fromEntries(entries));
+        result.#objectEntitiesNameCounter = this.#objectEntitiesNameCounter;
+        result.#objectEntities = this.#objectEntities;
+        return result
     }
 
     /** @param {ObjectEntity[]} entities */
@@ -10434,17 +10478,32 @@ class NiagaraClipboardContent extends ObjectEntity {
         const typePath = Configuration.paths.niagaraClipboardContent;
         const name = blueprint.takeFreeName("NiagaraClipboardContent");
         const exportPath = `/Engine/Transient.${name}`;
+        /** @type {Set<Number>} */
+        const variableIndexes = new Set();
         let exported = "";
         for (const node of nodes) {
             if (node.exported) {
+                node.getPinEntities()
+                    .map(pin => blueprint.variableIndex(pin.PinName.toString()))
+                    .filter(v => v != null)
+                    .forEach(i => variableIndexes.add(i));
                 exported += node.serialize();
             }
         }
-        nodes.filter(n => !n.exported).map(n => n.serialize());
+        const scriptVariables = blueprint.ScriptVariables.valueOf().filter((v, i) => variableIndexes.has(i));
+        const variableObjects = scriptVariables.concat(scriptVariables).map((v, i) => {
+            const name = Configuration.subObjectAttributeNameFromReference(
+                v.ScriptVariable,
+                i >= scriptVariables.length // First take all the small objects then all name only
+            );
+            return [name, blueprint[name]]
+        });
         super({
             Class: new ObjectReferenceEntity(typePath),
             Name: new StringEntity(name),
+            ...Object.fromEntries(variableObjects),
             ExportPath: new ObjectReferenceEntity(typePath, exportPath),
+            ScriptVariables: new (NiagaraClipboardContent.attributes.ScriptVariables)(scriptVariables),
             ExportedNodes: new StringEntity(btoa(exported))
         });
     }
@@ -11571,6 +11630,8 @@ class Blueprint extends IElement {
         for (const element of graphElements) {
             element.blueprint = this;
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
+                const name = element.entity.getObjectName();
+                this.entity.updateNameIndex(name);
                 if (element.getType() == Configuration.paths.niagaraClipboardContent) {
                     this.entity = this.entity.mergeWith(element.entity);
                     const additionalSerialization = atob(element.entity.ExportedNodes.toString());
@@ -11578,7 +11639,6 @@ class Blueprint extends IElement {
                         .forEach(node => node.entity.exported = true);
                     continue
                 }
-                const name = element.entity.getObjectName();
                 const homonym = this.entity.getHomonymObjectEntity(element.entity);
                 if (homonym) {
                     const newName = this.entity.takeFreeName(name);

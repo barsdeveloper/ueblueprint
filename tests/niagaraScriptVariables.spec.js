@@ -1,4 +1,5 @@
-import { test, expect } from "./fixtures/test.js"
+import Utility from "../js/Utility.js"
+import { expect, test } from "./fixtures/test.js"
 
 /**
  * @param {String} source
@@ -26,7 +27,6 @@ const serialized = (source, rename = "Blueprint") => {
         .replaceAll(name, rename)
 }
 
-test.describe.configure({ mode: 'parallel' })
 test.describe("Niagara ScriptVariables", () => {
 
     test.beforeEach(async ({ blueprintPage }) => {
@@ -327,5 +327,29 @@ test.describe("Niagara ScriptVariables", () => {
         `
         expect(await blueprintPage.blueprintLocator.evaluate(blueprint => blueprint.entity.serialize()))
             .toEqual(serialized(source))
+
+        await blueprintPage.removeNodes()
+        source = String.raw`
+            Begin Object Class=/Script/NiagaraEditor.NiagaraClipboardContent Name="NiagaraClipboardContent_16" ExportPath="/Script/NiagaraEditor.NiagaraClipboardContent'/Engine/Transient.NiagaraClipboardContent_16'"
+                Begin Object Class=/Script/NiagaraEditor.NiagaraScriptVariable Name="NiagaraScriptVariable_10" ExportPath="/Script/NiagaraEditor.NiagaraScriptVariable'/Engine/Transient.NiagaraClipboardContent_16:NiagaraScriptVariable_10'"
+                End Object
+                Begin Object Name="NiagaraScriptVariable_10" ExportPath="/Script/NiagaraEditor.NiagaraScriptVariable'/Engine/Transient.NiagaraClipboardContent_16:NiagaraScriptVariable_10'"
+                    Variable=(VarData=(0,0,0,0),Name="Particles.SubImageIndex",TypeDefHandle=(RegisteredTypeIndex=83))
+                    Metadata=(Description=NSLOCTEXT("", "A6EEC0624C1820790D5859A816C48DF0", "A value from 0 to the number of entries in the table of SubUV images."),VariableGuid=FD5D89194EA839DE285E639670017225)
+                    DefaultValueVariant=(Bytes=(0,0,0,0),CurrentMode=Bytes)
+                    bSubscribedToParameterDefinitions=True
+                    ChangeId=F1627BE74919FE97C923DDB4710A9FE7
+                End Object
+                ScriptVariables(0)=(ScriptVariable="/Script/NiagaraEditor.NiagaraScriptVariable'NiagaraScriptVariable_10'",OriginalChangeId=F1627BE74919FE97C923DDB4710A9FE7)
+                ExportedNodes="QmVnaW4gT2JqZWN0IENsYXNzPS9TY3JpcHQvTmlhZ2FyYUVkaXRvci5OaWFnYXJhTm9kZVBhcmFtZXRlck1hcFNldCBOYW1lPSJOaWFnYXJhTm9kZVBhcmFtZXRlck1hcFNldF8xIiBFeHBvcnRQYXRoPSIvU2NyaXB0L05pYWdhcmFFZGl0b3IuTmlhZ2FyYU5vZGVQYXJhbWV0ZXJNYXBTZXQnL0VuZ2luZS9UcmFuc2llbnQuTmV3TmlhZ2FyYVNjcmlwdDI6TmlhZ2FyYVNjcmlwdFNvdXJjZV8wLk5pYWdhcmFHcmFwaF8wLk5pYWdhcmFOb2RlUGFyYW1ldGVyTWFwU2V0XzEnIgogICBDaGFuZ2VJZD0yQjhENTgyRjlFQjM0OUREQkMyRUU1MThCNzdENEI4RQ0KICAgTm9kZVBvc1g9LTI1Ng0KICAgTm9kZVBvc1k9NDgwDQogICBiQ29tbWVudEJ1YmJsZVBpbm5lZD1UcnVlDQogICBiQ29tbWVudEJ1YmJsZVZpc2libGU9VHJ1ZQ0KICAgTm9kZUNvbW1lbnQ9IkNvbW1lbnQiDQogICBOb2RlR3VpZD00OEJBRTgwQ0Y0MTc0OTI0QTMzMTM0MDk5MzkxRkIzMg0KICAgQ3VzdG9tUHJvcGVydGllcyBQaW4gKFBpbklkPUVDRDQxQjgwQTc5NTQzNUJCQjQwMTA5MkZGOTgwOTQ5LFBpbk5hbWU9IlNvdXJjZSIsUGluVHlwZS5QaW5DYXRlZ29yeT0iVHlwZSIsUGluVHlwZS5QaW5TdWJDYXRlZ29yeT0iIixQaW5UeXBlLlBpblN1YkNhdGVnb3J5T2JqZWN0PSIvU2NyaXB0L0NvcmVVT2JqZWN0LlNjcmlwdFN0cnVjdCcvU2NyaXB0L05pYWdhcmEuTmlhZ2FyYVBhcmFtZXRlck1hcCciLFBpblR5cGUuUGluU3ViQ2F0ZWdvcnlNZW1iZXJSZWZlcmVuY2U9KCksUGluVHlwZS5QaW5WYWx1ZVR5cGU9KCksUGluVHlwZS5Db250YWluZXJUeXBlPU5vbmUsUGluVHlwZS5iSXNSZWZlcmVuY2U9RmFsc2UsUGluVHlwZS5iSXNDb25zdD1GYWxzZSxQaW5UeXBlLmJJc1dlYWtQb2ludGVyPUZhbHNlLFBpblR5cGUuYklzVU9iamVjdFdyYXBwZXI9RmFsc2UsUGluVHlwZS5iU2VyaWFsaXplQXNTaW5nbGVQcmVjaXNpb25GbG9hdD1GYWxzZSxQZXJzaXN0ZW50R3VpZD0wMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCxiSGlkZGVuPUZhbHNlLGJOb3RDb25uZWN0YWJsZT1GYWxzZSxiRGVmYXVsdFZhbHVlSXNSZWFkT25seT1GYWxzZSxiRGVmYXVsdFZhbHVlSXNJZ25vcmVkPUZhbHNlLGJBZHZhbmNlZFZpZXc9RmFsc2UsYk9ycGhhbmVkUGluPUZhbHNlLCkNCiAgIEN1c3RvbVByb3BlcnRpZXMgUGluIChQaW5JZD02MEMxOEE0RjQxMkY0RDBCQkE1OEQ4NTlBNTgxRTFCOCxQaW5OYW1lPSJEZXN0IixEaXJlY3Rpb249IkVHUERfT3V0cHV0IixQaW5UeXBlLlBpbkNhdGVnb3J5PSJUeXBlIixQaW5UeXBlLlBpblN1YkNhdGVnb3J5PSIiLFBpblR5cGUuUGluU3ViQ2F0ZWdvcnlPYmplY3Q9Ii9TY3JpcHQvQ29yZVVPYmplY3QuU2NyaXB0U3RydWN0Jy9TY3JpcHQvTmlhZ2FyYS5OaWFnYXJhUGFyYW1ldGVyTWFwJyIsUGluVHlwZS5QaW5TdWJDYXRlZ29yeU1lbWJlclJlZmVyZW5jZT0oKSxQaW5UeXBlLlBpblZhbHVlVHlwZT0oKSxQaW5UeXBlLkNvbnRhaW5lclR5cGU9Tm9uZSxQaW5UeXBlLmJJc1JlZmVyZW5jZT1GYWxzZSxQaW5UeXBlLmJJc0NvbnN0PUZhbHNlLFBpblR5cGUuYklzV2Vha1BvaW50ZXI9RmFsc2UsUGluVHlwZS5iSXNVT2JqZWN0V3JhcHBlcj1GYWxzZSxQaW5UeXBlLmJTZXJpYWxpemVBc1NpbmdsZVByZWNpc2lvbkZsb2F0PUZhbHNlLFBlcnNpc3RlbnRHdWlkPTAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwLGJIaWRkZW49RmFsc2UsYk5vdENvbm5lY3RhYmxlPUZhbHNlLGJEZWZhdWx0VmFsdWVJc1JlYWRPbmx5PUZhbHNlLGJEZWZhdWx0VmFsdWVJc0lnbm9yZWQ9RmFsc2UsYkFkdmFuY2VkVmlldz1GYWxzZSxiT3JwaGFuZWRQaW49RmFsc2UsKQ0KICAgQ3VzdG9tUHJvcGVydGllcyBQaW4gKFBpbklkPTE5MEM1QzQ1RjdEMDQ0RjFCOEZBQzcxMDQ0ODJFRDRGLFBpbk5hbWU9IlBhcnRpY2xlcy5TdWJJbWFnZUluZGV4IixQaW5GcmllbmRseU5hbWU9SU5WVEVYVCgiUGFydGljbGVzLlN1YkltYWdlSW5kZXgiKSxQaW5UeXBlLlBpbkNhdGVnb3J5PSJUeXBlIixQaW5UeXBlLlBpblN1YkNhdGVnb3J5PSJQYXJhbWV0ZXJQaW4iLFBpblR5cGUuUGluU3ViQ2F0ZWdvcnlPYmplY3Q9Ii9TY3JpcHQvQ29yZVVPYmplY3QuU2NyaXB0U3RydWN0Jy9TY3JpcHQvTmlhZ2FyYS5OaWFnYXJhRmxvYXQnIixQaW5UeXBlLlBpblN1YkNhdGVnb3J5TWVtYmVyUmVmZXJlbmNlPSgpLFBpblR5cGUuUGluVmFsdWVUeXBlPSgpLFBpblR5cGUuQ29udGFpbmVyVHlwZT1Ob25lLFBpblR5cGUuYklzUmVmZXJlbmNlPUZhbHNlLFBpblR5cGUuYklzQ29uc3Q9RmFsc2UsUGluVHlwZS5iSXNXZWFrUG9pbnRlcj1GYWxzZSxQaW5UeXBlLmJJc1VPYmplY3RXcmFwcGVyPUZhbHNlLFBpblR5cGUuYlNlcmlhbGl6ZUFzU2luZ2xlUHJlY2lzaW9uRmxvYXQ9RmFsc2UsUGVyc2lzdGVudEd1aWQ9M0ZGMzA3Nzk4Rjg2NDZGREJEOTUwMzdGRTlFRTNENzksYkhpZGRlbj1GYWxzZSxiTm90Q29ubmVjdGFibGU9RmFsc2UsYkRlZmF1bHRWYWx1ZUlzUmVhZE9ubHk9RmFsc2UsYkRlZmF1bHRWYWx1ZUlzSWdub3JlZD1GYWxzZSxiQWR2YW5jZWRWaWV3PUZhbHNlLGJPcnBoYW5lZFBpbj1GYWxzZSwpDQogICBDdXN0b21Qcm9wZXJ0aWVzIFBpbiAoUGluSWQ9NkU5MTY5RUJBQTc2NDY0Rjk2MUJEMkQwQzYwQTNGQTgsUGluTmFtZT0iQWRkIixQaW5UeXBlLlBpbkNhdGVnb3J5PSJNaXNjIixQaW5UeXBlLlBpblN1YkNhdGVnb3J5PSJEeW5hbWljQWRkUGluIixQaW5UeXBlLlBpblN1YkNhdGVnb3J5T2JqZWN0PU5vbmUsUGluVHlwZS5QaW5TdWJDYXRlZ29yeU1lbWJlclJlZmVyZW5jZT0oKSxQaW5UeXBlLlBpblZhbHVlVHlwZT0oKSxQaW5UeXBlLkNvbnRhaW5lclR5cGU9Tm9uZSxQaW5UeXBlLmJJc1JlZmVyZW5jZT1GYWxzZSxQaW5UeXBlLmJJc0NvbnN0PUZhbHNlLFBpblR5cGUuYklzV2Vha1BvaW50ZXI9RmFsc2UsUGluVHlwZS5iSXNVT2JqZWN0V3JhcHBlcj1GYWxzZSxQaW5UeXBlLmJTZXJpYWxpemVBc1NpbmdsZVByZWNpc2lvbkZsb2F0PUZhbHNlLFBlcnNpc3RlbnRHdWlkPTAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwLGJIaWRkZW49RmFsc2UsYk5vdENvbm5lY3RhYmxlPUZhbHNlLGJEZWZhdWx0VmFsdWVJc1JlYWRPbmx5PUZhbHNlLGJEZWZhdWx0VmFsdWVJc0lnbm9yZWQ9RmFsc2UsYkFkdmFuY2VkVmlldz1GYWxzZSxiT3JwaGFuZWRQaW49RmFsc2UsKQ0KRW5kIE9iamVjdA0K"
+            End Object
+        `
+        await blueprintPage.paste(source)
+        const expectedWords = source
+            .split("\n")
+            .map(row => row.match(/\s*("?\w+(\s+\w+)*).+/)?.[1])
+            .filter(v => v?.length > 0)
+        source = await blueprintPage.getSerializedNodes()
+        expect(source).toMatch(Utility.getFirstWordOrder(expectedWords))
     })
 })
