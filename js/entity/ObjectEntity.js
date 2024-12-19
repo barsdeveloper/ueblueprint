@@ -372,36 +372,39 @@ export default class ObjectEntity extends IEntity {
         })
 
         // Mirror name part of the object in ExportPath
+        const originalName = this.Name?.toString()
         const exportPath = this.ExportPath?.valueOf()
-        if (exportPath?.path.endsWith(this.Name?.toString())) {
+        if (originalName && exportPath?.path.endsWith(originalName)) {
             const mirroredEntity = /** @type {typeof ObjectEntity} */(this.constructor).attributes.ExportPath
-            const prefix = exportPath.path.substring(0, exportPath.path.length - this.Name.toString().length)
             this.ExportPath = new mirroredEntity(
-                () => new (mirroredEntity.type)(exportPath.type, prefix + this.Name.toString(), exportPath.full)
+                () => new (mirroredEntity.type)(
+                    exportPath.type,
+                    exportPath.path.replace(originalName, (this.Name ?? "")?.toString()),
+                    exportPath.full
+                )
             )
         }
 
         // Mirror name part of the nested object in ExportPath
-        if (this.Name) {
-            for (const k of Object.keys(this)) {
-                if (!k.startsWith(Configuration.subObjectAttributeNamePrefix)) {
+        if (originalName) {
+            const values = Object.values(this)
+            for (let i = 0; i < values.length; ++i) {
+                const value = values[i]
+                if (value instanceof ObjectEntity) {
+                    values.push(...Object.values(value))
+                    if (!value.ExportPath?.valueOf(this).path.includes(originalName)) {
+                        continue
+                    }
+                } else {
                     continue
                 }
-                /** @type {ObjectEntity} */
-                const subObject = this[k]
-                if (!subObject.ExportPath?.valueOf(this).path.includes(this.Name.toString())) {
-                    continue
-                }
-                const originalExportPath = subObject.ExportPath.valueOf(this)
-                const position = originalExportPath.path.indexOf(this.Name.toString())
-                const prefix = originalExportPath.path.substring(0, position)
-                const suffix = originalExportPath.path.substring(position + this.Name.toString().length)
-                const mirroredEntity = /** @type {typeof ObjectEntity} */(subObject.constructor).attributes.ExportPath
-                subObject.ExportPath = new mirroredEntity(
+                const mirroredEntity = /** @type {typeof ObjectEntity} */(value.constructor).attributes.ExportPath
+                const exportPath = value.ExportPath?.valueOf()
+                value.ExportPath = new mirroredEntity(
                     (self = this) => new (mirroredEntity.type)(
-                        originalExportPath.type,
-                        prefix + (self.Name ?? "").toString() + suffix,
-                        originalExportPath.full
+                        exportPath.type,
+                        exportPath.path.replace(originalName, (this.Name ?? "")?.toString()),
+                        exportPath.full
                     )
                 )
             }

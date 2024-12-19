@@ -135,8 +135,8 @@ export default class NodeElement extends ISelectableDraggableElement {
             "Name",
             /** @param {InstanceType<typeof ObjectEntity.attributes.Name>} newName */
             newName => {
-                this.#redirectLinksBeforeRename(newName.value)
-                this.nodeTitle = newName.value
+                this.#redirectLinksBeforeRename(newName?.toString())
+                this.nodeTitle = newName?.toString()
                 this.nodeDisplayName = nodeTitle(entity)
             }
         )

@@ -413,9 +413,11 @@ export default class Blueprint extends IElement {
                 this.entity.updateNameIndex(name)
                 if (element.getType() == Configuration.paths.niagaraClipboardContent) {
                     this.entity = this.entity.mergeWith(element.entity)
-                    const additionalSerialization = atob(element.entity.ExportedNodes.toString())
-                    this.template.getPasteInputObject().pasted(additionalSerialization)
-                        .forEach(node => node.entity.exported = true)
+                    const additionalSerialization = atob(element.entity.ExportedNodes?.toString() ?? "")
+                    if (additionalSerialization) {
+                        this.template.getPasteInputObject().pasted(additionalSerialization)
+                            .forEach(node => node.entity.exported = true)
+                    }
                     continue
                 }
                 const homonym = this.entity.getHomonymObjectEntity(element.entity)

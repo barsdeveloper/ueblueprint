@@ -106,14 +106,14 @@ export default class BlueprintFixture {
 
     async setup() {
         const url = `http://127.0.0.1:${this.#port}/empty.html`
-        try {
-            await this.page.goto(url)
-        } catch (e) {
-            if (e.message.includes("ERR_CONNECTION_REFUSED")) {
-                await this.createServer()
-                await this.page.goto(url)
-            } else {
-                throw e
+        for (let i = 0; i < 1E4; ++i) {
+            try {
+                await this.page.goto(url, { waitUntil: "domcontentloaded" })
+                break
+            } catch (e) {
+                if (e.message.includes("ERR_CONNECTION_REFUSED")) {
+                    await this.createServer()
+                }
             }
         }
         this.#blueprintLocator = this.page.locator("ueb-blueprint")
