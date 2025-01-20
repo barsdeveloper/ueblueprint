@@ -23,7 +23,7 @@ export default class Configuration {
     static colorWindowName = "Color Picker"
     static defaultCommentHeight = 96
     static defaultCommentWidth = 400
-    static distanceThreshold = 5 // px
+    static distanceThreshold = 20 // px
     static dragEventName = "ueb-drag"
     static dragGeneralEventName = "ueb-drag-general"
     static edgeScrollThreshold = 50

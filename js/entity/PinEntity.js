@@ -277,7 +277,7 @@ export default class PinEntity extends IEntity {
     }
 
     isLinked() {
-        return this.LinkedTo?.length > 0 ?? false
+        return this.LinkedTo?.length > 0
     }
 
     /**

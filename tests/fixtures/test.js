@@ -38,6 +38,8 @@ export const test = /**
             const blueprintPage = new BlueprintFixture(page)
             await blueprintPage.setup()
             await use(blueprintPage)
+            await blueprintPage.cleanup()
+            await page.close()
         }, { scope: "worker" }]
     }
 )

@@ -160,6 +160,7 @@ export default class BlueprintEntity extends ObjectEntity {
             ["ScriptVariables", new (blueprintEntity.attributes.ScriptVariables)(scriptVariables.reverse())]
         )
         const result = new BlueprintEntity(Object.fromEntries(entries))
+        result.mirrorNameInExportPaths(entity.Name?.toString())
         result.#objectEntitiesNameCounter = this.#objectEntitiesNameCounter
         result.#objectEntities = this.#objectEntities
         return result

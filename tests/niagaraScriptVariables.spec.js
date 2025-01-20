@@ -7,7 +7,7 @@ import { expect, test } from "./fixtures/test.js"
  */
 const serialized = (source, rename = "Blueprint") => {
     let name = source.match(/.+?Name="([^"]+)"/)[1]
-    return source
+    let result = source
         .replaceAll(/^\n|^ {12}| +$/gm, "")
         .replaceAll(
             new RegExp(
@@ -24,7 +24,10 @@ const serialized = (source, rename = "Blueprint") => {
             ""
         )
         .replaceAll("    ", "   ")
-        .replaceAll(name, rename)
+    if (rename) {
+        result = result.replaceAll(name, rename)
+    }
+    return result
 }
 
 test.describe("Niagara ScriptVariables", () => {
@@ -33,11 +36,11 @@ test.describe("Niagara ScriptVariables", () => {
         await blueprintPage.removeNodes()
     })
 
-    test("Deserialization", async ({ blueprintPage }) => {
+    test.describe.configure({ mode: "parallel" })
 
+    test("Deserialization", async ({ blueprintPage }) => {
         expect(await blueprintPage.blueprintLocator.evaluate(blueprint => blueprint.entity.serialize()))
             .toEqual('Begin Object Name="Blueprint"\nEnd Object\n')
-
         const source = String.raw`
             Begin Object Class=/Script/NiagaraEditor.NiagaraClipboardContent Name="NiagaraClipboardContent_6" ExportPath="/Script/NiagaraEditor.NiagaraClipboardContent'/Engine/Transient.NiagaraClipboardContent_6'"
                 Begin Object Class=/Script/NiagaraEditor.NiagaraScriptVariable Name="NiagaraScriptVariable_2" ExportPath="/Script/NiagaraEditor.NiagaraScriptVariable'/Engine/Transient.NiagaraClipboardContent_6:NiagaraScriptVariable_2'"
@@ -73,12 +76,16 @@ test.describe("Niagara ScriptVariables", () => {
             End Object
         `
         await blueprintPage.paste(source)
-        expect(await blueprintPage.blueprintLocator.evaluate(blueprint => blueprint.entity.serialize()))
-            .toEqual(serialized(source))
+        // await blueprintPage.blueprintLocator.evaluate(blueprint => blueprint.entity.Name.value = "NiagaraClipboardContent_6")
+        expect(await blueprintPage.blueprintLocator.evaluate(blueprint => {
+            const entity = blueprint.entity
+            entity.Name.value = "###########"
+            return entity.serialize()
+        }))
+            .toEqual(serialized(source, "###########"))
     })
 
     test("Merging", async ({ blueprintPage }) => {
-
         // Var: Local.Module.Input, Local.Module.Input001, Local.Module.NewOutput
         let source = String.raw`
             Begin Object Class=/Script/NiagaraEditor.NiagaraClipboardContent Name="NiagaraClipboardContent_6" ExportPath="/Script/NiagaraEditor.NiagaraClipboardContent'/Engine/Transient.NiagaraClipboardContent_6'"
@@ -117,7 +124,6 @@ test.describe("Niagara ScriptVariables", () => {
         await blueprintPage.paste(source)
         expect(await blueprintPage.blueprintLocator.evaluate(blueprint => blueprint.entity.serialize()))
             .toEqual(serialized(source))
-
         // Var: Local.Module.Input, Local.Module.Input001, Local.Module.Camera Relative Position, Local.Module.X
         // Add: Local.Module.Camera Relative Position (3), Local.Module.X (4)
         // Has: Local.Module.Input (0), Local.Module.Input001 (1)

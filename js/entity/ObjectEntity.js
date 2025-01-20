@@ -370,45 +370,7 @@ export default class ObjectEntity extends IEntity {
                     ? outputIndex++
                     : i
         })
-
-        // Mirror name part of the object in ExportPath
-        const originalName = this.Name?.toString()
-        const exportPath = this.ExportPath?.valueOf()
-        if (originalName && exportPath?.path.endsWith(originalName)) {
-            const mirroredEntity = /** @type {typeof ObjectEntity} */(this.constructor).attributes.ExportPath
-            this.ExportPath = new mirroredEntity(
-                () => new (mirroredEntity.type)(
-                    exportPath.type,
-                    exportPath.path.replace(originalName, (this.Name ?? "")?.toString()),
-                    exportPath.full
-                )
-            )
-        }
-
-        // Mirror name part of the nested object in ExportPath
-        if (originalName) {
-            const values = Object.values(this)
-            for (let i = 0; i < values.length; ++i) {
-                const value = values[i]
-                if (value instanceof ObjectEntity) {
-                    values.push(...Object.values(value))
-                    if (!value.ExportPath?.valueOf(this).path.includes(originalName)) {
-                        continue
-                    }
-                } else {
-                    continue
-                }
-                const mirroredEntity = /** @type {typeof ObjectEntity} */(value.constructor).attributes.ExportPath
-                const exportPath = value.ExportPath?.valueOf()
-                value.ExportPath = new mirroredEntity(
-                    (self = this) => new (mirroredEntity.type)(
-                        exportPath.type,
-                        exportPath.path.replace(originalName, (this.Name ?? "")?.toString()),
-                        exportPath.full
-                    )
-                )
-            }
-        }
+        this.mirrorNameInExportPaths()
     }
 
     /** @returns {P<ObjectEntity>} */
@@ -452,6 +414,40 @@ export default class ObjectEntity extends IEntity {
                     values[Configuration.subObjectAttributeNameFromEntity(object)] = object
                 }
             )
+    }
+
+    /**
+     * @protected
+     * Mirror then name part of the objects contained in this one in ExportPath
+     */
+    mirrorNameInExportPaths(originalName = this.Name?.toString()) {
+        if (!originalName) {
+            return
+        }
+        const values = [this]
+        for (let i = 0; i < values.length; ++i) {
+            const value = values[i]
+            if (value instanceof ObjectEntity) {
+                values.push(...Object.values(value))
+                if (!value.ExportPath?.valueOf().path.includes(originalName)) {
+                    continue
+                }
+            } else {
+                continue
+            }
+            const mirroredEntity = /** @type {typeof ObjectEntity} */(value.constructor).attributes.ExportPath
+            let originalExportPath = value.ExportPath
+            value.ExportPath = new mirroredEntity(
+                () => {
+                    const exportPath = originalExportPath.valueOf()
+                    return new (mirroredEntity.type)(
+                        exportPath.type,
+                        exportPath.path.replace(originalName, this.Name?.toString() ?? ""),
+                        exportPath.full
+                    )
+                }
+            )
+        }
     }
 
     /** @type {String} */

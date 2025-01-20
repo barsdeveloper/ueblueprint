@@ -31,10 +31,7 @@ export default class KnotNodeTemplate extends NodeTemplate {
 
     /** @param {PinElement} startingPin */
     findDirectionaPin(startingPin) {
-        if (
-            startingPin.nodeElement.getType() !== Configuration.paths.knot
-            || KnotNodeTemplate.#traversedPin.has(startingPin)
-        ) {
+        if (startingPin.isKnot() || KnotNodeTemplate.#traversedPin.has(startingPin)) {
             KnotNodeTemplate.#traversedPin.clear()
             return true
         }

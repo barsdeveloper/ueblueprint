@@ -1,5 +1,5 @@
+import Configuration from "../Configuration.js"
 import pinTemplate from "../decoding/pinTemplate.js"
-import ArrayEntity from "../entity/ArrayEntity.js"
 import BooleanEntity from "../entity/BooleanEntity.js"
 import GuidEntity from "../entity/GuidEntity.js"
 import LinearColorEntity from "../entity/LinearColorEntity.js"
@@ -128,12 +128,49 @@ export default class PinElement extends IElement {
         return this.entity.pinColor()
     }
 
-    isInput() {
-        return this.entity.isInput()
+    /** @param {PinElement} pin */
+    #traverseKnots(pin) {
+        while (pin?.isKnot()) {
+            const pins = pin.nodeElement.getPinElements()
+            pin = pin === pins[0] ? pins[1] : pins[0]
+            pin = pin.isLinked ? this.blueprint.getPin(pin.getLinks()[0]) : null
+        }
+        return pin?.isKnot() ? undefined : pin
     }
 
-    isOutput() {
-        return this.entity.isOutput()
+    isInput(ignoreKnots = false) {
+        /** @type {PinElement} */
+        let result = this
+        if (ignoreKnots) {
+            return this.#traverseKnots(result)?.isInput()
+        }
+        return result.entity.isInput()
+    }
+
+    /** @returns {boolean} True when the pin is the input part of a knot that can switch direction */
+    isInputLoossly() {
+        return this.isInput(false) && this.isInput(true) === undefined
+    }
+
+    isOutput(ignoreKnots = false) {
+        /** @type {PinElement} */
+        let result = this
+        if (ignoreKnots) {
+            if (ignoreKnots) {
+                return this.#traverseKnots(result)?.isOutput()
+            }
+        }
+        return result.entity.isOutput()
+    }
+
+    /** @returns {boolean} True when the pin is the output part of a knot that can switch direction */
+    isOutputLoosely() {
+        return this.isOutput(false) && this.isOutput(true) === undefined
+    }
+
+    /** @returns {value is InstanceType<PinElement<>>} */
+    isKnot() {
+        return this.nodeElement?.getType() == Configuration.paths.knot
     }
 
     getLinkLocation() {
@@ -188,9 +225,12 @@ export default class PinElement extends IElement {
         const pinReference = this.createPinReference()
         if (
             this.isLinked
-            && this.isOutput()
-            && (this.pinType === "exec" || targetPinElement.pinType === "exec")
-            && !this.getLinks().some(ref => pinReference.equals(ref))) {
+            && (
+                this.isInput(true)
+                || this.isOutput(true) && (this.entity.isExecution() || targetPinElement.entity.isExecution())
+            )
+            && !this.getLinks().some(ref => pinReference.equals(ref))
+        ) {
             this.unlinkFromAll()
         }
         if (this.entity.linkTo(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)) {

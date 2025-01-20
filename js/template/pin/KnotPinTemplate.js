@@ -9,7 +9,7 @@ export default class KnotPinTemplate extends MinimalPinTemplate {
         return this.element.isOutput() ? super.render() : html``
     }
 
-    getOppositePin() {
+    oppositePin() {
         const nodeTemplate = /** @type {KnotNodeTemplate} */(this.element.nodeElement.template)
         return this.element.isOutput() ? nodeTemplate.inputPin : nodeTemplate.outputPin
     }

@@ -2,6 +2,8 @@ import { expect, test } from "./fixtures/test.js"
 
 const firstRowOnly = v => v.replaceAll(/^\s+|\n.+/gs, "")
 
+test.describe.configure({ mode: "parallel" })
+
 test("Renaming", async ({ blueprintPage }) => {
     let source = String.raw`
         Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="MaterialGraphNode_40" ExportPath=/Script/UnrealEd.MaterialGraphNode'"/Engine/Transient.M_Brick_Cut_Stone:MaterialGraph_0.MaterialGraphNode_40"'
@@ -11,7 +13,6 @@ test("Renaming", async ({ blueprintPage }) => {
     expect(firstRowOnly(await blueprintPage.getSerializedNodes())).toEqual(
         `Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="MaterialGraphNode_40" ExportPath=/Script/UnrealEd.MaterialGraphNode'"/Engine/Transient.M_Brick_Cut_Stone:MaterialGraph_0.MaterialGraphNode_40"'`
     )
-    await blueprintPage.node.evaluate(n => n = "new name")
     await blueprintPage.node.evaluate(n => n.entity.Name.value = "new name")
     expect(firstRowOnly(await blueprintPage.getSerializedNodes())).toEqual(
         `Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="new name" ExportPath=/Script/UnrealEd.MaterialGraphNode'"/Engine/Transient.M_Brick_Cut_Stone:MaterialGraph_0.new name"'`
@@ -197,8 +198,4 @@ test("Inner renaming", async ({ blueprintPage }) => {
     ))).toEqual(
         `Begin Object Name="PCGBlueprintSettings_0" ExportPath=/Script/PCG.PCGBlueprintSettings'"/Game/NewPCGGraph.NewPCGGraph:PCGEditorGraph_1..ExecuteBlueprint_7.PCGBlueprintSettings_0"'`
     )
-})
-
-test("Adopted renaming", async ({ blueprintPage }) => {
-
 })

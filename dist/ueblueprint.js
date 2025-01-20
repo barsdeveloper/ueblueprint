@@ -47,7 +47,7 @@ class Configuration {
     static colorWindowName = "Color Picker"
     static defaultCommentHeight = 96
     static defaultCommentWidth = 400
-    static distanceThreshold = 5 // px
+    static distanceThreshold = 20 // px
     static dragEventName = "ueb-drag"
     static dragGeneralEventName = "ueb-drag-general"
     static edgeScrollThreshold = 50
@@ -5965,7 +5965,7 @@ class PinEntity extends IEntity {
     }
 
     isLinked() {
-        return this.LinkedTo?.length > 0 ?? false
+        return this.LinkedTo?.length > 0
     }
 
     /**
@@ -6640,45 +6640,7 @@ class ObjectEntity extends IEntity {
                     ? outputIndex++
                     : i;
         });
-
-        // Mirror name part of the object in ExportPath
-        const originalName = this.Name?.toString();
-        const exportPath = this.ExportPath?.valueOf();
-        if (originalName && exportPath?.path.endsWith(originalName)) {
-            const mirroredEntity = /** @type {typeof ObjectEntity} */(this.constructor).attributes.ExportPath;
-            this.ExportPath = new mirroredEntity(
-                () => new (mirroredEntity.type)(
-                    exportPath.type,
-                    exportPath.path.replace(originalName, (this.Name ?? "")?.toString()),
-                    exportPath.full
-                )
-            );
-        }
-
-        // Mirror name part of the nested object in ExportPath
-        if (originalName) {
-            const values = Object.values(this);
-            for (let i = 0; i < values.length; ++i) {
-                const value = values[i];
-                if (value instanceof ObjectEntity) {
-                    values.push(...Object.values(value));
-                    if (!value.ExportPath?.valueOf(this).path.includes(originalName)) {
-                        continue
-                    }
-                } else {
-                    continue
-                }
-                const mirroredEntity = /** @type {typeof ObjectEntity} */(value.constructor).attributes.ExportPath;
-                const exportPath = value.ExportPath?.valueOf();
-                value.ExportPath = new mirroredEntity(
-                    (self = this) => new (mirroredEntity.type)(
-                        exportPath.type,
-                        exportPath.path.replace(originalName, (this.Name ?? "")?.toString()),
-                        exportPath.full
-                    )
-                );
-            }
-        }
+        this.mirrorNameInExportPaths();
     }
 
     /** @returns {P<ObjectEntity>} */
@@ -6722,6 +6684,40 @@ class ObjectEntity extends IEntity {
                     values[Configuration.subObjectAttributeNameFromEntity(object)] = object;
                 }
             )
+    }
+
+    /**
+     * @protected
+     * Mirror then name part of the objects contained in this one in ExportPath
+     */
+    mirrorNameInExportPaths(originalName = this.Name?.toString()) {
+        if (!originalName) {
+            return
+        }
+        const values = [this];
+        for (let i = 0; i < values.length; ++i) {
+            const value = values[i];
+            if (value instanceof ObjectEntity) {
+                values.push(...Object.values(value));
+                if (!value.ExportPath?.valueOf().path.includes(originalName)) {
+                    continue
+                }
+            } else {
+                continue
+            }
+            const mirroredEntity = /** @type {typeof ObjectEntity} */(value.constructor).attributes.ExportPath;
+            let originalExportPath = value.ExportPath;
+            value.ExportPath = new mirroredEntity(
+                () => {
+                    const exportPath = originalExportPath.valueOf();
+                    return new (mirroredEntity.type)(
+                        exportPath.type,
+                        exportPath.path.replace(originalName, this.Name?.toString() ?? ""),
+                        exportPath.full
+                    )
+                }
+            );
+        }
     }
 
     /** @type {String} */
@@ -7729,22 +7725,20 @@ class LinkTemplate extends IFromToPositionedTemplate {
         if (changedProperties.has("fromX") || changedProperties.has("toX")) {
             const from = this.element.fromX;
             const to = this.element.toX;
-            const isSourceAKnot = sourcePin?.nodeElement.getType() == Configuration.paths.knot;
-            const isDestinationAKnot = destinationPin?.nodeElement.getType() == Configuration.paths.knot;
+            const isSourceAKnot = sourcePin?.isKnot();
+            const isDestinationAKnot = destinationPin?.isKnot();
             if (isSourceAKnot && (!destinationPin || isDestinationAKnot)) {
-                if (sourcePin?.isInput() && to > from + Configuration.distanceThreshold) {
-                    this.element.source = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).outputPin;
-                } else if (sourcePin?.isOutput() && to < from - Configuration.distanceThreshold) {
-                    this.element.source = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).inputPin;
+                if (sourcePin?.isInputLoossly() && to > from + Configuration.distanceThreshold) {
+                    this.element.source = /** @type {KnotPinTemplate} */(sourcePin.template).oppositePin();
+                } else if (sourcePin?.isOutputLoosely() && to < from - Configuration.distanceThreshold) {
+                    this.element.source = /** @type {KnotPinTemplate} */(sourcePin.template).oppositePin();
                 }
             }
             if (isDestinationAKnot && (!sourcePin || isSourceAKnot)) {
-                if (destinationPin?.isInput() && to < from - Configuration.distanceThreshold) {
-                    this.element.destination =
-                        /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).outputPin;
-                } else if (destinationPin?.isOutput() && to > from + Configuration.distanceThreshold) {
-                    this.element.destination =
-                        /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).inputPin;
+                if (destinationPin?.isInputLoossly() && to < from - Configuration.distanceThreshold) {
+                    this.element.destination = /** @type {KnotPinTemplate} */(destinationPin.template).oppositePin();
+                } else if (destinationPin?.isOutputLoosely() && to > from + Configuration.distanceThreshold) {
+                    this.element.destination = /** @type {KnotPinTemplate} */(destinationPin.template).oppositePin();
                 }
             }
         }
@@ -9253,10 +9247,7 @@ class MouseCreateLink extends IMouseClickDrag {
             const a = this.link.source ?? this.target; // Remember target might have change
             const b = this.enteredPin;
             const outputPin = a.isOutput() ? a : b;
-            if (
-                a.nodeElement.getType() === Configuration.paths.knot
-                || b.nodeElement.getType() === Configuration.paths.knot
-            ) {
+            if (a.isKnot() || b.isKnot()) {
                 // A knot can be linked to any pin, it doesn't matter the type or input/output direction
                 this.link.setMessageCorrect();
                 this.linkValid = true;
@@ -9311,7 +9302,7 @@ class MouseCreateLink extends IMouseClickDrag {
     }
 
     startDrag(location) {
-        if (this.target.nodeElement.getType() == Configuration.paths.knot) {
+        if (this.target.isKnot()) {
             this.#knotPin = this.target;
         }
         /** @type {LinkElement} */
@@ -9346,18 +9337,18 @@ class MouseCreateLink extends IMouseClickDrag {
                 const otherPin = this.#knotPin !== this.link.source ? this.link.source : this.enteredPin;
                 // Knot pin direction correction
                 if (this.#knotPin.isInput() && otherPin.isInput() || this.#knotPin.isOutput() && otherPin.isOutput()) {
-                    const oppositePin = /** @type {KnotPinTemplate} */(this.#knotPin.template).getOppositePin();
+                    const oppositePin = /** @type {KnotPinTemplate} */(this.#knotPin.template).oppositePin();
                     if (this.#knotPin === this.link.source) {
                         this.link.source = oppositePin;
                     } else {
                         this.enteredPin = oppositePin;
                     }
                 }
-            } else if (this.enteredPin.nodeElement.getType() === Configuration.paths.knot) {
+            } else if (this.enteredPin.isKnot()) {
                 this.#knotPin = this.enteredPin;
                 if (this.link.source.isOutput()) {
                     // Knot uses by default the output pin, let's switch to keep it coherent with the source node we have
-                    this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).getOppositePin();
+                    this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).oppositePin();
                 }
             }
             if (!this.link.source.getLinks().find(ref => ref.equals(this.enteredPin.createPinReference()))) {
@@ -9373,6 +9364,7 @@ class MouseCreateLink extends IMouseClickDrag {
         this.link.removeMessage();
         this.link.finishDragging();
         this.link = null;
+        this.#knotPin = null;
     }
 }
 
@@ -9708,7 +9700,7 @@ class KnotPinTemplate extends MinimalPinTemplate {
         return this.element.isOutput() ? super.render() : x``
     }
 
-    getOppositePin() {
+    oppositePin() {
         const nodeTemplate = /** @type {KnotNodeTemplate} */(this.element.nodeElement.template);
         return this.element.isOutput() ? nodeTemplate.inputPin : nodeTemplate.outputPin
     }
@@ -9754,10 +9746,7 @@ class KnotNodeTemplate extends NodeTemplate {
 
     /** @param {PinElement} startingPin */
     findDirectionaPin(startingPin) {
-        if (
-            startingPin.nodeElement.getType() !== Configuration.paths.knot
-            || KnotNodeTemplate.#traversedPin.has(startingPin)
-        ) {
+        if (startingPin.isKnot() || KnotNodeTemplate.#traversedPin.has(startingPin)) {
             KnotNodeTemplate.#traversedPin.clear();
             return true
         }
@@ -10436,6 +10425,7 @@ class BlueprintEntity extends ObjectEntity {
             ["ScriptVariables", new (blueprintEntity.attributes.ScriptVariables)(scriptVariables.reverse())]
         );
         const result = new BlueprintEntity(Object.fromEntries(entries));
+        result.mirrorNameInExportPaths(entity.Name?.toString());
         result.#objectEntitiesNameCounter = this.#objectEntitiesNameCounter;
         result.#objectEntities = this.#objectEntities;
         return result
@@ -13284,12 +13274,49 @@ class PinElement extends IElement {
         return this.entity.pinColor()
     }
 
-    isInput() {
-        return this.entity.isInput()
+    /** @param {PinElement} pin */
+    #traverseKnots(pin) {
+        while (pin?.isKnot()) {
+            const pins = pin.nodeElement.getPinElements();
+            pin = pin === pins[0] ? pins[1] : pins[0];
+            pin = pin.isLinked ? this.blueprint.getPin(pin.getLinks()[0]) : null;
+        }
+        return pin?.isKnot() ? undefined : pin
     }
 
-    isOutput() {
-        return this.entity.isOutput()
+    isInput(ignoreKnots = false) {
+        /** @type {PinElement} */
+        let result = this;
+        if (ignoreKnots) {
+            return this.#traverseKnots(result)?.isInput()
+        }
+        return result.entity.isInput()
+    }
+
+    /** @returns {boolean} True when the pin is the input part of a knot that can switch direction */
+    isInputLoossly() {
+        return this.isInput(false) && this.isInput(true) === undefined
+    }
+
+    isOutput(ignoreKnots = false) {
+        /** @type {PinElement} */
+        let result = this;
+        if (ignoreKnots) {
+            if (ignoreKnots) {
+                return this.#traverseKnots(result)?.isOutput()
+            }
+        }
+        return result.entity.isOutput()
+    }
+
+    /** @returns {boolean} True when the pin is the output part of a knot that can switch direction */
+    isOutputLoosely() {
+        return this.isOutput(false) && this.isOutput(true) === undefined
+    }
+
+    /** @returns {value is InstanceType<PinElement<>>} */
+    isKnot() {
+        return this.nodeElement?.getType() == Configuration.paths.knot
     }
 
     getLinkLocation() {
@@ -13344,9 +13371,12 @@ class PinElement extends IElement {
         const pinReference = this.createPinReference();
         if (
             this.isLinked
-            && this.isOutput()
-            && (this.pinType === "exec" || targetPinElement.pinType === "exec")
-            && !this.getLinks().some(ref => pinReference.equals(ref))) {
+            && (
+                this.isInput(true)
+                || this.isOutput(true) && (this.entity.isExecution() || targetPinElement.entity.isExecution())
+            )
+            && !this.getLinks().some(ref => pinReference.equals(ref))
+        ) {
             this.unlinkFromAll();
         }
         if (this.entity.linkTo(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)) {

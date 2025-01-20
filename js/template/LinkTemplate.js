@@ -122,22 +122,20 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         if (changedProperties.has("fromX") || changedProperties.has("toX")) {
             const from = this.element.fromX
             const to = this.element.toX
-            const isSourceAKnot = sourcePin?.nodeElement.getType() == Configuration.paths.knot
-            const isDestinationAKnot = destinationPin?.nodeElement.getType() == Configuration.paths.knot
+            const isSourceAKnot = sourcePin?.isKnot()
+            const isDestinationAKnot = destinationPin?.isKnot()
             if (isSourceAKnot && (!destinationPin || isDestinationAKnot)) {
-                if (sourcePin?.isInput() && to > from + Configuration.distanceThreshold) {
-                    this.element.source = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).outputPin
-                } else if (sourcePin?.isOutput() && to < from - Configuration.distanceThreshold) {
-                    this.element.source = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).inputPin
+                if (sourcePin?.isInputLoossly() && to > from + Configuration.distanceThreshold) {
+                    this.element.source = /** @type {KnotPinTemplate} */(sourcePin.template).oppositePin()
+                } else if (sourcePin?.isOutputLoosely() && to < from - Configuration.distanceThreshold) {
+                    this.element.source = /** @type {KnotPinTemplate} */(sourcePin.template).oppositePin()
                 }
             }
             if (isDestinationAKnot && (!sourcePin || isSourceAKnot)) {
-                if (destinationPin?.isInput() && to < from - Configuration.distanceThreshold) {
-                    this.element.destination =
-                        /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).outputPin
-                } else if (destinationPin?.isOutput() && to > from + Configuration.distanceThreshold) {
-                    this.element.destination =
-                        /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).inputPin
+                if (destinationPin?.isInputLoossly() && to < from - Configuration.distanceThreshold) {
+                    this.element.destination = /** @type {KnotPinTemplate} */(destinationPin.template).oppositePin()
+                } else if (destinationPin?.isOutputLoosely() && to > from + Configuration.distanceThreshold) {
+                    this.element.destination = /** @type {KnotPinTemplate} */(destinationPin.template).oppositePin()
                 }
             }
         }
