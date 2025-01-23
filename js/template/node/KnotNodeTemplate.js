@@ -1,15 +1,21 @@
 import { html } from "lit"
-import Configuration from "../../Configuration.js"
 import ElementFactory from "../../element/ElementFactory.js"
 import KnotPinTemplate from "../pin/KnotPinTemplate.js"
 import NodeTemplate from "./NodeTemplate.js"
 
 export default class KnotNodeTemplate extends NodeTemplate {
 
-    static #traversedPin = new Set()
-
-    /** @type {Boolean?} */
-    #chainDirection = null // The node is part of a chain connected to an input or output pin
+    #switchDirectionsVisually = false
+    get switchDirectionsVisually() {
+        return this.#switchDirectionsVisually
+    }
+    set switchDirectionsVisually(value) {
+        if (this.#switchDirectionsVisually == value) {
+            return
+        }
+        this.#switchDirectionsVisually = value
+        this.element.acknowledgeReflow()
+    }
 
     /** @type {PinElement} */
     #inputPin
@@ -27,21 +33,6 @@ export default class KnotNodeTemplate extends NodeTemplate {
     initialize(element) {
         super.initialize(element)
         this.element.classList.add("ueb-node-style-minimal")
-    }
-
-    /** @param {PinElement} startingPin */
-    findDirectionaPin(startingPin) {
-        if (startingPin.isKnot() || KnotNodeTemplate.#traversedPin.has(startingPin)) {
-            KnotNodeTemplate.#traversedPin.clear()
-            return true
-        }
-        KnotNodeTemplate.#traversedPin.add(startingPin)
-        for (let pin of startingPin.getLinks().map(l => this.blueprint.getPin(l))) {
-            if (this.findDirectionaPin(pin)) {
-                return true
-            }
-        }
-        return false
     }
 
     render() {

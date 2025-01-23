@@ -170,4 +170,11 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     }
 
     linksChanged() { }
+
+    /** All the link connected to this node */
+    getAllConnectedLinks() {
+        const nodeTitle = this.element.nodeTitle
+        const query = `ueb-link[data-origin-node="${nodeTitle}"],ueb-link[data-target-node="${nodeTitle}"]`
+        return /** @type {LinkElement[]} */([...this.blueprint.querySelectorAll(query)])
+    }
 }

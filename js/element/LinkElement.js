@@ -17,9 +17,31 @@ export default class LinkElement extends IFromToPositionedElement {
             converter: BooleanEntity.booleanConverter,
             reflect: true,
         },
+        originNode: {
+            type: String,
+            attribute: "data-origin-node",
+            reflect: true,
+        },
+        originPin: {
+            type: String,
+            attribute: "data-origin-pin",
+            reflect: true,
+        },
+        targetNode: {
+            type: String,
+            attribute: "data-target-node",
+            reflect: true,
+        },
+        targetPin: {
+            type: String,
+            attribute: "data-target-pin",
+            reflect: true,
+        },
         originatesFromInput: {
             type: Boolean,
-            attribute: false,
+            attribute: "data-from-input",
+            converter: BooleanEntity.booleanConverter,
+            reflect: true,
         },
         svgPathD: {
             type: String,
@@ -58,7 +80,12 @@ export default class LinkElement extends IFromToPositionedElement {
     #nodeDragSourceHandler = e => this.addSourceLocation(...e.detail.value)
     /** @param {UEBDragEvent} e */
     #nodeDragDestinatonHandler = e => this.addDestinationLocation(...e.detail.value)
-    #nodeReflowSourceHandler = e => this.setSourceLocation()
+    #nodeReflowSourceHandler = e => {
+        if (this.source.isKnot()) {
+            this.originatesFromInput = this.source.isInputVisually()
+        }
+        this.setSourceLocation()
+    }
     #nodeReflowDestinatonHandler = e => this.setDestinationLocation()
 
     /** @type {TemplateResult | nothing} */
@@ -72,6 +99,10 @@ export default class LinkElement extends IFromToPositionedElement {
     constructor() {
         super()
         this.dragging = false
+        this.originNode = ""
+        this.originPin = ""
+        this.targetNode = ""
+        this.targetPin = ""
         this.originatesFromInput = false
         this.startPercentage = 0
         this.svgPathD = ""
@@ -133,9 +164,15 @@ export default class LinkElement extends IFromToPositionedElement {
             )
             this.#unlinkPins()
         }
-        isDestinationPin
-            ? this.#destination = pin
-            : this.#source = pin
+        if (isDestinationPin) {
+            this.#destination = pin
+            this.targetNode = pin?.nodeElement.nodeTitle
+            this.targetPin = pin?.pinId.toString()
+        } else {
+            this.#source = pin
+            this.originNode = pin?.nodeElement.nodeTitle
+            this.originPin = pin?.pinId.toString()
+        }
         if (getCurrentPin()) {
             const nodeElement = getCurrentPin().getNodeElement()
             nodeElement.addEventListener(Configuration.removeEventName, this.#nodeDeleteHandler)
@@ -149,7 +186,7 @@ export default class LinkElement extends IFromToPositionedElement {
             )
             isDestinationPin
                 ? this.setDestinationLocation()
-                : (this.setSourceLocation(), this.originatesFromInput = this.source.isInput())
+                : (this.setSourceLocation(), this.originatesFromInput = this.source.isInputVisually())
             this.#linkPins()
         }
     }
@@ -244,6 +281,16 @@ export default class LinkElement extends IFromToPositionedElement {
             this.destination = pin
         }
         this.source = pin
+    }
+
+    /** @param {NodeElement} pin */
+    getOtherPin(pin) {
+        if (this.source?.nodeElement === pin) {
+            return this.destination
+        }
+        if (this.destination?.nodeElement === pin) {
+            return this.source
+        }
     }
 
     startDragging() {

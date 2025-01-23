@@ -182,4 +182,16 @@ export default class PinTemplate extends ITemplate {
     getClickableElement() {
         return this.#wrapperElement ?? this.element
     }
+
+    /** All the link connected to this pin */
+    getAllConnectedLinks() {
+        if (!this.element.isLinked) {
+            return []
+        }
+        const nodeTitle = this.element.nodeElement.nodeTitle
+        const pinId = this.element.pinId
+        const query = `ueb-link[data-origin-node="${nodeTitle}"][data-origin-pin="${pinId}"],`
+            + `ueb-link[data-target-node="${nodeTitle}"][data-target-pin="${pinId}"]`
+        return /** @type {LinkElement[]} */([...this.blueprint.querySelectorAll(query)])
+    }
 }

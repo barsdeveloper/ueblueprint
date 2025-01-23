@@ -148,8 +148,16 @@ export default class PinElement extends IElement {
     }
 
     /** @returns {boolean} True when the pin is the input part of a knot that can switch direction */
-    isInputLoossly() {
+    isInputLoosely() {
         return this.isInput(false) && this.isInput(true) === undefined
+    }
+
+    /** @returns {boolean} True when the pin is input and if it is a knot it appears input */
+    isInputVisually() {
+        const template = /** @type {KnotNodeTemplate} */(this.nodeElement.template)
+        const isKnot = this.isKnot()
+        return isKnot && this.isInput() != template.switchDirectionsVisually
+            || !isKnot && this.isInput()
     }
 
     isOutput(ignoreKnots = false) {
@@ -167,6 +175,15 @@ export default class PinElement extends IElement {
     isOutputLoosely() {
         return this.isOutput(false) && this.isOutput(true) === undefined
     }
+
+    /** @returns {boolean} True when the pin is output and if it is a knot it appears output */
+    isOutputVisually() {
+        const template = /** @type {KnotNodeTemplate} */(this.nodeElement.template)
+        const isKnot = this.isKnot()
+        return isKnot && this.isOutput() != template.switchDirectionsVisually
+            || !isKnot && this.isOutput()
+    }
+
 
     /** @returns {value is InstanceType<PinElement<>>} */
     isKnot() {

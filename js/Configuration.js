@@ -79,9 +79,11 @@ export default class Configuration {
      * @param {Number} c1
      * @param {Number} c2
      */
-    static linkRightSVGPath = (start, c1, c2) => {
-        let end = 100 - start
-        return `M ${start} 0 C ${c1.toFixed(3)} 0, ${c2.toFixed(3)} 0, 50 50 S ${(end - c1 + start).toFixed(3)} 100, `
+    static linkRightSVGPath = (start, c1, c2, arc = false) => {
+        const end = 100 - start
+        const mid = arc ? 100 : 50
+        const fin = arc ? end + c1 - start : end - c1 + start
+        return `M ${start} 0 C ${c1.toFixed(2)} 0, ${c2.toFixed(2)} 0, ${mid} 50 S ${fin.toFixed(2)} 100, `
             + `${end.toFixed(3)} 100`
     }
     static maxZoom = 7

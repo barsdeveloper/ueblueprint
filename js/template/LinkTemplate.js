@@ -84,6 +84,104 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         this.element.destination = inputPin
     }
 
+    /** @param {PropertyValues} changedProperties */
+    #calculateSVGPath(changedProperties) {
+        const originPin = this.element.source
+        const targetPin = this.element.destination
+        const isOriginAKnot = originPin?.isKnot()
+        const isTargetAKnot = targetPin?.isKnot()
+        const from = this.element.fromX
+        const to = this.element.toX
+
+        // Switch actual input/output pins if allowed and makes sense
+        if (isOriginAKnot && (!targetPin || isTargetAKnot)) {
+            if (originPin?.isInputLoosely() && to > from + Configuration.distanceThreshold) {
+                this.element.source = /** @type {KnotPinTemplate} */(originPin.template).oppositePin()
+            } else if (originPin?.isOutputLoosely() && to < from - Configuration.distanceThreshold) {
+                this.element.source = /** @type {KnotPinTemplate} */(originPin.template).oppositePin()
+            }
+        }
+        if (isTargetAKnot && (!originPin || isOriginAKnot)) {
+            if (targetPin?.isInputLoosely() && to < from - Configuration.distanceThreshold) {
+                this.element.destination = /** @type {KnotPinTemplate} */(targetPin.template).oppositePin()
+            } else if (targetPin?.isOutputLoosely() && to > from + Configuration.distanceThreshold) {
+                this.element.destination = /** @type {KnotPinTemplate} */(targetPin.template).oppositePin()
+            }
+        }
+
+        // Switch visual input/output pins if allowed and makes sense
+        let directionsCheckedKnot
+        if (
+            originPin?.isKnot()
+            && !changedProperties.has("fromX")
+            && changedProperties.has("toX")
+        ) {
+            // The target end has moved and origin end is a knot
+            directionsCheckedKnot = originPin.nodeElement
+        } else if (
+            targetPin?.isKnot()
+            && changedProperties.has("toX")
+            && !changedProperties.has("fromX")
+        ) {
+            // The source end has moved and target end is a knot
+            directionsCheckedKnot = targetPin.nodeElement
+        }
+        if (directionsCheckedKnot) {
+            let leftPinsLocation = 0
+            let leftPinsCount = 0
+            let rightPinsLocation = 0
+            let rightPinsCount = 0
+            const pins = directionsCheckedKnot.template
+                .getAllConnectedLinks()
+                .map(l => l.getOtherPin(directionsCheckedKnot))
+            for (const pin of pins) {
+                if (pin.isInput()) {
+                    rightPinsLocation += pin.getLinkLocation()[0]
+                    ++rightPinsCount
+                } else if (pin.isOutput()) {
+                    leftPinsLocation += pin.getLinkLocation()[0]
+                    ++leftPinsCount
+                }
+            }
+            leftPinsLocation /= leftPinsCount
+            rightPinsLocation /= rightPinsCount
+            const knotTemplate =  /** @type {KnotNodeTemplate} */(directionsCheckedKnot.template)
+            if ((rightPinsLocation < leftPinsLocation) != knotTemplate.switchDirectionsVisually) {
+                knotTemplate.switchDirectionsVisually = rightPinsLocation < leftPinsLocation
+            }
+        }
+        let sameDirection = originPin?.isInputVisually() == targetPin?.isInputVisually()
+
+        // Actual computation
+        const dx = Math.max(Math.abs(this.element.fromX - this.element.toX), 1)
+        const dy = Math.max(Math.abs(this.element.fromY - this.element.toY), 1)
+        const width = Math.max(dx, Configuration.linkMinWidth)
+        const fillRatio = dx / width
+        const xInverted = this.element.originatesFromInput
+            ? this.element.fromX < this.element.toX
+            : this.element.toX < this.element.fromX
+        this.element.startPixels = dx < width // If under minimum width
+            ? (width - dx) / 2 // Start from half the empty space
+            : 0 // Otherwise start from the beginning
+        this.element.startPercentage = xInverted ? this.element.startPixels + fillRatio * 100 : this.element.startPixels
+        const c1 =
+            this.element.startPercentage
+            + (xInverted
+                ? LinkTemplate.c1DecreasingValue(width)
+                : 10
+            )
+            * fillRatio
+        const aspectRatio = dy / Math.max(30, dx)
+        const c2 = sameDirection
+            ? (this.element.startPercentage + 50)
+            : (
+                LinkTemplate.c2Clamped(dx)
+                * LinkTemplate.sigmoidPositive(fillRatio * 1.2 + aspectRatio * 0.5, 1.5, 1.8)
+                + this.element.startPercentage
+            )
+        this.element.svgPathD = Configuration.linkRightSVGPath(this.element.startPercentage, c1, c2, sameDirection)
+    }
+
     createInputObjects() {
         /** @type {HTMLElement} */
         const linkArea = this.element.querySelector(".ueb-link-area")
@@ -117,68 +215,23 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
     /** @param {PropertyValues} changedProperties */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties)
-        const sourcePin = this.element.source
-        const destinationPin = this.element.destination
         if (changedProperties.has("fromX") || changedProperties.has("toX")) {
-            const from = this.element.fromX
-            const to = this.element.toX
-            const isSourceAKnot = sourcePin?.isKnot()
-            const isDestinationAKnot = destinationPin?.isKnot()
-            if (isSourceAKnot && (!destinationPin || isDestinationAKnot)) {
-                if (sourcePin?.isInputLoossly() && to > from + Configuration.distanceThreshold) {
-                    this.element.source = /** @type {KnotPinTemplate} */(sourcePin.template).oppositePin()
-                } else if (sourcePin?.isOutputLoosely() && to < from - Configuration.distanceThreshold) {
-                    this.element.source = /** @type {KnotPinTemplate} */(sourcePin.template).oppositePin()
-                }
-            }
-            if (isDestinationAKnot && (!sourcePin || isSourceAKnot)) {
-                if (destinationPin?.isInputLoossly() && to < from - Configuration.distanceThreshold) {
-                    this.element.destination = /** @type {KnotPinTemplate} */(destinationPin.template).oppositePin()
-                } else if (destinationPin?.isOutputLoosely() && to > from + Configuration.distanceThreshold) {
-                    this.element.destination = /** @type {KnotPinTemplate} */(destinationPin.template).oppositePin()
-                }
-            }
+            this.#calculateSVGPath(changedProperties)
         }
-        const dx = Math.max(Math.abs(this.element.fromX - this.element.toX), 1)
-        const dy = Math.max(Math.abs(this.element.fromY - this.element.toY), 1)
-        const width = Math.max(dx, Configuration.linkMinWidth)
-        // const height = Math.max(Math.abs(link.fromY - link.toY), 1)
-        const fillRatio = dx / width
-        const xInverted = this.element.originatesFromInput
-            ? this.element.fromX < this.element.toX
-            : this.element.toX < this.element.fromX
-        this.element.startPixels = dx < width // If under minimum width
-            ? (width - dx) / 2 // Start from half the empty space
-            : 0 // Otherwise start from the beginning
-        this.element.startPercentage = xInverted ? this.element.startPixels + fillRatio * 100 : this.element.startPixels
-        const c1 =
-            this.element.startPercentage
-            + (xInverted
-                ? LinkTemplate.c1DecreasingValue(width)
-                : 10
-            )
-            * fillRatio
-        const aspectRatio = dy / Math.max(30, dx)
-        const c2 =
-            LinkTemplate.c2Clamped(dx)
-            * LinkTemplate.sigmoidPositive(fillRatio * 1.2 + aspectRatio * 0.5, 1.5, 1.8)
-            + this.element.startPercentage
-        this.element.svgPathD = Configuration.linkRightSVGPath(this.element.startPercentage, c1, c2)
     }
 
     /** @param {PropertyValues} changedProperties */
     update(changedProperties) {
         super.update(changedProperties)
-        if (changedProperties.has("originatesFromInput")) {
-            this.element.style.setProperty("--ueb-from-input", this.element.originatesFromInput ? "1" : "0")
-        }
         const referencePin = this.element.getOutputPin(true)
         if (referencePin) {
             this.element.style.setProperty("--ueb-link-color-rgb", LinearColorEntity.printLinearColor(referencePin.color))
         }
-        this.element.style.setProperty("--ueb-y-reflected", `${this.element.fromY > this.element.toY ? 1 : 0}`)
         this.element.style.setProperty("--ueb-start-percentage", `${Math.round(this.element.startPercentage)}%`)
         this.element.style.setProperty("--ueb-link-start", `${Math.round(this.element.startPixels)}`)
+        const mirrorV = (this.element.fromY > this.element.toY ? -1 : 1) // If from is below to => mirror
+            * (this.element.originatesFromInput ? -1 : 1) // Unless from refers to an input pin 
+        this.element.style.setProperty("--ueb-link-scale-y", `${mirrorV}`)
     }
 
     render() {

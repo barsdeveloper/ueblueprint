@@ -176,9 +176,7 @@ ueb-node.ueb-node-style-minimal[data-selected=true] .ueb-node-border {
 ueb-link {
   position: absolute;
   --ueb-link-color: rgb(var(--ueb-link-color-rgb));
-  --ueb-from-input-coefficient: calc(2 * var(--ueb-from-input) - 1);
   /* when from-y > to-y */
-  --ueb-y-reflected: clamp(0, var(--ueb-from-y) - var(--ueb-to-y) - 1, 1);
   display: block;
   margin-left: calc(var(--ueb-link-start) * -1px);
   min-width: calc(var(--ueb-link-min-width) * 1px);
@@ -190,12 +188,11 @@ ueb-link {
 }
 
 ueb-link > svg {
-  --ueb-y-reflected-coefficient: calc(2 * var(--ueb-y-reflected) - 1);
   position: absolute;
   width: 100% !important;
   height: 100% !important;
   min-height: 1px !important;
-  transform: scaleY(calc(var(--ueb-y-reflected-coefficient) * var(--ueb-from-input-coefficient)));
+  transform: scaleY(var(--ueb-link-scale-y));
   z-index: 1;
 }
 
@@ -222,16 +219,23 @@ ueb-link[data-dragging=true] .ueb-link-message {
 }
 
 .ueb-link-message {
+  --ueb-link-message-top: calc(50% * (var(--ueb-link-scale-y) + 1) + 22px);
+  --ueb-link-message-left: calc(100% - var(--ueb-start-percentage) + 15px);
   display: none;
   position: absolute;
-  top: calc(100% * (1 - var(--ueb-y-reflected)) + 22px);
-  left: calc((1 - var(--ueb-from-input)) * 100% + (var(--ueb-from-input-coefficient)) * var(--ueb-start-percentage) + 15px);
+  top: var(--ueb-link-message-top);
+  left: var(--ueb-link-message-left);
   border: 1px solid #000;
   border-radius: 2px;
   background: linear-gradient(to bottom, #2a2a2a 0, #151515 50%, #2a2a2a 100%);
   color: var(--ueb-pin-dim-color);
   white-space: nowrap;
   z-index: 1000000;
+}
+
+ueb-link[data-from-input=true] .ueb-link-message {
+  --ueb-link-message-top: calc(-50% * (var(--ueb-link-scale-y) - 1) + 22px);
+  --ueb-link-message-left: calc(var(--ueb-start-percentage) + 15px);
 }
 
 .ueb-link-message-icon {

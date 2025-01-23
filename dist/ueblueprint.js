@@ -103,9 +103,11 @@ class Configuration {
      * @param {Number} c1
      * @param {Number} c2
      */
-    static linkRightSVGPath = (start, c1, c2) => {
-        let end = 100 - start;
-        return `M ${start} 0 C ${c1.toFixed(3)} 0, ${c2.toFixed(3)} 0, 50 50 S ${(end - c1 + start).toFixed(3)} 100, `
+    static linkRightSVGPath = (start, c1, c2, arc = false) => {
+        const end = 100 - start;
+        const mid = arc ? 100 : 50;
+        const fin = arc ? end + c1 - start : end - c1 + start;
+        return `M ${start} 0 C ${c1.toFixed(2)} 0, ${c2.toFixed(2)} 0, ${mid} 50 S ${fin.toFixed(2)} 100, `
             + `${end.toFixed(3)} 100`
     }
     static maxZoom = 7
@@ -7687,6 +7689,104 @@ class LinkTemplate extends IFromToPositionedTemplate {
         this.element.destination = inputPin;
     }
 
+    /** @param {PropertyValues} changedProperties */
+    #calculateSVGPath(changedProperties) {
+        const originPin = this.element.source;
+        const targetPin = this.element.destination;
+        const isOriginAKnot = originPin?.isKnot();
+        const isTargetAKnot = targetPin?.isKnot();
+        const from = this.element.fromX;
+        const to = this.element.toX;
+
+        // Switch actual input/output pins if allowed and makes sense
+        if (isOriginAKnot && (!targetPin || isTargetAKnot)) {
+            if (originPin?.isInputLoosely() && to > from + Configuration.distanceThreshold) {
+                this.element.source = /** @type {KnotPinTemplate} */(originPin.template).oppositePin();
+            } else if (originPin?.isOutputLoosely() && to < from - Configuration.distanceThreshold) {
+                this.element.source = /** @type {KnotPinTemplate} */(originPin.template).oppositePin();
+            }
+        }
+        if (isTargetAKnot && (!originPin || isOriginAKnot)) {
+            if (targetPin?.isInputLoosely() && to < from - Configuration.distanceThreshold) {
+                this.element.destination = /** @type {KnotPinTemplate} */(targetPin.template).oppositePin();
+            } else if (targetPin?.isOutputLoosely() && to > from + Configuration.distanceThreshold) {
+                this.element.destination = /** @type {KnotPinTemplate} */(targetPin.template).oppositePin();
+            }
+        }
+
+        // Switch visual input/output pins if allowed and makes sense
+        let directionsCheckedKnot;
+        if (
+            originPin?.isKnot()
+            && !changedProperties.has("fromX")
+            && changedProperties.has("toX")
+        ) {
+            // The target end has moved and origin end is a knot
+            directionsCheckedKnot = originPin.nodeElement;
+        } else if (
+            targetPin?.isKnot()
+            && changedProperties.has("toX")
+            && !changedProperties.has("fromX")
+        ) {
+            // The source end has moved and target end is a knot
+            directionsCheckedKnot = targetPin.nodeElement;
+        }
+        if (directionsCheckedKnot) {
+            let leftPinsLocation = 0;
+            let leftPinsCount = 0;
+            let rightPinsLocation = 0;
+            let rightPinsCount = 0;
+            const pins = directionsCheckedKnot.template
+                .getAllConnectedLinks()
+                .map(l => l.getOtherPin(directionsCheckedKnot));
+            for (const pin of pins) {
+                if (pin.isInput()) {
+                    rightPinsLocation += pin.getLinkLocation()[0];
+                    ++rightPinsCount;
+                } else if (pin.isOutput()) {
+                    leftPinsLocation += pin.getLinkLocation()[0];
+                    ++leftPinsCount;
+                }
+            }
+            leftPinsLocation /= leftPinsCount;
+            rightPinsLocation /= rightPinsCount;
+            const knotTemplate =  /** @type {KnotNodeTemplate} */(directionsCheckedKnot.template);
+            if ((rightPinsLocation < leftPinsLocation) != knotTemplate.switchDirectionsVisually) {
+                knotTemplate.switchDirectionsVisually = rightPinsLocation < leftPinsLocation;
+            }
+        }
+        let sameDirection = originPin?.isInputVisually() == targetPin?.isInputVisually();
+
+        // Actual computation
+        const dx = Math.max(Math.abs(this.element.fromX - this.element.toX), 1);
+        const dy = Math.max(Math.abs(this.element.fromY - this.element.toY), 1);
+        const width = Math.max(dx, Configuration.linkMinWidth);
+        const fillRatio = dx / width;
+        const xInverted = this.element.originatesFromInput
+            ? this.element.fromX < this.element.toX
+            : this.element.toX < this.element.fromX;
+        this.element.startPixels = dx < width // If under minimum width
+            ? (width - dx) / 2 // Start from half the empty space
+            : 0; // Otherwise start from the beginning
+        this.element.startPercentage = xInverted ? this.element.startPixels + fillRatio * 100 : this.element.startPixels;
+        const c1 =
+            this.element.startPercentage
+            + (xInverted
+                ? LinkTemplate.c1DecreasingValue(width)
+                : 10
+            )
+            * fillRatio;
+        const aspectRatio = dy / Math.max(30, dx);
+        const c2 = sameDirection
+            ? (this.element.startPercentage + 50)
+            : (
+                LinkTemplate.c2Clamped(dx)
+                * LinkTemplate.sigmoidPositive(fillRatio * 1.2 + aspectRatio * 0.5, 1.5, 1.8)
+                + this.element.startPercentage
+            );
+        this.element.svgPathD = Configuration.linkRightSVGPath(this.element.startPercentage, c1, c2, sameDirection);
+    }
+
     createInputObjects() {
         /** @type {HTMLElement} */
         const linkArea = this.element.querySelector(".ueb-link-area");
@@ -7720,68 +7820,23 @@ class LinkTemplate extends IFromToPositionedTemplate {
     /** @param {PropertyValues} changedProperties */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties);
-        const sourcePin = this.element.source;
-        const destinationPin = this.element.destination;
         if (changedProperties.has("fromX") || changedProperties.has("toX")) {
-            const from = this.element.fromX;
-            const to = this.element.toX;
-            const isSourceAKnot = sourcePin?.isKnot();
-            const isDestinationAKnot = destinationPin?.isKnot();
-            if (isSourceAKnot && (!destinationPin || isDestinationAKnot)) {
-                if (sourcePin?.isInputLoossly() && to > from + Configuration.distanceThreshold) {
-                    this.element.source = /** @type {KnotPinTemplate} */(sourcePin.template).oppositePin();
-                } else if (sourcePin?.isOutputLoosely() && to < from - Configuration.distanceThreshold) {
-                    this.element.source = /** @type {KnotPinTemplate} */(sourcePin.template).oppositePin();
-                }
-            }
-            if (isDestinationAKnot && (!sourcePin || isSourceAKnot)) {
-                if (destinationPin?.isInputLoossly() && to < from - Configuration.distanceThreshold) {
-                    this.element.destination = /** @type {KnotPinTemplate} */(destinationPin.template).oppositePin();
-                } else if (destinationPin?.isOutputLoosely() && to > from + Configuration.distanceThreshold) {
-                    this.element.destination = /** @type {KnotPinTemplate} */(destinationPin.template).oppositePin();
-                }
-            }
+            this.#calculateSVGPath(changedProperties);
         }
-        const dx = Math.max(Math.abs(this.element.fromX - this.element.toX), 1);
-        const dy = Math.max(Math.abs(this.element.fromY - this.element.toY), 1);
-        const width = Math.max(dx, Configuration.linkMinWidth);
-        // const height = Math.max(Math.abs(link.fromY - link.toY), 1)
-        const fillRatio = dx / width;
-        const xInverted = this.element.originatesFromInput
-            ? this.element.fromX < this.element.toX
-            : this.element.toX < this.element.fromX;
-        this.element.startPixels = dx < width // If under minimum width
-            ? (width - dx) / 2 // Start from half the empty space
-            : 0; // Otherwise start from the beginning
-        this.element.startPercentage = xInverted ? this.element.startPixels + fillRatio * 100 : this.element.startPixels;
-        const c1 =
-            this.element.startPercentage
-            + (xInverted
-                ? LinkTemplate.c1DecreasingValue(width)
-                : 10
-            )
-            * fillRatio;
-        const aspectRatio = dy / Math.max(30, dx);
-        const c2 =
-            LinkTemplate.c2Clamped(dx)
-            * LinkTemplate.sigmoidPositive(fillRatio * 1.2 + aspectRatio * 0.5, 1.5, 1.8)
-            + this.element.startPercentage;
-        this.element.svgPathD = Configuration.linkRightSVGPath(this.element.startPercentage, c1, c2);
     }
 
     /** @param {PropertyValues} changedProperties */
     update(changedProperties) {
         super.update(changedProperties);
-        if (changedProperties.has("originatesFromInput")) {
-            this.element.style.setProperty("--ueb-from-input", this.element.originatesFromInput ? "1" : "0");
-        }
         const referencePin = this.element.getOutputPin(true);
         if (referencePin) {
             this.element.style.setProperty("--ueb-link-color-rgb", LinearColorEntity.printLinearColor(referencePin.color));
         }
-        this.element.style.setProperty("--ueb-y-reflected", `${this.element.fromY > this.element.toY ? 1 : 0}`);
         this.element.style.setProperty("--ueb-start-percentage", `${Math.round(this.element.startPercentage)}%`);
         this.element.style.setProperty("--ueb-link-start", `${Math.round(this.element.startPixels)}`);
+        const mirrorV = (this.element.fromY > this.element.toY ? -1 : 1) // If from is below to => mirror
+            * (this.element.originatesFromInput ? -1 : 1); // Unless from refers to an input pin 
+        this.element.style.setProperty("--ueb-link-scale-y", `${mirrorV}`);
     }
 
     render() {
@@ -7878,9 +7933,31 @@ class LinkElement extends IFromToPositionedElement {
             converter: BooleanEntity.booleanConverter,
             reflect: true,
         },
+        originNode: {
+            type: String,
+            attribute: "data-origin-node",
+            reflect: true,
+        },
+        originPin: {
+            type: String,
+            attribute: "data-origin-pin",
+            reflect: true,
+        },
+        targetNode: {
+            type: String,
+            attribute: "data-target-node",
+            reflect: true,
+        },
+        targetPin: {
+            type: String,
+            attribute: "data-target-pin",
+            reflect: true,
+        },
         originatesFromInput: {
             type: Boolean,
-            attribute: false,
+            attribute: "data-from-input",
+            converter: BooleanEntity.booleanConverter,
+            reflect: true,
         },
         svgPathD: {
             type: String,
@@ -7919,7 +7996,12 @@ class LinkElement extends IFromToPositionedElement {
     #nodeDragSourceHandler = e => this.addSourceLocation(...e.detail.value)
     /** @param {UEBDragEvent} e */
     #nodeDragDestinatonHandler = e => this.addDestinationLocation(...e.detail.value)
-    #nodeReflowSourceHandler = e => this.setSourceLocation()
+    #nodeReflowSourceHandler = e => {
+        if (this.source.isKnot()) {
+            this.originatesFromInput = this.source.isInputVisually();
+        }
+        this.setSourceLocation();
+    }
     #nodeReflowDestinatonHandler = e => this.setDestinationLocation()
 
     /** @type {TemplateResult | nothing} */
@@ -7933,6 +8015,10 @@ class LinkElement extends IFromToPositionedElement {
     constructor() {
         super();
         this.dragging = false;
+        this.originNode = "";
+        this.originPin = "";
+        this.targetNode = "";
+        this.targetPin = "";
         this.originatesFromInput = false;
         this.startPercentage = 0;
         this.svgPathD = "";
@@ -7994,9 +8080,15 @@ class LinkElement extends IFromToPositionedElement {
             );
             this.#unlinkPins();
         }
-        isDestinationPin
-            ? this.#destination = pin
-            : this.#source = pin;
+        if (isDestinationPin) {
+            this.#destination = pin;
+            this.targetNode = pin?.nodeElement.nodeTitle;
+            this.targetPin = pin?.pinId.toString();
+        } else {
+            this.#source = pin;
+            this.originNode = pin?.nodeElement.nodeTitle;
+            this.originPin = pin?.pinId.toString();
+        }
         if (getCurrentPin()) {
             const nodeElement = getCurrentPin().getNodeElement();
             nodeElement.addEventListener(Configuration.removeEventName, this.#nodeDeleteHandler);
@@ -8010,7 +8102,7 @@ class LinkElement extends IFromToPositionedElement {
             );
             isDestinationPin
                 ? this.setDestinationLocation()
-                : (this.setSourceLocation(), this.originatesFromInput = this.source.isInput());
+                : (this.setSourceLocation(), this.originatesFromInput = this.source.isInputVisually());
             this.#linkPins();
         }
     }
@@ -8105,6 +8197,16 @@ class LinkElement extends IFromToPositionedElement {
             this.destination = pin;
         }
         this.source = pin;
+    }
+
+    /** @param {NodeElement} pin */
+    getOtherPin(pin) {
+        if (this.source?.nodeElement === pin) {
+            return this.destination
+        }
+        if (this.destination?.nodeElement === pin) {
+            return this.source
+        }
     }
 
     startDragging() {
@@ -8977,6 +9079,13 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     }
 
     linksChanged() { }
+
+    /** All the link connected to this node */
+    getAllConnectedLinks() {
+        const nodeTitle = this.element.nodeTitle;
+        const query = `ueb-link[data-origin-node="${nodeTitle}"],ueb-link[data-target-node="${nodeTitle}"]`;
+        return /** @type {LinkElement[]} */([...this.blueprint.querySelectorAll(query)])
+    }
 }
 
 class IResizeableTemplate extends NodeTemplate {
@@ -9612,6 +9721,18 @@ class PinTemplate extends ITemplate {
     getClickableElement() {
         return this.#wrapperElement ?? this.element
     }
+
+    /** All the link connected to this pin */
+    getAllConnectedLinks() {
+        if (!this.element.isLinked) {
+            return []
+        }
+        const nodeTitle = this.element.nodeElement.nodeTitle;
+        const pinId = this.element.pinId;
+        const query = `ueb-link[data-origin-node="${nodeTitle}"][data-origin-pin="${pinId}"],`
+            + `ueb-link[data-target-node="${nodeTitle}"][data-target-pin="${pinId}"]`;
+        return /** @type {LinkElement[]} */([...this.blueprint.querySelectorAll(query)])
+    }
 }
 
 /**
@@ -9721,10 +9842,17 @@ class KnotPinTemplate extends MinimalPinTemplate {
 
 class KnotNodeTemplate extends NodeTemplate {
 
-    static #traversedPin = new Set()
-
-    /** @type {Boolean?} */
-    #chainDirection = null // The node is part of a chain connected to an input or output pin
+    #switchDirectionsVisually = false
+    get switchDirectionsVisually() {
+        return this.#switchDirectionsVisually
+    }
+    set switchDirectionsVisually(value) {
+        if (this.#switchDirectionsVisually == value) {
+            return
+        }
+        this.#switchDirectionsVisually = value;
+        this.element.acknowledgeReflow();
+    }
 
     /** @type {PinElement} */
     #inputPin
@@ -9742,21 +9870,6 @@ class KnotNodeTemplate extends NodeTemplate {
     initialize(element) {
         super.initialize(element);
         this.element.classList.add("ueb-node-style-minimal");
-    }
-
-    /** @param {PinElement} startingPin */
-    findDirectionaPin(startingPin) {
-        if (startingPin.isKnot() || KnotNodeTemplate.#traversedPin.has(startingPin)) {
-            KnotNodeTemplate.#traversedPin.clear();
-            return true
-        }
-        KnotNodeTemplate.#traversedPin.add(startingPin);
-        for (let pin of startingPin.getLinks().map(l => this.blueprint.getPin(l))) {
-            if (this.findDirectionaPin(pin)) {
-                return true
-            }
-        }
-        return false
     }
 
     render() {
@@ -13294,8 +13407,16 @@ class PinElement extends IElement {
     }
 
     /** @returns {boolean} True when the pin is the input part of a knot that can switch direction */
-    isInputLoossly() {
+    isInputLoosely() {
         return this.isInput(false) && this.isInput(true) === undefined
+    }
+
+    /** @returns {boolean} True when the pin is input and if it is a knot it appears input */
+    isInputVisually() {
+        const template = /** @type {KnotNodeTemplate} */(this.nodeElement.template);
+        const isKnot = this.isKnot();
+        return isKnot && this.isInput() != template.switchDirectionsVisually
+            || !isKnot && this.isInput()
     }
 
     isOutput(ignoreKnots = false) {
@@ -13313,6 +13434,15 @@ class PinElement extends IElement {
     isOutputLoosely() {
         return this.isOutput(false) && this.isOutput(true) === undefined
     }
+
+    /** @returns {boolean} True when the pin is output and if it is a knot it appears output */
+    isOutputVisually() {
+        const template = /** @type {KnotNodeTemplate} */(this.nodeElement.template);
+        const isKnot = this.isKnot();
+        return isKnot && this.isOutput() != template.switchDirectionsVisually
+            || !isKnot && this.isOutput()
+    }
+
 
     /** @returns {value is InstanceType<PinElement<>>} */
     isKnot() {
