@@ -74,60 +74,34 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         // Switch actual input/output pins if allowed and makes sense
         if (isOriginAKnot && (!targetPin || isTargetAKnot)) {
             if (originPin?.isInputLoosely() && to > from + Configuration.distanceThreshold) {
-                this.element.origin = /** @type {KnotPinTemplate} */(originPin.template).oppositePin()
+                this.element.origin = /** @type {KnotPinTemplate} */(originPin.template).getoppositePin()
             } else if (originPin?.isOutputLoosely() && to < from - Configuration.distanceThreshold) {
-                this.element.origin = /** @type {KnotPinTemplate} */(originPin.template).oppositePin()
+                this.element.origin = /** @type {KnotPinTemplate} */(originPin.template).getoppositePin()
             }
         }
         if (isTargetAKnot && (!originPin || isOriginAKnot)) {
             if (targetPin?.isInputLoosely() && to < from - Configuration.distanceThreshold) {
-                this.element.target = /** @type {KnotPinTemplate} */(targetPin.template).oppositePin()
+                this.element.target = /** @type {KnotPinTemplate} */(targetPin.template).getoppositePin()
             } else if (targetPin?.isOutputLoosely() && to > from + Configuration.distanceThreshold) {
-                this.element.target = /** @type {KnotPinTemplate} */(targetPin.template).oppositePin()
+                this.element.target = /** @type {KnotPinTemplate} */(targetPin.template).getoppositePin()
             }
         }
 
         // Switch visual input/output pins if allowed and makes sense
-        let directionsCheckedKnot
-        if (
-            originPin?.isKnot()
-            && !changedProperties.has("fromX")
-            && changedProperties.has("toX")
-        ) {
-            // The target end has moved and origin end is a knot
-            directionsCheckedKnot = originPin.nodeElement
-        } else if (
-            targetPin?.isKnot()
-            && changedProperties.has("toX")
-            && !changedProperties.has("fromX")
-        ) {
-            // The origin end has moved and target end is a knot
-            directionsCheckedKnot = targetPin.nodeElement
-        }
-        if (directionsCheckedKnot) {
-            let leftPinsLocation = 0
-            let leftPinsCount = 0
-            let rightPinsLocation = 0
-            let rightPinsCount = 0
-            const pins = directionsCheckedKnot.template
-                .getAllConnectedLinks()
-                .map(l => l.getOtherPin(directionsCheckedKnot))
-            for (const pin of pins) {
-                if (pin.isInput()) {
-                    rightPinsLocation += pin.getLinkLocation()[0]
-                    ++rightPinsCount
-                } else if (pin.isOutput()) {
-                    leftPinsLocation += pin.getLinkLocation()[0]
-                    ++leftPinsCount
-                }
+        if (originPin && targetPin) {
+            let directionsCheckedKnot
+            if (originPin?.isKnot()) {
+                // The target end has moved and origin end is a knot
+                directionsCheckedKnot = originPin.nodeElement
+            } else if (targetPin?.isKnot()) {
+                // The origin end has moved and target end is a knot
+                directionsCheckedKnot = targetPin.nodeElement
             }
-            leftPinsLocation /= leftPinsCount
-            rightPinsLocation /= rightPinsCount
-            const knotTemplate =  /** @type {KnotNodeTemplate} */(directionsCheckedKnot.template)
-            if ((rightPinsLocation < leftPinsLocation) != knotTemplate.switchDirectionsVisually) {
-                knotTemplate.switchDirectionsVisually = rightPinsLocation < leftPinsLocation
+            if (directionsCheckedKnot && directionsCheckedKnot.hasUpdated) {
+                /** @type {KnotNodeTemplate} */(directionsCheckedKnot.template).checkSwtichDirectionsVisually()
             }
         }
+
         let sameDirection = originPin?.isOutputVisually() == targetPin?.isOutputVisually()
 
         // Actual computation

@@ -1,10 +1,5 @@
 import { expect, test } from "./fixtures/test.js"
 
-
-test.beforeEach(async ({ blueprintPage }) => {
-    await blueprintPage.removeNodes()
-})
-
 test("Issue 27", async ({ blueprintPage }) => {
     await blueprintPage.paste(String.raw`
         Begin Object Class=/Script/BlueprintGraph.K2Node_CustomEvent Name="K2Node_CustomEvent_0" ExportPath="/Script/BlueprintGraph.K2Node_CustomEvent'/Game/Examples/BallShooter/Blueprints/BallShooterEnvironment.BallShooterEnvironment:EventGraph.K2Node_CustomEvent_0'"
@@ -49,5 +44,5 @@ test("Issue 27", async ({ blueprintPage }) => {
     expect(await pin2A.evaluate(/** @param {PinElement} pin */ pin => pin.isLinked)).toBeTruthy()
     expect(await pin2B.evaluate(/** @param {PinElement} pin */ pin => pin.isLinked)).toBeTruthy()
     expect(await pin3.evaluate(/** @param {PinElement} pin */ pin => pin.isLinked)).toBeTruthy()
-    expect(blueprintPage.blueprintLocator.locator("ueb-link")).toHaveCount(2)
+    await expect(blueprintPage.blueprintLocator.locator("ueb-link")).toHaveCount(2)
 })

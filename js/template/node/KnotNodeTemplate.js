@@ -60,6 +60,28 @@ export default class KnotNodeTemplate extends NodeTemplate {
     }
 
     linksChanged() {
+    }
 
+    checkSwtichDirectionsVisually() {
+        let leftPinsLocation = 0
+        let leftPinsCount = 0
+        let rightPinsLocation = 0
+        let rightPinsCount = 0
+        const links = this.getAllConnectedLinks()
+        for (const link of links) {
+            const pin = link.getOtherPin(this.element)
+            if (pin?.isInput()) {
+                rightPinsLocation += pin.getLinkLocation()[0]
+                ++rightPinsCount
+            } else if (pin?.isOutput()) {
+                leftPinsLocation += pin.getLinkLocation()[0]
+                ++leftPinsCount
+            }
+        }
+        leftPinsLocation /= leftPinsCount
+        rightPinsLocation /= rightPinsCount
+        if ((rightPinsLocation < leftPinsLocation) != this.switchDirectionsVisually) {
+            this.switchDirectionsVisually = rightPinsLocation < leftPinsLocation
+        }
     }
 }

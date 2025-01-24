@@ -85,7 +85,7 @@ export default class Configuration {
             ? 50 + (c2 - start)
             : 50
         const fin = arc ? end + c1 - start : end - c1 + start
-        return `M ${start} 0 C ${c1.toFixed(2)} 0, ${c2.toFixed(2)} 0, ${mid} 50 S ${fin.toFixed(2)} 100, `
+        return `M ${start} 0 C ${c1.toFixed(2)} 0, ${c2.toFixed(2)} 0, ${mid.toFixed(2)} 50 S ${fin.toFixed(2)} 100, `
             + `${end.toFixed(3)} 100`
     }
     static maxZoom = 7

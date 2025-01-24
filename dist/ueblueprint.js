@@ -109,7 +109,7 @@ class Configuration {
             ? 50 + (c2 - start)
             : 50;
         const fin = arc ? end + c1 - start : end - c1 + start;
-        return `M ${start} 0 C ${c1.toFixed(2)} 0, ${c2.toFixed(2)} 0, ${mid} 50 S ${fin.toFixed(2)} 100, `
+        return `M ${start} 0 C ${c1.toFixed(2)} 0, ${c2.toFixed(2)} 0, ${mid.toFixed(2)} 50 S ${fin.toFixed(2)} 100, `
             + `${end.toFixed(3)} 100`
     }
     static maxZoom = 7
@@ -7681,60 +7681,34 @@ class LinkTemplate extends IFromToPositionedTemplate {
         // Switch actual input/output pins if allowed and makes sense
         if (isOriginAKnot && (!targetPin || isTargetAKnot)) {
             if (originPin?.isInputLoosely() && to > from + Configuration.distanceThreshold) {
-                this.element.origin = /** @type {KnotPinTemplate} */(originPin.template).oppositePin();
+                this.element.origin = /** @type {KnotPinTemplate} */(originPin.template).getoppositePin();
             } else if (originPin?.isOutputLoosely() && to < from - Configuration.distanceThreshold) {
-                this.element.origin = /** @type {KnotPinTemplate} */(originPin.template).oppositePin();
+                this.element.origin = /** @type {KnotPinTemplate} */(originPin.template).getoppositePin();
             }
         }
         if (isTargetAKnot && (!originPin || isOriginAKnot)) {
             if (targetPin?.isInputLoosely() && to < from - Configuration.distanceThreshold) {
-                this.element.target = /** @type {KnotPinTemplate} */(targetPin.template).oppositePin();
+                this.element.target = /** @type {KnotPinTemplate} */(targetPin.template).getoppositePin();
             } else if (targetPin?.isOutputLoosely() && to > from + Configuration.distanceThreshold) {
-                this.element.target = /** @type {KnotPinTemplate} */(targetPin.template).oppositePin();
+                this.element.target = /** @type {KnotPinTemplate} */(targetPin.template).getoppositePin();
             }
         }
 
         // Switch visual input/output pins if allowed and makes sense
-        let directionsCheckedKnot;
-        if (
-            originPin?.isKnot()
-            && !changedProperties.has("fromX")
-            && changedProperties.has("toX")
-        ) {
-            // The target end has moved and origin end is a knot
-            directionsCheckedKnot = originPin.nodeElement;
-        } else if (
-            targetPin?.isKnot()
-            && changedProperties.has("toX")
-            && !changedProperties.has("fromX")
-        ) {
-            // The origin end has moved and target end is a knot
-            directionsCheckedKnot = targetPin.nodeElement;
-        }
-        if (directionsCheckedKnot) {
-            let leftPinsLocation = 0;
-            let leftPinsCount = 0;
-            let rightPinsLocation = 0;
-            let rightPinsCount = 0;
-            const pins = directionsCheckedKnot.template
-                .getAllConnectedLinks()
-                .map(l => l.getOtherPin(directionsCheckedKnot));
-            for (const pin of pins) {
-                if (pin.isInput()) {
-                    rightPinsLocation += pin.getLinkLocation()[0];
-                    ++rightPinsCount;
-                } else if (pin.isOutput()) {
-                    leftPinsLocation += pin.getLinkLocation()[0];
-                    ++leftPinsCount;
-                }
+        if (originPin && targetPin) {
+            let directionsCheckedKnot;
+            if (originPin?.isKnot()) {
+                // The target end has moved and origin end is a knot
+                directionsCheckedKnot = originPin.nodeElement;
+            } else if (targetPin?.isKnot()) {
+                // The origin end has moved and target end is a knot
+                directionsCheckedKnot = targetPin.nodeElement;
             }
-            leftPinsLocation /= leftPinsCount;
-            rightPinsLocation /= rightPinsCount;
-            const knotTemplate =  /** @type {KnotNodeTemplate} */(directionsCheckedKnot.template);
-            if ((rightPinsLocation < leftPinsLocation) != knotTemplate.switchDirectionsVisually) {
-                knotTemplate.switchDirectionsVisually = rightPinsLocation < leftPinsLocation;
+            if (directionsCheckedKnot && directionsCheckedKnot.hasUpdated) {
+                /** @type {KnotNodeTemplate} */(directionsCheckedKnot.template).checkSwtichDirectionsVisually();
             }
         }
+
         let sameDirection = originPin?.isOutputVisually() == targetPin?.isOutputVisually();
 
         // Actual computation
@@ -9434,7 +9408,7 @@ class MouseCreateLink extends IMouseClickDrag {
                 const otherPin = this.#knotPin !== this.link.origin ? this.link.origin : this.enteredPin;
                 // Knot pin direction correction
                 if (this.#knotPin.isInput() && otherPin.isInput() || this.#knotPin.isOutput() && otherPin.isOutput()) {
-                    const oppositePin = /** @type {KnotPinTemplate} */(this.#knotPin.template).oppositePin();
+                    const oppositePin = /** @type {KnotPinTemplate} */(this.#knotPin.template).getoppositePin();
                     if (this.#knotPin === this.link.origin) {
                         this.link.origin = oppositePin;
                     } else {
@@ -9445,7 +9419,7 @@ class MouseCreateLink extends IMouseClickDrag {
                 this.#knotPin = this.enteredPin;
                 if (this.link.origin.isOutput()) {
                     // Knot uses by default the output pin, let's switch to keep it coherent with the origin node we have
-                    this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).oppositePin();
+                    this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).getoppositePin();
                 }
             }
             if (!this.link.origin.getLinks().find(ref => ref.equals(this.enteredPin.createPinReference()))) {
@@ -9699,9 +9673,12 @@ class PinTemplate extends ITemplate {
     }
 
     getLinkLocation() {
-        const rect = this.iconElement.getBoundingClientRect();
+        const rect = (this.#iconElement ?? this.element).getBoundingClientRect();
         /** @type {[Number, Number]} */
-        const boundingLocation = [this.element.isInputVisually() ? rect.left : rect.right + 1, (rect.top + rect.bottom) / 2];
+        const boundingLocation = [
+            this.element.isInputVisually() ? rect.left : rect.right + 1,
+            (rect.top + rect.bottom) / 2
+        ];
         const location = Utility.convertLocation(boundingLocation, this.blueprint.template.gridElement);
         return this.blueprint.compensateTranslation(location[0], location[1])
     }
@@ -9809,14 +9786,15 @@ class KnotPinTemplate extends MinimalPinTemplate {
         return this.element.isOutput() ? super.render() : x``
     }
 
-    oppositePin() {
+    getoppositePin() {
         const nodeTemplate = /** @type {KnotNodeTemplate} */(this.element.nodeElement.template);
         return this.element.isOutput() ? nodeTemplate.inputPin : nodeTemplate.outputPin
     }
 
+    /** Location on the grid of a link connecting to this pin */
     getLinkLocation() {
         if (this.element.isInput()) {
-            return this.oppositePin().getLinkLocation()
+            return this.getoppositePin().getLinkLocation()
         }
         return super.getLinkLocation()
     }
@@ -9879,7 +9857,29 @@ class KnotNodeTemplate extends NodeTemplate {
     }
 
     linksChanged() {
+    }
 
+    checkSwtichDirectionsVisually() {
+        let leftPinsLocation = 0;
+        let leftPinsCount = 0;
+        let rightPinsLocation = 0;
+        let rightPinsCount = 0;
+        const links = this.getAllConnectedLinks();
+        for (const link of links) {
+            const pin = link.getOtherPin(this.element);
+            if (pin?.isInput()) {
+                rightPinsLocation += pin.getLinkLocation()[0];
+                ++rightPinsCount;
+            } else if (pin?.isOutput()) {
+                leftPinsLocation += pin.getLinkLocation()[0];
+                ++leftPinsCount;
+            }
+        }
+        leftPinsLocation /= leftPinsCount;
+        rightPinsLocation /= rightPinsCount;
+        if ((rightPinsLocation < leftPinsLocation) != this.switchDirectionsVisually) {
+            this.switchDirectionsVisually = rightPinsLocation < leftPinsLocation;
+        }
     }
 }
 

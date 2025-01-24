@@ -8,14 +8,15 @@ export default class KnotPinTemplate extends MinimalPinTemplate {
         return this.element.isOutput() ? super.render() : html``
     }
 
-    oppositePin() {
+    getoppositePin() {
         const nodeTemplate = /** @type {KnotNodeTemplate} */(this.element.nodeElement.template)
         return this.element.isOutput() ? nodeTemplate.inputPin : nodeTemplate.outputPin
     }
 
+    /** Location on the grid of a link connecting to this pin */
     getLinkLocation() {
         if (this.element.isInput()) {
-            return this.oppositePin().getLinkLocation()
+            return this.getoppositePin().getLinkLocation()
         }
         return super.getLinkLocation()
     }
