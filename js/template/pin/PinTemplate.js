@@ -174,7 +174,7 @@ export default class PinTemplate extends ITemplate {
     getLinkLocation() {
         const rect = this.iconElement.getBoundingClientRect()
         /** @type {[Number, Number]} */
-        const boundingLocation = [this.element.isInput() ? rect.left : rect.right + 1, (rect.top + rect.bottom) / 2]
+        const boundingLocation = [this.element.isInputVisually() ? rect.left : rect.right + 1, (rect.top + rect.bottom) / 2]
         const location = Utility.convertLocation(boundingLocation, this.blueprint.template.gridElement)
         return this.blueprint.compensateTranslation(location[0], location[1])
     }

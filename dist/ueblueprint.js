@@ -105,7 +105,9 @@ class Configuration {
      */
     static linkRightSVGPath = (start, c1, c2, arc = false) => {
         const end = 100 - start;
-        const mid = arc ? 100 : 50;
+        const mid = arc
+            ? 50 + (c2 - start)
+            : 50;
         const fin = arc ? end + c1 - start : end - c1 + start;
         return `M ${start} 0 C ${c1.toFixed(2)} 0, ${c2.toFixed(2)} 0, ${mid} 50 S ${fin.toFixed(2)} 100, `
             + `${end.toFixed(3)} 100`
@@ -7638,35 +7640,13 @@ class LinkTemplate extends IFromToPositionedTemplate {
         return x => a / x + q
     }
 
-    /**
-     * Returns a function providing a clamped line passing through two points. It is clamped after and before the
-     * points. It is easier explained with the following ascii draw.
-     *          b ______
-     *           /
-     *          /
-     *         /
-     *  ______/ a
-     */
-    static clampedLine(a, b) {
-        if (a[0] > b[0]) {
-            const temp = a;
-            a = b;
-            b = temp;
-        }
-        const m = (b[1] - a[1]) / (b[0] - a[0]);
-        const q = a[1] - m * a[0];
-        return x => x < a[0]
-            ? a[1]
-            : x > b[0]
-                ? b[1]
-                : m * x + q
-    }
+    static clampedLine = x => Math.min(Math.max(0, x), 1)
 
     static c1DecreasingValue = LinkTemplate.decreasingValue(-0.15, [100, 15])
 
     static c2DecreasingValue = LinkTemplate.decreasingValue(-0.05, [500, 130])
 
-    static c2Clamped = LinkTemplate.clampedLine([0, 80], [200, 40])
+    static c2Clamped = x => -40 * LinkTemplate.clampedLine(x / 200) + 80
 
     #uniqueId = `ueb-id-${Math.floor(Math.random() * 1E12)}`
 
@@ -7755,7 +7735,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
                 knotTemplate.switchDirectionsVisually = rightPinsLocation < leftPinsLocation;
             }
         }
-        let sameDirection = originPin?.isInputVisually() == targetPin?.isInputVisually();
+        let sameDirection = originPin?.isOutputVisually() == targetPin?.isOutputVisually();
 
         // Actual computation
         const dx = Math.max(Math.abs(this.element.fromX - this.element.toX), 1);
@@ -7768,23 +7748,28 @@ class LinkTemplate extends IFromToPositionedTemplate {
         this.element.startPixels = dx < width // If under minimum width
             ? (width - dx) / 2 // Start from half the empty space
             : 0; // Otherwise start from the beginning
-        this.element.startPercentage = xInverted ? this.element.startPixels + fillRatio * 100 : this.element.startPixels;
-        const c1 =
-            this.element.startPercentage
-            + (xInverted
-                ? LinkTemplate.c1DecreasingValue(width)
-                : 10
+        const startPercentage = xInverted ? this.element.startPixels + fillRatio * 100 : this.element.startPixels;
+        this.element.startPercentage = startPercentage;
+        const c1 = startPercentage + (sameDirection
+            ? 5
+            : (
+                (xInverted
+                    ? LinkTemplate.c1DecreasingValue(width)
+                    : 10
+                )
+                * fillRatio
             )
-            * fillRatio;
+        );
         const aspectRatio = dy / Math.max(30, dx);
         const c2 = sameDirection
-            ? (this.element.startPercentage + 50)
+            // ? 100 - Math.abs(100 - 2 * startPercentage) + 15
+            ? 100 * LinkTemplate.clampedLine(startPercentage / 50) + 15
             : (
                 LinkTemplate.c2Clamped(dx)
                 * LinkTemplate.sigmoidPositive(fillRatio * 1.2 + aspectRatio * 0.5, 1.5, 1.8)
-                + this.element.startPercentage
+                + startPercentage
             );
-        this.element.svgPathD = Configuration.linkRightSVGPath(this.element.startPercentage, c1, c2, sameDirection);
+        this.element.svgPathD = Configuration.linkRightSVGPath(startPercentage, c1, c2, sameDirection);
     }
 
     createInputObjects() {
@@ -7835,8 +7820,11 @@ class LinkTemplate extends IFromToPositionedTemplate {
         this.element.style.setProperty("--ueb-start-percentage", `${Math.round(this.element.startPercentage)}%`);
         this.element.style.setProperty("--ueb-link-start", `${Math.round(this.element.startPixels)}`);
         const mirrorV = (this.element.fromY > this.element.toY ? -1 : 1) // If from is below to => mirror
-            * (this.element.originatesFromInput ? -1 : 1); // Unless from refers to an input pin 
+            * (this.element.originatesFromInput ? -1 : 1) // Unless fro refers to an input pin
+            * (this.element.source?.isInputVisually() && this.element.destination?.isInputVisually() ? -1 : 1);
+        const mirrorH = (this.element.source?.isInputVisually() && this.element.destination?.isInputVisually() ? -1 : 1);
         this.element.style.setProperty("--ueb-link-scale-y", `${mirrorV}`);
+        this.element.style.setProperty("--ueb-link-scale-x", `${mirrorH}`);
     }
 
     render() {
@@ -9713,7 +9701,7 @@ class PinTemplate extends ITemplate {
     getLinkLocation() {
         const rect = this.iconElement.getBoundingClientRect();
         /** @type {[Number, Number]} */
-        const boundingLocation = [this.element.isInput() ? rect.left : rect.right + 1, (rect.top + rect.bottom) / 2];
+        const boundingLocation = [this.element.isInputVisually() ? rect.left : rect.right + 1, (rect.top + rect.bottom) / 2];
         const location = Utility.convertLocation(boundingLocation, this.blueprint.template.gridElement);
         return this.blueprint.compensateTranslation(location[0], location[1])
     }
@@ -9827,16 +9815,10 @@ class KnotPinTemplate extends MinimalPinTemplate {
     }
 
     getLinkLocation() {
-        const rect = (
-            this.element.isInput()
-                ? /** @type {KnotNodeTemplate} */(this.element.nodeElement.template).outputPin.template
-                : this
-        )
-            .iconElement.getBoundingClientRect();
-        /** @type {Coordinates} */
-        const boundingLocation = [this.element.isInput() ? rect.left : rect.right + 1, (rect.top + rect.bottom) / 2];
-        const location = Utility.convertLocation(boundingLocation, this.blueprint.template.gridElement);
-        return this.blueprint.compensateTranslation(location[0], location[1])
+        if (this.element.isInput()) {
+            return this.oppositePin().getLinkLocation()
+        }
+        return super.getLinkLocation()
     }
 }
 

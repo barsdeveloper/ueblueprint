@@ -19,7 +19,7 @@ ueb-link>svg {
     width: 100% !important;
     height: 100% !important;
     min-height: 1px !important;
-    transform: scaleY(var(--ueb-link-scale-y));
+    transform: scaleX(var(--ueb-link-scale-x)) scaleY(var(--ueb-link-scale-y));
     z-index: 1;
 }
 

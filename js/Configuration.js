@@ -81,7 +81,9 @@ export default class Configuration {
      */
     static linkRightSVGPath = (start, c1, c2, arc = false) => {
         const end = 100 - start
-        const mid = arc ? 100 : 50
+        const mid = arc
+            ? 50 + (c2 - start)
+            : 50
         const fin = arc ? end + c1 - start : end - c1 + start
         return `M ${start} 0 C ${c1.toFixed(2)} 0, ${c2.toFixed(2)} 0, ${mid} 50 S ${fin.toFixed(2)} 100, `
             + `${end.toFixed(3)} 100`
