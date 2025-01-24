@@ -45,7 +45,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
 
     /** @param {Coordinates} location */
     #createKnot = location => {
-        const knotEntity = new KnotEntity({}, this.element.source.entity)
+        const knotEntity = new KnotEntity({}, this.element.origin.entity)
         const knot = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
             .newObject(knotEntity)
         knot.setLocation(...this.blueprint.snapToGrid(...location))
@@ -53,19 +53,19 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         this.blueprint.addGraphElement(knot) // Important: keep it before changing existing links
         const inputPin = this.element.getInputPin()
         const outputPin = this.element.getOutputPin()
-        this.element.source = null
-        this.element.destination = null
+        this.element.origin = null
+        this.element.target = null
         const link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
             .newObject(outputPin, knotTemplate.inputPin)
         this.blueprint.addGraphElement(link)
-        this.element.source = knotTemplate.outputPin
-        this.element.destination = inputPin
+        this.element.origin = knotTemplate.outputPin
+        this.element.target = inputPin
     }
 
     /** @param {PropertyValues} changedProperties */
     #calculateSVGPath(changedProperties) {
-        const originPin = this.element.source
-        const targetPin = this.element.destination
+        const originPin = this.element.origin
+        const targetPin = this.element.target
         const isOriginAKnot = originPin?.isKnot()
         const isTargetAKnot = targetPin?.isKnot()
         const from = this.element.fromX
@@ -74,16 +74,16 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         // Switch actual input/output pins if allowed and makes sense
         if (isOriginAKnot && (!targetPin || isTargetAKnot)) {
             if (originPin?.isInputLoosely() && to > from + Configuration.distanceThreshold) {
-                this.element.source = /** @type {KnotPinTemplate} */(originPin.template).oppositePin()
+                this.element.origin = /** @type {KnotPinTemplate} */(originPin.template).oppositePin()
             } else if (originPin?.isOutputLoosely() && to < from - Configuration.distanceThreshold) {
-                this.element.source = /** @type {KnotPinTemplate} */(originPin.template).oppositePin()
+                this.element.origin = /** @type {KnotPinTemplate} */(originPin.template).oppositePin()
             }
         }
         if (isTargetAKnot && (!originPin || isOriginAKnot)) {
             if (targetPin?.isInputLoosely() && to < from - Configuration.distanceThreshold) {
-                this.element.destination = /** @type {KnotPinTemplate} */(targetPin.template).oppositePin()
+                this.element.target = /** @type {KnotPinTemplate} */(targetPin.template).oppositePin()
             } else if (targetPin?.isOutputLoosely() && to > from + Configuration.distanceThreshold) {
-                this.element.destination = /** @type {KnotPinTemplate} */(targetPin.template).oppositePin()
+                this.element.target = /** @type {KnotPinTemplate} */(targetPin.template).oppositePin()
             }
         }
 
@@ -101,7 +101,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
             && changedProperties.has("toX")
             && !changedProperties.has("fromX")
         ) {
-            // The source end has moved and target end is a knot
+            // The origin end has moved and target end is a knot
             directionsCheckedKnot = targetPin.nodeElement
         }
         if (directionsCheckedKnot) {
@@ -214,8 +214,8 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         this.element.style.setProperty("--ueb-link-start", `${Math.round(this.element.startPixels)}`)
         const mirrorV = (this.element.fromY > this.element.toY ? -1 : 1) // If from is below to => mirror
             * (this.element.originatesFromInput ? -1 : 1) // Unless fro refers to an input pin
-            * (this.element.source?.isInputVisually() && this.element.destination?.isInputVisually() ? -1 : 1)
-        const mirrorH = (this.element.source?.isInputVisually() && this.element.destination?.isInputVisually() ? -1 : 1)
+            * (this.element.origin?.isInputVisually() && this.element.target?.isInputVisually() ? -1 : 1)
+        const mirrorH = (this.element.origin?.isInputVisually() && this.element.target?.isInputVisually() ? -1 : 1)
         this.element.style.setProperty("--ueb-link-scale-y", `${mirrorV}`)
         this.element.style.setProperty("--ueb-link-scale-x", `${mirrorH}`)
     }

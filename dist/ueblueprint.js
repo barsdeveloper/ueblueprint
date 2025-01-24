@@ -7652,7 +7652,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
 
     /** @param {Coordinates} location */
     #createKnot = location => {
-        const knotEntity = new KnotEntity({}, this.element.source.entity);
+        const knotEntity = new KnotEntity({}, this.element.origin.entity);
         const knot = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
             .newObject(knotEntity);
         knot.setLocation(...this.blueprint.snapToGrid(...location));
@@ -7660,19 +7660,19 @@ class LinkTemplate extends IFromToPositionedTemplate {
         this.blueprint.addGraphElement(knot); // Important: keep it before changing existing links
         const inputPin = this.element.getInputPin();
         const outputPin = this.element.getOutputPin();
-        this.element.source = null;
-        this.element.destination = null;
+        this.element.origin = null;
+        this.element.target = null;
         const link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
             .newObject(outputPin, knotTemplate.inputPin);
         this.blueprint.addGraphElement(link);
-        this.element.source = knotTemplate.outputPin;
-        this.element.destination = inputPin;
+        this.element.origin = knotTemplate.outputPin;
+        this.element.target = inputPin;
     }
 
     /** @param {PropertyValues} changedProperties */
     #calculateSVGPath(changedProperties) {
-        const originPin = this.element.source;
-        const targetPin = this.element.destination;
+        const originPin = this.element.origin;
+        const targetPin = this.element.target;
         const isOriginAKnot = originPin?.isKnot();
         const isTargetAKnot = targetPin?.isKnot();
         const from = this.element.fromX;
@@ -7681,16 +7681,16 @@ class LinkTemplate extends IFromToPositionedTemplate {
         // Switch actual input/output pins if allowed and makes sense
         if (isOriginAKnot && (!targetPin || isTargetAKnot)) {
             if (originPin?.isInputLoosely() && to > from + Configuration.distanceThreshold) {
-                this.element.source = /** @type {KnotPinTemplate} */(originPin.template).oppositePin();
+                this.element.origin = /** @type {KnotPinTemplate} */(originPin.template).oppositePin();
             } else if (originPin?.isOutputLoosely() && to < from - Configuration.distanceThreshold) {
-                this.element.source = /** @type {KnotPinTemplate} */(originPin.template).oppositePin();
+                this.element.origin = /** @type {KnotPinTemplate} */(originPin.template).oppositePin();
             }
         }
         if (isTargetAKnot && (!originPin || isOriginAKnot)) {
             if (targetPin?.isInputLoosely() && to < from - Configuration.distanceThreshold) {
-                this.element.destination = /** @type {KnotPinTemplate} */(targetPin.template).oppositePin();
+                this.element.target = /** @type {KnotPinTemplate} */(targetPin.template).oppositePin();
             } else if (targetPin?.isOutputLoosely() && to > from + Configuration.distanceThreshold) {
-                this.element.destination = /** @type {KnotPinTemplate} */(targetPin.template).oppositePin();
+                this.element.target = /** @type {KnotPinTemplate} */(targetPin.template).oppositePin();
             }
         }
 
@@ -7708,7 +7708,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
             && changedProperties.has("toX")
             && !changedProperties.has("fromX")
         ) {
-            // The source end has moved and target end is a knot
+            // The origin end has moved and target end is a knot
             directionsCheckedKnot = targetPin.nodeElement;
         }
         if (directionsCheckedKnot) {
@@ -7821,8 +7821,8 @@ class LinkTemplate extends IFromToPositionedTemplate {
         this.element.style.setProperty("--ueb-link-start", `${Math.round(this.element.startPixels)}`);
         const mirrorV = (this.element.fromY > this.element.toY ? -1 : 1) // If from is below to => mirror
             * (this.element.originatesFromInput ? -1 : 1) // Unless fro refers to an input pin
-            * (this.element.source?.isInputVisually() && this.element.destination?.isInputVisually() ? -1 : 1);
-        const mirrorH = (this.element.source?.isInputVisually() && this.element.destination?.isInputVisually() ? -1 : 1);
+            * (this.element.origin?.isInputVisually() && this.element.target?.isInputVisually() ? -1 : 1);
+        const mirrorH = (this.element.origin?.isInputVisually() && this.element.target?.isInputVisually() ? -1 : 1);
         this.element.style.setProperty("--ueb-link-scale-y", `${mirrorV}`);
         this.element.style.setProperty("--ueb-link-scale-x", `${mirrorH}`);
     }
@@ -7895,7 +7895,7 @@ class IFromToPositionedElement extends IElement {
      * @param {Number} x
      * @param {Number} y
      */
-    addSourceLocation(x, y) {
+    addOriginLocation(x, y) {
         this.fromX += x;
         this.fromY += y;
     }
@@ -7904,7 +7904,7 @@ class IFromToPositionedElement extends IElement {
      * @param {Number} x
      * @param {Number} y
      */
-    addDestinationLocation(x, y) {
+    addTargetLocation(x, y) {
         this.toX += x;
         this.toY += y;
     }
@@ -7962,35 +7962,35 @@ class LinkElement extends IFromToPositionedElement {
     }
 
     /** @type {PinElement} */
-    #source
-    get source() {
-        return this.#source
+    #origin
+    get origin() {
+        return this.#origin
     }
-    set source(pin) {
+    set origin(pin) {
         this.#setPin(pin, false);
     }
 
     /** @type {PinElement} */
-    #destination
-    get destination() {
-        return this.#destination
+    #target
+    get target() {
+        return this.#target
     }
-    set destination(pin) {
+    set target(pin) {
         this.#setPin(pin, true);
     }
 
     #nodeDeleteHandler = () => this.remove()
     /** @param {UEBDragEvent} e */
-    #nodeDragSourceHandler = e => this.addSourceLocation(...e.detail.value)
+    #nodeDragOriginHandler = e => this.addOriginLocation(...e.detail.value)
     /** @param {UEBDragEvent} e */
-    #nodeDragDestinatonHandler = e => this.addDestinationLocation(...e.detail.value)
-    #nodeReflowSourceHandler = e => {
-        if (this.source.isKnot()) {
-            this.originatesFromInput = this.source.isInputVisually();
+    #nodeDragTargetHandler = e => this.addTargetLocation(...e.detail.value)
+    #nodeReflowOriginHandler = e => {
+        if (this.origin.isKnot()) {
+            this.originatesFromInput = this.origin.isInputVisually();
         }
-        this.setSourceLocation();
+        this.setOriginLocation();
     }
-    #nodeReflowDestinatonHandler = e => this.setDestinationLocation()
+    #nodeReflowTargetHandler = e => this.setTargetLocation()
 
     /** @type {TemplateResult | nothing} */
     linkMessageIcon = E
@@ -8014,32 +8014,32 @@ class LinkElement extends IFromToPositionedElement {
     }
 
     /**
-     * @param {PinElement} source
-     * @param {PinElement?} destination
+     * @param {PinElement} origin
+     * @param {PinElement?} target
      */
-    static newObject(source, destination) {
+    static newObject(origin, target) {
         const result = new LinkElement();
-        result.initialize(source, destination);
+        result.initialize(origin, target);
         return result
     }
 
     /**
-     * @param {PinElement} source
-     * @param {PinElement?} destination
+     * @param {PinElement} origin
+     * @param {PinElement?} target
      */
     // @ts-expect-error
-    initialize(source, destination) {
+    initialize(origin, target) {
         super.initialize({}, new LinkTemplate());
-        if (source) {
-            this.source = source;
-            if (!destination) {
+        if (origin) {
+            this.origin = origin;
+            if (!target) {
                 this.toX = this.fromX;
                 this.toY = this.fromY;
             }
         }
-        if (destination) {
-            this.destination = destination;
-            if (!source) {
+        if (target) {
+            this.target = target;
+            if (!origin) {
                 this.fromX = this.toX;
                 this.fromY = this.toY;
             }
@@ -8048,10 +8048,10 @@ class LinkElement extends IFromToPositionedElement {
 
     /**
      * @param {PinElement} pin
-     * @param {Boolean} isDestinationPin
+     * @param {Boolean} isTargetPin
      */
-    #setPin(pin, isDestinationPin) {
-        const getCurrentPin = () => isDestinationPin ? this.destination : this.source;
+    #setPin(pin, isTargetPin) {
+        const getCurrentPin = () => isTargetPin ? this.target : this.origin;
         if (getCurrentPin() == pin) {
             return
         }
@@ -8060,20 +8060,20 @@ class LinkElement extends IFromToPositionedElement {
             nodeElement.removeEventListener(Configuration.removeEventName, this.#nodeDeleteHandler);
             nodeElement.removeEventListener(
                 Configuration.nodeDragEventName,
-                isDestinationPin ? this.#nodeDragDestinatonHandler : this.#nodeDragSourceHandler
+                isTargetPin ? this.#nodeDragTargetHandler : this.#nodeDragOriginHandler
             );
             nodeElement.removeEventListener(
                 Configuration.nodeReflowEventName,
-                isDestinationPin ? this.#nodeReflowDestinatonHandler : this.#nodeReflowSourceHandler
+                isTargetPin ? this.#nodeReflowTargetHandler : this.#nodeReflowOriginHandler
             );
             this.#unlinkPins();
         }
-        if (isDestinationPin) {
-            this.#destination = pin;
+        if (isTargetPin) {
+            this.#target = pin;
             this.targetNode = pin?.nodeElement.nodeTitle;
             this.targetPin = pin?.pinId.toString();
         } else {
-            this.#source = pin;
+            this.#origin = pin;
             this.originNode = pin?.nodeElement.nodeTitle;
             this.originPin = pin?.pinId.toString();
         }
@@ -8082,50 +8082,50 @@ class LinkElement extends IFromToPositionedElement {
             nodeElement.addEventListener(Configuration.removeEventName, this.#nodeDeleteHandler);
             nodeElement.addEventListener(
                 Configuration.nodeDragEventName,
-                isDestinationPin ? this.#nodeDragDestinatonHandler : this.#nodeDragSourceHandler
+                isTargetPin ? this.#nodeDragTargetHandler : this.#nodeDragOriginHandler
             );
             nodeElement.addEventListener(
                 Configuration.nodeReflowEventName,
-                isDestinationPin ? this.#nodeReflowDestinatonHandler : this.#nodeReflowSourceHandler
+                isTargetPin ? this.#nodeReflowTargetHandler : this.#nodeReflowOriginHandler
             );
-            isDestinationPin
-                ? this.setDestinationLocation()
-                : (this.setSourceLocation(), this.originatesFromInput = this.source.isInputVisually());
+            isTargetPin
+                ? this.setTargetLocation()
+                : (this.setOriginLocation(), this.originatesFromInput = this.origin.isInputVisually());
             this.#linkPins();
         }
     }
 
     #linkPins() {
-        if (this.source && this.destination) {
-            this.source.linkTo(this.destination);
-            this.destination.linkTo(this.source);
+        if (this.origin && this.target) {
+            this.origin.linkTo(this.target);
+            this.target.linkTo(this.origin);
         }
     }
 
     #unlinkPins() {
-        if (this.source && this.destination) {
-            this.source.unlinkFrom(this.destination, false);
-            this.destination.unlinkFrom(this.source, false);
+        if (this.origin && this.target) {
+            this.origin.unlinkFrom(this.target, false);
+            this.target.unlinkFrom(this.origin, false);
         }
     }
 
     cleanup() {
         super.cleanup();
         this.#unlinkPins();
-        this.source = null;
-        this.destination = null;
+        this.origin = null;
+        this.target = null;
     }
 
     /** @param {Coordinates} location */
-    setSourceLocation(location = null, canPostpone = true) {
+    setOriginLocation(location = null, canPostpone = true) {
         if (location == null) {
             const self = this;
-            if (canPostpone && (!this.hasUpdated || !this.source.hasUpdated)) {
-                Promise.all([this.updateComplete, this.source.updateComplete])
-                    .then(() => self.setSourceLocation(null, false));
+            if (canPostpone && (!this.hasUpdated || !this.origin.hasUpdated)) {
+                Promise.all([this.updateComplete, this.origin.updateComplete])
+                    .then(() => self.setOriginLocation(null, false));
                 return
             }
-            location = this.source.template.getLinkLocation();
+            location = this.origin.template.getLinkLocation();
         }
         const [x, y] = location;
         this.fromX = x;
@@ -8133,67 +8133,67 @@ class LinkElement extends IFromToPositionedElement {
     }
 
     /** @param {Coordinates} location */
-    setDestinationLocation(location = null, canPostpone = true) {
+    setTargetLocation(location = null, canPostpone = true) {
         if (location == null) {
             const self = this;
-            if (canPostpone && (!this.hasUpdated || !this.destination.hasUpdated)) {
-                Promise.all([this.updateComplete, this.destination.updateComplete])
-                    .then(() => self.setDestinationLocation(null, false));
+            if (canPostpone && (!this.hasUpdated || !this.target.hasUpdated)) {
+                Promise.all([this.updateComplete, this.target.updateComplete])
+                    .then(() => self.setTargetLocation(null, false));
                 return
             }
-            location = this.destination.template.getLinkLocation();
+            location = this.target.template.getLinkLocation();
         }
         this.toX = location[0];
         this.toY = location[1];
     }
 
     getInputPin(getSomething = false) {
-        if (this.source?.isInput()) {
-            return this.source
+        if (this.origin?.isInput()) {
+            return this.origin
         }
-        if (this.destination?.isInput()) {
-            return this.destination
+        if (this.target?.isInput()) {
+            return this.target
         }
         if (getSomething) {
-            return this.source ?? this.destination
+            return this.origin ?? this.target
         }
     }
 
     /** @param {PinElement} pin */
     setInputPin(pin) {
-        if (this.source?.isInput()) {
-            this.source = pin;
+        if (this.origin?.isInput()) {
+            this.origin = pin;
         }
-        this.destination = pin;
+        this.target = pin;
     }
 
     getOutputPin(getSomething = false) {
-        if (this.source?.isOutput()) {
-            return this.source
+        if (this.origin?.isOutput()) {
+            return this.origin
         }
-        if (this.destination?.isOutput()) {
-            return this.destination
+        if (this.target?.isOutput()) {
+            return this.target
         }
         if (getSomething) {
-            return this.source ?? this.destination
+            return this.origin ?? this.target
         }
     }
 
     /** @param {PinElement} pin */
     setOutputPin(pin) {
-        if (this.destination?.isOutput()) {
-            this.destination = pin;
+        if (this.target?.isOutput()) {
+            this.target = pin;
         }
-        this.source = pin;
+        this.origin = pin;
     }
 
     /** @param {NodeElement} pin */
     getOtherPin(pin) {
-        if (this.source?.nodeElement === pin) {
-            return this.destination
+        if (this.origin?.nodeElement === pin) {
+            return this.target
         }
-        if (this.destination?.nodeElement === pin) {
-            return this.source
+        if (this.target?.nodeElement === pin) {
+            return this.origin
         }
     }
 
@@ -8212,7 +8212,7 @@ class LinkElement extends IFromToPositionedElement {
 
     setMessageConvertType() {
         this.linkMessageIcon = SVGIcon.convert;
-        this.linkMessageText = x`Convert ${this.source.pinType} to ${this.destination.pinType}.`;
+        this.linkMessageText = x`Convert ${this.origin.pinType} to ${this.target.pinType}.`;
     }
 
     setMessageCorrect() {
@@ -9341,7 +9341,7 @@ class MouseCreateLink extends IMouseClickDrag {
         if (!this.enteredPin) {
             this.linkValid = false;
             this.enteredPin = /** @type {PinElement} */(e.target);
-            const a = this.link.source ?? this.target; // Remember target might have change
+            const a = this.link.origin ?? this.target; // Remember target might have change
             const b = this.enteredPin;
             const outputPin = a.isOutput() ? a : b;
             if (a.isKnot() || b.isKnot()) {
@@ -9415,11 +9415,11 @@ class MouseCreateLink extends IMouseClickDrag {
             }
         });
         this.link.startDragging();
-        this.link.setDestinationLocation(location);
+        this.link.setTargetLocation(location);
     }
 
     dragTo(location, movement) {
-        this.link.setDestinationLocation(location);
+        this.link.setTargetLocation(location);
     }
 
     endDrag() {
@@ -9431,26 +9431,26 @@ class MouseCreateLink extends IMouseClickDrag {
         if (this.enteredPin && this.linkValid) {
             // Knot can use wither the input or output (by default) part indifferently, check if a switch is needed
             if (this.#knotPin) {
-                const otherPin = this.#knotPin !== this.link.source ? this.link.source : this.enteredPin;
+                const otherPin = this.#knotPin !== this.link.origin ? this.link.origin : this.enteredPin;
                 // Knot pin direction correction
                 if (this.#knotPin.isInput() && otherPin.isInput() || this.#knotPin.isOutput() && otherPin.isOutput()) {
                     const oppositePin = /** @type {KnotPinTemplate} */(this.#knotPin.template).oppositePin();
-                    if (this.#knotPin === this.link.source) {
-                        this.link.source = oppositePin;
+                    if (this.#knotPin === this.link.origin) {
+                        this.link.origin = oppositePin;
                     } else {
                         this.enteredPin = oppositePin;
                     }
                 }
             } else if (this.enteredPin.isKnot()) {
                 this.#knotPin = this.enteredPin;
-                if (this.link.source.isOutput()) {
-                    // Knot uses by default the output pin, let's switch to keep it coherent with the source node we have
+                if (this.link.origin.isOutput()) {
+                    // Knot uses by default the output pin, let's switch to keep it coherent with the origin node we have
                     this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).oppositePin();
                 }
             }
-            if (!this.link.source.getLinks().find(ref => ref.equals(this.enteredPin.createPinReference()))) {
+            if (!this.link.origin.getLinks().find(ref => ref.equals(this.enteredPin.createPinReference()))) {
                 this.blueprint.addGraphElement(this.link);
-                this.link.destination = this.enteredPin;
+                this.link.target = this.enteredPin;
             } else {
                 this.link.remove();
             }
@@ -10225,13 +10225,13 @@ class NodeElement extends ISelectableDraggableElement {
 
     /** @param {String} name */
     #redirectLinksBeforeRename(name) {
-        for (let sourcePinElement of this.getPinElements()) {
-            for (let targetPinReference of sourcePinElement.getLinks()) {
+        for (let originPinElement of this.getPinElements()) {
+            for (let targetPinReference of originPinElement.getLinks()) {
                 this.blueprint.getPin(targetPinReference).redirectLink(
-                    sourcePinElement,
+                    originPinElement,
                     new PinReferenceEntity(
                         new SymbolEntity(name),
-                        sourcePinElement.entity.PinId,
+                        originPinElement.entity.PinId,
                     )
                 );
             }
@@ -11646,25 +11646,25 @@ class Blueprint extends IElement {
     getLinks(a = null, b = null) {
         if ((a == null) != (b == null)) {
             const pin = a ?? b;
-            return this.links.filter(link => link.source == pin || link.destination == pin)
+            return this.links.filter(link => link.origin == pin || link.target == pin)
         }
         if (a != null && b != null) {
             return this.links.filter(link =>
-                link.source == a && link.destination == b
-                || link.source == b && link.destination == a
+                link.origin == a && link.target == b
+                || link.origin == b && link.target == a
             )
         }
         return this.links
     }
 
     /**
-     * @param {PinElement} sourcePin
-     * @param {PinElement} destinationPin
+     * @param {PinElement} originPin
+     * @param {PinElement} targetPin
      */
-    getLink(sourcePin, destinationPin, strictDirection = false) {
+    getLink(originPin, targetPin, strictDirection = false) {
         return this.links.find(link =>
-            link.source == sourcePin && link.destination == destinationPin
-            || !strictDirection && link.source == destinationPin && link.destination == sourcePin
+            link.origin == originPin && link.target == targetPin
+            || !strictDirection && link.origin == targetPin && link.target == originPin
         )
     }
 

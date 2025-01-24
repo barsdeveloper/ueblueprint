@@ -101,13 +101,13 @@ export default class NodeElement extends ISelectableDraggableElement {
 
     /** @param {String} name */
     #redirectLinksBeforeRename(name) {
-        for (let sourcePinElement of this.getPinElements()) {
-            for (let targetPinReference of sourcePinElement.getLinks()) {
+        for (let originPinElement of this.getPinElements()) {
+            for (let targetPinReference of originPinElement.getLinks()) {
                 this.blueprint.getPin(targetPinReference).redirectLink(
-                    sourcePinElement,
+                    originPinElement,
                     new PinReferenceEntity(
                         new SymbolEntity(name),
-                        sourcePinElement.entity.PinId,
+                        originPinElement.entity.PinId,
                     )
                 )
             }

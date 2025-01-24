@@ -337,25 +337,25 @@ export default class Blueprint extends IElement {
     getLinks(a = null, b = null) {
         if ((a == null) != (b == null)) {
             const pin = a ?? b
-            return this.links.filter(link => link.source == pin || link.destination == pin)
+            return this.links.filter(link => link.origin == pin || link.target == pin)
         }
         if (a != null && b != null) {
             return this.links.filter(link =>
-                link.source == a && link.destination == b
-                || link.source == b && link.destination == a
+                link.origin == a && link.target == b
+                || link.origin == b && link.target == a
             )
         }
         return this.links
     }
 
     /**
-     * @param {PinElement} sourcePin
-     * @param {PinElement} destinationPin
+     * @param {PinElement} originPin
+     * @param {PinElement} targetPin
      */
-    getLink(sourcePin, destinationPin, strictDirection = false) {
+    getLink(originPin, targetPin, strictDirection = false) {
         return this.links.find(link =>
-            link.source == sourcePin && link.destination == destinationPin
-            || !strictDirection && link.source == destinationPin && link.destination == sourcePin
+            link.origin == originPin && link.target == targetPin
+            || !strictDirection && link.origin == targetPin && link.target == originPin
         )
     }
 

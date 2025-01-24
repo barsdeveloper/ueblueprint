@@ -47,7 +47,7 @@ export default class IFromToPositionedElement extends IElement {
      * @param {Number} x
      * @param {Number} y
      */
-    addSourceLocation(x, y) {
+    addOriginLocation(x, y) {
         this.fromX += x
         this.fromY += y
     }
@@ -56,7 +56,7 @@ export default class IFromToPositionedElement extends IElement {
      * @param {Number} x
      * @param {Number} y
      */
-    addDestinationLocation(x, y) {
+    addTargetLocation(x, y) {
         this.toX += x
         this.toY += y
     }
