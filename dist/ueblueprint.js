@@ -25,6 +25,7 @@ const t$1=globalThis,i$3=t$1.trustedTypes,s=i$3?i$3.createPolicy("lit-html",{cre
  */class r extends b{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){const t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){const s=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=B(s,this.renderRoot,this.renderOptions);}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0);}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1);}render(){return T}}r._$litElement$=!0,r["finalized"]=!0,globalThis.litElementHydrateSupport?.({LitElement:r});const i$2=globalThis.litElementPolyfillSupport;i$2?.({LitElement:r});(globalThis.litElementVersions??=[]).push("4.1.1");
 
 class Configuration {
+    static VERSION = "2.0.0"
     static nodeColors = {
         black: i$5`20, 20, 20`,
         blue: i$5`84, 122, 156`,
@@ -11160,6 +11161,11 @@ class BlueprintTemplate extends ITemplate {
     render() {
         return x`
             <div class="ueb-viewport-header">
+                <div class="ueb-viewport-about">
+                    <a @click="${e => e.target.closest("ueb-blueprint").querySelector(".ueb-info-dialog").showModal()}">
+                        ⓘ
+                    </a>
+                </div>
                 <div class="ueb-viewport-zoom">
                     Zoom ${this.blueprint.zoom == 0 ? "1:1" : (this.blueprint.zoom > 0 ? "+" : "") + this.blueprint.zoom}
                 </div>
@@ -11175,6 +11181,18 @@ class BlueprintTemplate extends ITemplate {
                     </div>
                 </div>
             </div>
+            <dialog class="ueb-info-dialog" @click="${e => e.target.closest(".ueb-info-dialog").close()}">
+                <h2>UEBlueprint</h2>
+                <p>A stand alone editor implementation of the UE's Blueprint visual language.</p>
+                <p>
+                    Version: ${Configuration.VERSION}<br />
+                    Author: barsdeveloper<br />
+                    License: MIT<br />
+                    <a target="_blank" href="https://github.com/barsdeveloper/ueblueprint">
+                        https://github.com/barsdeveloper/ueblueprint
+                    </a>
+                </p>
+            </dialog>
         `
     }
 

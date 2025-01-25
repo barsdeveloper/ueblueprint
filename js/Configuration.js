@@ -1,6 +1,7 @@
 import { css } from "lit"
 
 export default class Configuration {
+    static VERSION = "2.0.0"
     static nodeColors = {
         black: css`20, 20, 20`,
         blue: css`84, 122, 156`,

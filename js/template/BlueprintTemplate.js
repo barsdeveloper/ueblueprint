@@ -140,6 +140,11 @@ export default class BlueprintTemplate extends ITemplate {
     render() {
         return html`
             <div class="ueb-viewport-header">
+                <div class="ueb-viewport-about">
+                    <a @click="${e => e.target.closest("ueb-blueprint").querySelector(".ueb-info-dialog").showModal()}">
+                        ⓘ
+                    </a>
+                </div>
                 <div class="ueb-viewport-zoom">
                     Zoom ${this.blueprint.zoom == 0 ? "1:1" : (this.blueprint.zoom > 0 ? "+" : "") + this.blueprint.zoom}
                 </div>
@@ -155,6 +160,18 @@ export default class BlueprintTemplate extends ITemplate {
                     </div>
                 </div>
             </div>
+            <dialog class="ueb-info-dialog" @click="${e => e.target.closest(".ueb-info-dialog").close()}">
+                <h2>UEBlueprint</h2>
+                <p>A stand alone editor implementation of the UE's Blueprint visual language.</p>
+                <p>
+                    Version: ${Configuration.VERSION}<br />
+                    Author: barsdeveloper<br />
+                    License: MIT<br />
+                    <a target="_blank" href="https://github.com/barsdeveloper/ueblueprint">
+                        https://github.com/barsdeveloper/ueblueprint
+                    </a>
+                </p>
+            </dialog>
         `
     }
 
