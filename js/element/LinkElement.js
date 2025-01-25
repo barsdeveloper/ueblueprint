@@ -129,15 +129,15 @@ export default class LinkElement extends IFromToPositionedElement {
         if (origin) {
             this.origin = origin
             if (!target) {
-                this.toX = this.fromX
-                this.toY = this.fromY
+                this.targetX = this.originX
+                this.targetY = this.originY
             }
         }
         if (target) {
             this.target = target
             if (!origin) {
-                this.fromX = this.toX
-                this.fromY = this.toY
+                this.originX = this.targetX
+                this.originY = this.targetY
             }
         }
     }
@@ -224,8 +224,8 @@ export default class LinkElement extends IFromToPositionedElement {
             location = this.origin.template.getLinkLocation()
         }
         const [x, y] = location
-        this.fromX = x
-        this.fromY = y
+        this.originX = x
+        this.originY = y
     }
 
     /** @param {Coordinates} location */
@@ -239,8 +239,8 @@ export default class LinkElement extends IFromToPositionedElement {
             }
             location = this.target.template.getLinkLocation()
         }
-        this.toX = location[0]
-        this.toY = location[1]
+        this.targetX = location[0]
+        this.targetY = location[1]
     }
 
     getInputPin(getSomething = false) {

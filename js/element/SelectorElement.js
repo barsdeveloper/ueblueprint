@@ -37,16 +37,16 @@ export default class SelectorElement extends IFromToPositionedElement {
     /** @param {Coordinates} finalPosition */
     selectTo(finalPosition) {
         this.selectionModel.selectTo(finalPosition)
-        this.toX = finalPosition[0]
-        this.toY = finalPosition[1]
+        this.targetX = finalPosition[0]
+        this.targetY = finalPosition[1]
     }
 
     endSelect() {
         this.blueprint.selecting = false
         this.selectionModel = null
-        this.fromX = 0
-        this.fromY = 0
-        this.toX = 0
-        this.toY = 0
+        this.originX = 0
+        this.originY = 0
+        this.targetX = 0
+        this.targetY = 0
     }
 }

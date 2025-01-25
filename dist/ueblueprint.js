@@ -7594,23 +7594,23 @@ class IFromToPositionedTemplate extends ITemplate {
     /** @param {PropertyValues} changedProperties */
     update(changedProperties) {
         super.update(changedProperties);
-        const [fromX, fromY, toX, toY] = [
-            Math.round(this.element.fromX),
-            Math.round(this.element.fromY),
-            Math.round(this.element.toX),
-            Math.round(this.element.toY),
+        const [originX, originY, targetX, targetY] = [
+            Math.round(this.element.originX),
+            Math.round(this.element.originY),
+            Math.round(this.element.targetX),
+            Math.round(this.element.targetY),
         ];
         const [left, top, width, height] = [
-            Math.min(fromX, toX),
-            Math.min(fromY, toY),
-            Math.abs(fromX - toX),
-            Math.abs(fromY - toY),
+            Math.min(originX, targetX),
+            Math.min(originY, targetY),
+            Math.abs(originX - targetX),
+            Math.abs(originY - targetY),
         ];
-        if (changedProperties.has("fromX") || changedProperties.has("toX")) {
+        if (changedProperties.has("originX") || changedProperties.has("targetX")) {
             this.element.style.left = `${left}px`;
             this.element.style.width = `${width}px`;
         }
-        if (changedProperties.has("fromY") || changedProperties.has("toY")) {
+        if (changedProperties.has("originY") || changedProperties.has("targetY")) {
             this.element.style.top = `${top}px`;
             this.element.style.height = `${height}px`;
         }
@@ -7675,8 +7675,8 @@ class LinkTemplate extends IFromToPositionedTemplate {
         const targetPin = this.element.target;
         const isOriginAKnot = originPin?.isKnot();
         const isTargetAKnot = targetPin?.isKnot();
-        const from = this.element.fromX;
-        const to = this.element.toX;
+        const from = this.element.originX;
+        const to = this.element.targetX;
 
         // Switch actual input/output pins if allowed and makes sense
         if (isOriginAKnot && (!targetPin || isTargetAKnot)) {
@@ -7712,13 +7712,13 @@ class LinkTemplate extends IFromToPositionedTemplate {
         let sameDirection = originPin?.isOutputVisually() == targetPin?.isOutputVisually();
 
         // Actual computation
-        const dx = Math.max(Math.abs(this.element.fromX - this.element.toX), 1);
-        const dy = Math.max(Math.abs(this.element.fromY - this.element.toY), 1);
+        const dx = Math.max(Math.abs(this.element.originX - this.element.targetX), 1);
+        const dy = Math.max(Math.abs(this.element.originY - this.element.targetY), 1);
         const width = Math.max(dx, Configuration.linkMinWidth);
         const fillRatio = dx / width;
         const xInverted = this.element.originatesFromInput
-            ? this.element.fromX < this.element.toX
-            : this.element.toX < this.element.fromX;
+            ? this.element.originX < this.element.targetX
+            : this.element.targetX < this.element.originX;
         this.element.startPixels = dx < width // If under minimum width
             ? (width - dx) / 2 // Start from half the empty space
             : 0; // Otherwise start from the beginning
@@ -7779,7 +7779,12 @@ class LinkTemplate extends IFromToPositionedTemplate {
     /** @param {PropertyValues} changedProperties */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties);
-        if (changedProperties.has("fromX") || changedProperties.has("toX")) {
+        const originDX = (changedProperties.get("originX") ?? this.element.originX) - this.element.originX;
+        const originDY = (changedProperties.get("originY") ?? this.element.originY) - this.element.originY;
+        const targetDX = (changedProperties.get("targetX") ?? this.element.targetX) - this.element.targetX;
+        const targetDY = (changedProperties.get("targetY") ?? this.element.targetY) - this.element.targetY;
+        if (originDX != targetDX || originDY != targetDY) {
+            // Only if it changes shape
             this.#calculateSVGPath(changedProperties);
         }
     }
@@ -7793,7 +7798,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
         }
         this.element.style.setProperty("--ueb-start-percentage", `${Math.round(this.element.startPercentage)}%`);
         this.element.style.setProperty("--ueb-link-start", `${Math.round(this.element.startPixels)}`);
-        const mirrorV = (this.element.fromY > this.element.toY ? -1 : 1) // If from is below to => mirror
+        const mirrorV = (this.element.originY > this.element.targetY ? -1 : 1) // If from is below to => mirror
             * (this.element.originatesFromInput ? -1 : 1) // Unless fro refers to an input pin
             * (this.element.origin?.isInputVisually() && this.element.target?.isInputVisually() ? -1 : 1);
         const mirrorH = (this.element.origin?.isInputVisually() && this.element.target?.isInputVisually() ? -1 : 1);
@@ -7831,7 +7836,7 @@ class IFromToPositionedElement extends IElement {
 
     static properties = {
         ...super.properties,
-        fromX: {
+        originX: {
             type: Number,
             attribute: false,
         },
@@ -7839,11 +7844,11 @@ class IFromToPositionedElement extends IElement {
             type: Number,
             attribute: false,
         },
-        toX: {
+        targetX: {
             type: Number,
             attribute: false,
         },
-        toY: {
+        targetY: {
             type: Number,
             attribute: false,
         },
@@ -7851,18 +7856,18 @@ class IFromToPositionedElement extends IElement {
 
     constructor() {
         super();
-        this.fromX = 0;
-        this.fromY = 0;
-        this.toX = 0;
-        this.toY = 0;
+        this.originX = 0;
+        this.originY = 0;
+        this.targetX = 0;
+        this.targetY = 0;
     }
 
     /** @param {Coordinates} param0 */
     setBothLocations([x, y]) {
-        this.fromX = x;
-        this.fromY = y;
-        this.toX = x;
-        this.toY = y;
+        this.originX = x;
+        this.originY = y;
+        this.targetX = x;
+        this.targetY = y;
     }
 
     /**
@@ -7870,8 +7875,8 @@ class IFromToPositionedElement extends IElement {
      * @param {Number} y
      */
     addOriginLocation(x, y) {
-        this.fromX += x;
-        this.fromY += y;
+        this.originX += x;
+        this.originY += y;
     }
 
     /**
@@ -7879,8 +7884,8 @@ class IFromToPositionedElement extends IElement {
      * @param {Number} y
      */
     addTargetLocation(x, y) {
-        this.toX += x;
-        this.toY += y;
+        this.targetX += x;
+        this.targetY += y;
     }
 }
 
@@ -8007,15 +8012,15 @@ class LinkElement extends IFromToPositionedElement {
         if (origin) {
             this.origin = origin;
             if (!target) {
-                this.toX = this.fromX;
-                this.toY = this.fromY;
+                this.targetX = this.originX;
+                this.targetY = this.originY;
             }
         }
         if (target) {
             this.target = target;
             if (!origin) {
-                this.fromX = this.toX;
-                this.fromY = this.toY;
+                this.originX = this.targetX;
+                this.originY = this.targetY;
             }
         }
     }
@@ -8102,8 +8107,8 @@ class LinkElement extends IFromToPositionedElement {
             location = this.origin.template.getLinkLocation();
         }
         const [x, y] = location;
-        this.fromX = x;
-        this.fromY = y;
+        this.originX = x;
+        this.originY = y;
     }
 
     /** @param {Coordinates} location */
@@ -8117,8 +8122,8 @@ class LinkElement extends IFromToPositionedElement {
             }
             location = this.target.template.getLinkLocation();
         }
-        this.toX = location[0];
-        this.toY = location[1];
+        this.targetX = location[0];
+        this.targetY = location[1];
     }
 
     getInputPin(getSomething = false) {
@@ -13846,17 +13851,17 @@ class SelectorElement extends IFromToPositionedElement {
     /** @param {Coordinates} finalPosition */
     selectTo(finalPosition) {
         this.selectionModel.selectTo(finalPosition);
-        this.toX = finalPosition[0];
-        this.toY = finalPosition[1];
+        this.targetX = finalPosition[0];
+        this.targetY = finalPosition[1];
     }
 
     endSelect() {
         this.blueprint.selecting = false;
         this.selectionModel = null;
-        this.fromX = 0;
-        this.fromY = 0;
-        this.toX = 0;
-        this.toY = 0;
+        this.originX = 0;
+        this.originY = 0;
+        this.targetX = 0;
+        this.targetY = 0;
     }
 }
 

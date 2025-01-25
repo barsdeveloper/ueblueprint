@@ -68,8 +68,8 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         const targetPin = this.element.target
         const isOriginAKnot = originPin?.isKnot()
         const isTargetAKnot = targetPin?.isKnot()
-        const from = this.element.fromX
-        const to = this.element.toX
+        const from = this.element.originX
+        const to = this.element.targetX
 
         // Switch actual input/output pins if allowed and makes sense
         if (isOriginAKnot && (!targetPin || isTargetAKnot)) {
@@ -105,13 +105,13 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         let sameDirection = originPin?.isOutputVisually() == targetPin?.isOutputVisually()
 
         // Actual computation
-        const dx = Math.max(Math.abs(this.element.fromX - this.element.toX), 1)
-        const dy = Math.max(Math.abs(this.element.fromY - this.element.toY), 1)
+        const dx = Math.max(Math.abs(this.element.originX - this.element.targetX), 1)
+        const dy = Math.max(Math.abs(this.element.originY - this.element.targetY), 1)
         const width = Math.max(dx, Configuration.linkMinWidth)
         const fillRatio = dx / width
         const xInverted = this.element.originatesFromInput
-            ? this.element.fromX < this.element.toX
-            : this.element.toX < this.element.fromX
+            ? this.element.originX < this.element.targetX
+            : this.element.targetX < this.element.originX
         this.element.startPixels = dx < width // If under minimum width
             ? (width - dx) / 2 // Start from half the empty space
             : 0 // Otherwise start from the beginning
@@ -172,7 +172,12 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
     /** @param {PropertyValues} changedProperties */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties)
-        if (changedProperties.has("fromX") || changedProperties.has("toX")) {
+        const originDX = (changedProperties.get("originX") ?? this.element.originX) - this.element.originX
+        const originDY = (changedProperties.get("originY") ?? this.element.originY) - this.element.originY
+        const targetDX = (changedProperties.get("targetX") ?? this.element.targetX) - this.element.targetX
+        const targetDY = (changedProperties.get("targetY") ?? this.element.targetY) - this.element.targetY
+        if (originDX != targetDX || originDY != targetDY) {
+            // Only if it changes shape
             this.#calculateSVGPath(changedProperties)
         }
     }
@@ -186,7 +191,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         }
         this.element.style.setProperty("--ueb-start-percentage", `${Math.round(this.element.startPercentage)}%`)
         this.element.style.setProperty("--ueb-link-start", `${Math.round(this.element.startPixels)}`)
-        const mirrorV = (this.element.fromY > this.element.toY ? -1 : 1) // If from is below to => mirror
+        const mirrorV = (this.element.originY > this.element.targetY ? -1 : 1) // If from is below to => mirror
             * (this.element.originatesFromInput ? -1 : 1) // Unless fro refers to an input pin
             * (this.element.origin?.isInputVisually() && this.element.target?.isInputVisually() ? -1 : 1)
         const mirrorH = (this.element.origin?.isInputVisually() && this.element.target?.isInputVisually() ? -1 : 1)

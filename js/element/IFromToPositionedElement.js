@@ -9,7 +9,7 @@ export default class IFromToPositionedElement extends IElement {
 
     static properties = {
         ...super.properties,
-        fromX: {
+        originX: {
             type: Number,
             attribute: false,
         },
@@ -17,11 +17,11 @@ export default class IFromToPositionedElement extends IElement {
             type: Number,
             attribute: false,
         },
-        toX: {
+        targetX: {
             type: Number,
             attribute: false,
         },
-        toY: {
+        targetY: {
             type: Number,
             attribute: false,
         },
@@ -29,18 +29,18 @@ export default class IFromToPositionedElement extends IElement {
 
     constructor() {
         super()
-        this.fromX = 0
-        this.fromY = 0
-        this.toX = 0
-        this.toY = 0
+        this.originX = 0
+        this.originY = 0
+        this.targetX = 0
+        this.targetY = 0
     }
 
     /** @param {Coordinates} param0 */
     setBothLocations([x, y]) {
-        this.fromX = x
-        this.fromY = y
-        this.toX = x
-        this.toY = y
+        this.originX = x
+        this.originY = y
+        this.targetX = x
+        this.targetY = y
     }
 
     /**
@@ -48,8 +48,8 @@ export default class IFromToPositionedElement extends IElement {
      * @param {Number} y
      */
     addOriginLocation(x, y) {
-        this.fromX += x
-        this.fromY += y
+        this.originX += x
+        this.originY += y
     }
 
     /**
@@ -57,7 +57,7 @@ export default class IFromToPositionedElement extends IElement {
      * @param {Number} y
      */
     addTargetLocation(x, y) {
-        this.toX += x
-        this.toY += y
+        this.targetX += x
+        this.targetY += y
     }
 }
