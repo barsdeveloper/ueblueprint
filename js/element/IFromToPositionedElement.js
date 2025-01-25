@@ -13,7 +13,7 @@ export default class IFromToPositionedElement extends IElement {
             type: Number,
             attribute: false,
         },
-        fromY: {
+        originY: {
             type: Number,
             attribute: false,
         },

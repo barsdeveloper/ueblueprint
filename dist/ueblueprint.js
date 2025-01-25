@@ -7840,7 +7840,7 @@ class IFromToPositionedElement extends IElement {
             type: Number,
             attribute: false,
         },
-        fromY: {
+        originY: {
             type: Number,
             attribute: false,
         },
@@ -13060,6 +13060,17 @@ class RotatorPinTemplate extends INumericPinTemplate {
 
 /** @extends IInputPinTemplate<StringEntity> */
 class StringPinTemplate extends IInputPinTemplate {
+
+    /**
+     * @param {String[]} values
+     * @param {String[]} rawValues
+     */
+    setDefaultValue(values = [], rawValues) {
+        const value = this.element.getDefaultValue();
+        value.value = values[0];
+        this.element.setDefaultValue(value);
+        this.element.requestUpdate();
+    }
 }
 
 /**
