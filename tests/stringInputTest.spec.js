@@ -76,11 +76,7 @@ testNode({
         expect(await pins[1].evaluate(p => p.entity.DefaultValue.serialize())).toEqual('"1`2`3"')
 
         await input.focus()
-        await input.evaluate(() => navigator.clipboard.writeText(String.raw`    alpha + 'beta'
-text: "gamma"
-multiline: ${"`"}
-    "Some 'text' \"quoted\"";
-${"`"}`))
+        await input.evaluate(() => navigator.clipboard.writeText(String.raw`    alpha + 'beta'${"\n"}text: "gamma"${"\n"}multiline: ${"`\n"}    "Some 'text' \"quoted\"";${"\n`"}`))
         await input.press("Control+V")
         await input.blur()
         expect(await pins[1].evaluate(p => p.entity.DefaultValue.serialize())).toEqual(
