@@ -171,11 +171,11 @@ export default class PinTemplate extends ITemplate {
         this.#wrapperElement = this.element.querySelector(".ueb-pin-wrapper")
     }
 
-    getLinkLocation() {
+    getLinkLocation(oppositeDirection = false) {
         const rect = (this.#iconElement ?? this.element).getBoundingClientRect()
         /** @type {[Number, Number]} */
         const boundingLocation = [
-            this.element.isInputVisually() ? rect.left : rect.right + 1,
+            this.element.isInputVisually() && !oppositeDirection ? rect.left : rect.right + 1,
             (rect.top + rect.bottom) / 2
         ]
         const location = Utility.convertLocation(boundingLocation, this.blueprint.template.gridElement)

@@ -9040,8 +9040,6 @@ class NodeTemplate extends ISelectableDraggableTemplate {
             .map(pinEntity => this.createPinElement(pinEntity))
     }
 
-    linksChanged() { }
-
     /** All the link connected to this node */
     getAllConnectedLinks() {
         const nodeTitle = this.element.nodeTitle;
@@ -9672,11 +9670,11 @@ class PinTemplate extends ITemplate {
         this.#wrapperElement = this.element.querySelector(".ueb-pin-wrapper");
     }
 
-    getLinkLocation() {
+    getLinkLocation(oppositeDirection = false) {
         const rect = (this.#iconElement ?? this.element).getBoundingClientRect();
         /** @type {[Number, Number]} */
         const boundingLocation = [
-            this.element.isInputVisually() ? rect.left : rect.right + 1,
+            this.element.isInputVisually() && !oppositeDirection ? rect.left : rect.right + 1,
             (rect.top + rect.bottom) / 2
         ];
         const location = Utility.convertLocation(boundingLocation, this.blueprint.template.gridElement);
@@ -9792,11 +9790,11 @@ class KnotPinTemplate extends MinimalPinTemplate {
     }
 
     /** Location on the grid of a link connecting to this pin */
-    getLinkLocation() {
+    getLinkLocation(oppositeDirection = false) {
         if (this.element.isInput()) {
-            return this.getoppositePin().getLinkLocation()
+            return this.getoppositePin().getLinkLocation(!oppositeDirection)
         }
-        return super.getLinkLocation()
+        return super.getLinkLocation(oppositeDirection)
     }
 }
 
@@ -9854,9 +9852,6 @@ class KnotNodeTemplate extends NodeTemplate {
             this.#outputPin = pinElementConstructor.newObject(outputEntity, new KnotPinTemplate(), this.element),
         ];
         return result
-    }
-
-    linksChanged() {
     }
 
     checkSwtichDirectionsVisually() {
@@ -13431,8 +13426,8 @@ class PinElement extends IElement {
         return this.nodeElement?.getType() == Configuration.paths.knot
     }
 
-    getLinkLocation() {
-        return this.template.getLinkLocation()
+    getLinkLocation(oppositeDirection = false) {
+        return this.template.getLinkLocation(oppositeDirection)
     }
 
     getNodeElement() {
@@ -13493,7 +13488,6 @@ class PinElement extends IElement {
         }
         if (this.entity.linkTo(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)) {
             this.isLinked = this.entity.isLinked();
-            this.nodeElement?.template.linksChanged();
             if (this.entity.recomputesNodeTitleOnChange) {
                 this.nodeElement?.computeNodeDisplayName();
             }
@@ -13504,7 +13498,6 @@ class PinElement extends IElement {
     unlinkFrom(targetPinElement, removeLink = true) {
         if (this.entity.unlinkFrom(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)) {
             this.isLinked = this.entity.isLinked();
-            this.nodeElement?.template.linksChanged();
             if (removeLink) {
                 this.blueprint.getLink(this, targetPinElement)?.remove(); // Might be called after the link is removed
             }
@@ -13515,11 +13508,8 @@ class PinElement extends IElement {
     }
 
     unlinkFromAll() {
-        const isLinked = this.getLinks().length;
+        this.getLinks().length;
         this.getLinks().map(ref => this.blueprint.getPin(ref)).forEach(pin => this.unlinkFrom(pin));
-        if (isLinked) {
-            this.nodeElement?.template.linksChanged();
-        }
     }
 
     /**

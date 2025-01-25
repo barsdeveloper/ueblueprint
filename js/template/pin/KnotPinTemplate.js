@@ -14,10 +14,10 @@ export default class KnotPinTemplate extends MinimalPinTemplate {
     }
 
     /** Location on the grid of a link connecting to this pin */
-    getLinkLocation() {
+    getLinkLocation(oppositeDirection = false) {
         if (this.element.isInput()) {
-            return this.getoppositePin().getLinkLocation()
+            return this.getoppositePin().getLinkLocation(!oppositeDirection)
         }
-        return super.getLinkLocation()
+        return super.getLinkLocation(oppositeDirection)
     }
 }

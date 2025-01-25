@@ -59,9 +59,6 @@ export default class KnotNodeTemplate extends NodeTemplate {
         return result
     }
 
-    linksChanged() {
-    }
-
     checkSwtichDirectionsVisually() {
         let leftPinsLocation = 0
         let leftPinsCount = 0

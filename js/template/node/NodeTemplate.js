@@ -169,8 +169,6 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
             .map(pinEntity => this.createPinElement(pinEntity))
     }
 
-    linksChanged() { }
-
     /** All the link connected to this node */
     getAllConnectedLinks() {
         const nodeTitle = this.element.nodeTitle

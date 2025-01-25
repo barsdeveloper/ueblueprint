@@ -190,8 +190,8 @@ export default class PinElement extends IElement {
         return this.nodeElement?.getType() == Configuration.paths.knot
     }
 
-    getLinkLocation() {
-        return this.template.getLinkLocation()
+    getLinkLocation(oppositeDirection = false) {
+        return this.template.getLinkLocation(oppositeDirection)
     }
 
     getNodeElement() {
@@ -252,7 +252,6 @@ export default class PinElement extends IElement {
         }
         if (this.entity.linkTo(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)) {
             this.isLinked = this.entity.isLinked()
-            this.nodeElement?.template.linksChanged()
             if (this.entity.recomputesNodeTitleOnChange) {
                 this.nodeElement?.computeNodeDisplayName()
             }
@@ -263,7 +262,6 @@ export default class PinElement extends IElement {
     unlinkFrom(targetPinElement, removeLink = true) {
         if (this.entity.unlinkFrom(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)) {
             this.isLinked = this.entity.isLinked()
-            this.nodeElement?.template.linksChanged()
             if (removeLink) {
                 this.blueprint.getLink(this, targetPinElement)?.remove() // Might be called after the link is removed
             }
@@ -276,9 +274,6 @@ export default class PinElement extends IElement {
     unlinkFromAll() {
         const isLinked = this.getLinks().length
         this.getLinks().map(ref => this.blueprint.getPin(ref)).forEach(pin => this.unlinkFrom(pin))
-        if (isLinked) {
-            this.nodeElement?.template.linksChanged()
-        }
     }
 
     /**
