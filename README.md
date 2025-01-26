@@ -1,6 +1,6 @@
 # UEBlueprint
 
-A stand alone editor implementation of the UE's Blueprint visual language.
+A stand alone implementation of the UE's Blueprint visual language editor
 
 https://www.npmjs.com/package/ueblueprint
 
