@@ -26,7 +26,6 @@
   "homepage": "https://github.com/barsdeveloper/ueblueprint#readme",
   "devDependencies": {
     "@playwright/test": "1.49",
-    "@rollup/plugin-commonjs": "^28",
     "@rollup/plugin-node-resolve": "^16",
     "@rollup/plugin-terser": "^0",
     "concurrently": "^9",
