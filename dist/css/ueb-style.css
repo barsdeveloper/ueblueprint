@@ -102,7 +102,6 @@ ueb-blueprint[data-scrolling=false] .ueb-grid {
 
 ueb-blueprint.ueb-zoom--4 {
   --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 2);
-  --ueb-node-radius: 0 !important;
 }
 
 ueb-blueprint.ueb-zoom--6 {
@@ -327,10 +326,6 @@ ueb-node.ueb-node-style-comment {
   min-width: 0;
 }
 
-.ueb-zoom--2 ueb-node {
-  box-shadow: none;
-}
-
 .ueb-node-border {
   margin: -3px;
   padding: 3px;
@@ -370,6 +365,10 @@ ueb-node[data-selected=true] > .ueb-node-border {
   overflow: hidden;
 }
 
+.ueb-zoom--2 .ueb-node-wrapper {
+  background: rgb(14, 16, 10);
+}
+
 ueb-node.ueb-node-style-operation .ueb-node-wrapper {
   grid-template-rows: min-content auto auto min-content min-content;
   grid-template-columns: 50% 0% 1fr;
@@ -395,7 +394,6 @@ ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-draggable {
 }
 
 .ueb-zoom--2 .ueb-node-wrapper {
-  box-shadow: none;
   padding: 0;
   background: #101010;
 }
@@ -430,10 +428,6 @@ ueb-node.ueb-node-style-event .ueb-node-top {
   box-shadow: inset 5px 1px 5px -3px rgba(255, 255, 255, 0.2509803922), inset 0 1px 2px 0 rgba(255, 255, 255, 0.2509803922);
   border-radius: var(--ueb-node-radius) var(--ueb-node-radius) 0 0;
   background: linear-gradient(rgba(255, 255, 255, 0.1882352941) 1px, transparent 1px), linear-gradient(170deg, rgb(var(--ueb-node-color)) 0%, rgb(var(--ueb-node-color)) 50%, transparent 100%);
-}
-
-.ueb-zoom--2 .ueb-node-top {
-  box-shadow: none;
 }
 
 .ueb-zoom--2 .ueb-node-style-default .ueb-node-top {
@@ -582,6 +576,10 @@ ueb-node.ueb-node-style-glass .ueb-node-wrapper {
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3) 0, rgba(255, 255, 255, 0.2) 4px, rgba(0, 0, 0, 0.3) 14px), linear-gradient(to right, transparent 10%, rgba(var(--ueb-node-color), 0.3) 50%, transparent 90%);
   background-size: 100%, 100% 28px;
   background-repeat: repeat, no-repeat;
+}
+
+.ueb-zoom--2 ueb-node.ueb-node-style-glass .ueb-node-wrapper {
+  background: #101010;
 }
 
 ueb-node.ueb-node-style-glass .ueb-node-name {
@@ -1351,6 +1349,14 @@ ueb-ui-slider {
   line-height: 20px;
   font-family: monospace;
   color: #c0c0c0;
+}
+
+/* To improve a bit performance */
+.ueb-zoom--2 * {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
 }
 
 /*# sourceMappingURL=ueb-style.css.map */
