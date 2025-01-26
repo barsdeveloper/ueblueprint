@@ -11,6 +11,9 @@
 ueb-blueprint {
   --ueb-scale: 1;
   --ueb-grid-actual-size: var(--ueb-grid-size);
+  --ueb-grid-line-color: #353535;
+  --ueb-grid-set-line-color: #161616;
+  --ueb-grid-axis-line-color: #000;
   display: block;
   position: relative;
   font-family: Roboto, Noto, Oxygen, Ubuntu, "Open Sans", "Helvetica Neue", sans-serif;
@@ -172,6 +175,30 @@ ueb-selector > * {
 .ueb-info-dialog::backdrop {
   background-color: rgba(0, 0, 0, 0.6274509804);
   backdrop-filter: blur(4px);
+}
+
+/* Light mode */
+ueb-blueprint.ueb-light-mode {
+  --ueb-grid-line-color: #ddd;
+  --ueb-grid-set-line-color: #c0c0c0;
+  --ueb-grid-axis-line-color: #a0a0a0;
+}
+
+ueb-blueprint.ueb-light-mode .ueb-grid {
+  background-color: #f6f6f6;
+}
+
+ueb-blueprint.ueb-light-mode ueb-node.ueb-node-style-glass .ueb-node-wrapper {
+  background-color: rgba(0, 0, 0, 0.5647058824);
+}
+
+ueb-blueprint.ueb-light-mode ueb-link .ueb-link-path {
+  filter: saturate(200%) brightness(0.6);
+}
+
+ueb-blueprint.ueb-light-mode .ueb-viewport-header {
+  background: rgba(0, 0, 0, 0.3);
+  color: #101010;
 }
 
 ueb-node.ueb-node-style-minimal {

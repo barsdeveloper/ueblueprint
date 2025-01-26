@@ -34,7 +34,7 @@ npx http-server
 
 You can check `index.html` for a working example, the main steps are the following:
 1. Make the `dist` directory available in your website by copying it or installing through npm `npm i ueblueprint`.
-2. Include `dist/css/ueb-style.css` stylesheet in your page.
+2. Include `dist/css/ueb-style.min.css` stylesheet in your page.
 3. Define eventual CSS variables.
 ```HTML
 <style>
@@ -50,6 +50,7 @@ You can check `index.html` for a working example, the main steps are the followi
 </script>
 ```
 5. Define your blueprint by writing the code inside a `template`, inside a `ueb-blueprint` element.
+It can have light background using the following CSS class: `<ueb-blueprint class="ueb-light-mode">`
 ```HTML
 <ueb-blueprint>
     <template>

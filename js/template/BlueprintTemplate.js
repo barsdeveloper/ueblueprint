@@ -19,11 +19,8 @@ export default class BlueprintTemplate extends ITemplate {
 
     static styleVariables = {
         "--ueb-font-size": `${Configuration.fontSize}`,
-        "--ueb-grid-axis-line-color": `${Configuration.gridAxisLineColor}`,
         "--ueb-grid-expand": `${Configuration.expandGridSize}px`,
-        "--ueb-grid-line-color": `${Configuration.gridLineColor}`,
         "--ueb-grid-line-width": `${Configuration.gridLineWidth}px`,
-        "--ueb-grid-set-line-color": `${Configuration.gridSetLineColor}`,
         "--ueb-grid-set": `${Configuration.gridSet}`,
         "--ueb-grid-size": `${Configuration.gridSize}px`,
         "--ueb-link-min-width": `${Configuration.linkMinWidth}`,
