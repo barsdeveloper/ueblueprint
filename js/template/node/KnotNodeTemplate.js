@@ -60,25 +60,27 @@ export default class KnotNodeTemplate extends NodeTemplate {
     }
 
     checkSwtichDirectionsVisually() {
-        let leftPinsLocation = 0
+        let leftPinsDelta = 0
         let leftPinsCount = 0
-        let rightPinsLocation = 0
+        let rightPinsDelta = 0
         let rightPinsCount = 0
+        const location = this.outputPin.getLinkLocation()[0]
         const links = this.getAllConnectedLinks()
         for (const link of links) {
             const pin = link.getOtherPin(this.element)
+            const delta = pin.getLinkLocation()[0] - location
             if (pin?.isInput()) {
-                rightPinsLocation += pin.getLinkLocation()[0]
+                rightPinsDelta += delta
                 ++rightPinsCount
             } else if (pin?.isOutput()) {
-                leftPinsLocation += pin.getLinkLocation()[0]
+                leftPinsDelta += delta
                 ++leftPinsCount
             }
         }
-        leftPinsLocation /= leftPinsCount
-        rightPinsLocation /= rightPinsCount
-        if ((rightPinsLocation < leftPinsLocation) != this.switchDirectionsVisually) {
-            this.switchDirectionsVisually = rightPinsLocation < leftPinsLocation
+        leftPinsDelta /= leftPinsCount
+        rightPinsDelta /= rightPinsCount
+        if ((rightPinsDelta < leftPinsDelta) != this.switchDirectionsVisually) {
+            this.switchDirectionsVisually = rightPinsDelta < leftPinsDelta
         }
     }
 }

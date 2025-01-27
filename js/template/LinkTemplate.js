@@ -72,14 +72,14 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         const to = this.element.targetX
 
         // Switch actual input/output pins if allowed and makes sense
-        if (isOriginAKnot && (!targetPin || isTargetAKnot)) {
+        if (isOriginAKnot && !targetPin) {
             if (originPin?.isInputLoosely() && to > from + Configuration.distanceThreshold) {
                 this.element.origin = /** @type {KnotPinTemplate} */(originPin.template).getoppositePin()
             } else if (originPin?.isOutputLoosely() && to < from - Configuration.distanceThreshold) {
                 this.element.origin = /** @type {KnotPinTemplate} */(originPin.template).getoppositePin()
             }
         }
-        if (isTargetAKnot && (!originPin || isOriginAKnot)) {
+        if (isTargetAKnot && !originPin) {
             if (targetPin?.isInputLoosely() && to < from - Configuration.distanceThreshold) {
                 this.element.target = /** @type {KnotPinTemplate} */(targetPin.template).getoppositePin()
             } else if (targetPin?.isOutputLoosely() && to > from + Configuration.distanceThreshold) {
@@ -90,15 +90,11 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         // Switch visual input/output pins if allowed and makes sense
         if (originPin && targetPin) {
             let directionsCheckedKnot
-            if (originPin?.isKnot()) {
-                // The target end has moved and origin end is a knot
-                directionsCheckedKnot = originPin.nodeElement
-            } else if (targetPin?.isKnot()) {
-                // The origin end has moved and target end is a knot
-                directionsCheckedKnot = targetPin.nodeElement
+            if (originPin.isKnot() && originPin.hasUpdated) {
+                /** @type {KnotNodeTemplate} */(originPin.nodeElement.template).checkSwtichDirectionsVisually()
             }
-            if (directionsCheckedKnot && directionsCheckedKnot.hasUpdated) {
-                /** @type {KnotNodeTemplate} */(directionsCheckedKnot.template).checkSwtichDirectionsVisually()
+            if (targetPin.isKnot() && targetPin.hasUpdated) {
+                /** @type {KnotNodeTemplate} */(targetPin.nodeElement.template).checkSwtichDirectionsVisually()
             }
         }
 

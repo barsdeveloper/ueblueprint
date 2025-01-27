@@ -7677,14 +7677,14 @@ class LinkTemplate extends IFromToPositionedTemplate {
         const to = this.element.targetX;
 
         // Switch actual input/output pins if allowed and makes sense
-        if (isOriginAKnot && (!targetPin || isTargetAKnot)) {
+        if (isOriginAKnot && !targetPin) {
             if (originPin?.isInputLoosely() && to > from + Configuration.distanceThreshold) {
                 this.element.origin = /** @type {KnotPinTemplate} */(originPin.template).getoppositePin();
             } else if (originPin?.isOutputLoosely() && to < from - Configuration.distanceThreshold) {
                 this.element.origin = /** @type {KnotPinTemplate} */(originPin.template).getoppositePin();
             }
         }
-        if (isTargetAKnot && (!originPin || isOriginAKnot)) {
+        if (isTargetAKnot && !originPin) {
             if (targetPin?.isInputLoosely() && to < from - Configuration.distanceThreshold) {
                 this.element.target = /** @type {KnotPinTemplate} */(targetPin.template).getoppositePin();
             } else if (targetPin?.isOutputLoosely() && to > from + Configuration.distanceThreshold) {
@@ -7694,16 +7694,11 @@ class LinkTemplate extends IFromToPositionedTemplate {
 
         // Switch visual input/output pins if allowed and makes sense
         if (originPin && targetPin) {
-            let directionsCheckedKnot;
-            if (originPin?.isKnot()) {
-                // The target end has moved and origin end is a knot
-                directionsCheckedKnot = originPin.nodeElement;
-            } else if (targetPin?.isKnot()) {
-                // The origin end has moved and target end is a knot
-                directionsCheckedKnot = targetPin.nodeElement;
+            if (originPin.isKnot() && originPin.hasUpdated) {
+                /** @type {KnotNodeTemplate} */(originPin.nodeElement.template).checkSwtichDirectionsVisually();
             }
-            if (directionsCheckedKnot && directionsCheckedKnot.hasUpdated) {
-                /** @type {KnotNodeTemplate} */(directionsCheckedKnot.template).checkSwtichDirectionsVisually();
+            if (targetPin.isKnot() && targetPin.hasUpdated) {
+                /** @type {KnotNodeTemplate} */(targetPin.nodeElement.template).checkSwtichDirectionsVisually();
             }
         }
 
@@ -8164,12 +8159,12 @@ class LinkElement extends IFromToPositionedElement {
         this.origin = pin;
     }
 
-    /** @param {NodeElement} pin */
-    getOtherPin(pin) {
-        if (this.origin?.nodeElement === pin) {
+    /** @param {NodeElement} node */
+    getOtherPin(node) {
+        if (this.origin?.nodeElement === node) {
             return this.target
         }
-        if (this.target?.nodeElement === pin) {
+        if (this.target?.nodeElement === node) {
             return this.origin
         }
     }
@@ -9858,25 +9853,27 @@ class KnotNodeTemplate extends NodeTemplate {
     }
 
     checkSwtichDirectionsVisually() {
-        let leftPinsLocation = 0;
+        let leftPinsDelta = 0;
         let leftPinsCount = 0;
-        let rightPinsLocation = 0;
+        let rightPinsDelta = 0;
         let rightPinsCount = 0;
+        const location = this.outputPin.getLinkLocation()[0];
         const links = this.getAllConnectedLinks();
         for (const link of links) {
             const pin = link.getOtherPin(this.element);
+            const delta = pin.getLinkLocation()[0] - location;
             if (pin?.isInput()) {
-                rightPinsLocation += pin.getLinkLocation()[0];
+                rightPinsDelta += delta;
                 ++rightPinsCount;
             } else if (pin?.isOutput()) {
-                leftPinsLocation += pin.getLinkLocation()[0];
+                leftPinsDelta += delta;
                 ++leftPinsCount;
             }
         }
-        leftPinsLocation /= leftPinsCount;
-        rightPinsLocation /= rightPinsCount;
-        if ((rightPinsLocation < leftPinsLocation) != this.switchDirectionsVisually) {
-            this.switchDirectionsVisually = rightPinsLocation < leftPinsLocation;
+        leftPinsDelta /= leftPinsCount;
+        rightPinsDelta /= rightPinsCount;
+        if ((rightPinsDelta < leftPinsDelta) != this.switchDirectionsVisually) {
+            this.switchDirectionsVisually = rightPinsDelta < leftPinsDelta;
         }
     }
 }
@@ -12210,7 +12207,9 @@ class BoolPinTemplate extends PinTemplate {
 
     renderInput() {
         return x`
-            <input type="checkbox" class="ueb-pin-input-wrapper ueb-pin-input" ?checked="${this.element.defaultValue?.valueOf() === true}" />
+            <input type="checkbox" class="ueb-pin-input-wrapper ueb-pin-input"
+                ?checked="${this.element.defaultValue?.valueOf() === true}"
+            />
         `
     }
 }
@@ -12991,7 +12990,8 @@ class LinearColorPinTemplate extends PinTemplate {
 
     renderInput() {
         return x`
-            <span class="ueb-pin-input-wrapper ueb-pin-input" data-linear-color="${this.element.getDefaultValue()?.toString() ?? E}"
+            <span class="ueb-pin-input-wrapper ueb-pin-input"
+                data-linear-color="${this.element.getDefaultValue()?.toString() ?? E}"
                 @click="${this.#launchColorPickerWindow}"
                 style="--ueb-linear-color: rgba(${this.element.getDefaultValue()?.toString() ?? E})">
             </span>
@@ -13432,9 +13432,7 @@ class PinElement extends IElement {
         /** @type {PinElement} */
         let result = this;
         if (ignoreKnots) {
-            if (ignoreKnots) {
-                return this.#traverseKnots(result)?.isOutput()
-            }
+            return this.#traverseKnots(result)?.isOutput()
         }
         return result.entity.isOutput()
     }
@@ -13510,12 +13508,11 @@ class PinElement extends IElement {
         const pinReference = this.createPinReference();
         if (
             this.isLinked
-            && (
-                this.isInput(true)
-                || this.isOutput(true) && (this.entity.isExecution() || targetPinElement.entity.isExecution())
-            )
-            && !this.getLinks().some(ref => pinReference.equals(ref))
+            && this.entity.isExecution()
+            && this.isOutput(true)
+            && this.getLinks().some(ref => !pinReference.equals(ref))
         ) {
+            if (this.isKnot()) ;
             this.unlinkFromAll();
         }
         if (this.entity.linkTo(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)) {

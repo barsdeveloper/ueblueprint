@@ -164,9 +164,7 @@ export default class PinElement extends IElement {
         /** @type {PinElement} */
         let result = this
         if (ignoreKnots) {
-            if (ignoreKnots) {
-                return this.#traverseKnots(result)?.isOutput()
-            }
+            return this.#traverseKnots(result)?.isOutput()
         }
         return result.entity.isOutput()
     }
@@ -242,12 +240,13 @@ export default class PinElement extends IElement {
         const pinReference = this.createPinReference()
         if (
             this.isLinked
-            && (
-                this.isInput(true)
-                || this.isOutput(true) && (this.entity.isExecution() || targetPinElement.entity.isExecution())
-            )
-            && !this.getLinks().some(ref => pinReference.equals(ref))
+            && this.entity.isExecution()
+            && this.isOutput(true)
+            && this.getLinks().some(ref => !pinReference.equals(ref))
         ) {
+            if (this.isKnot()) {
+
+            }
             this.unlinkFromAll()
         }
         if (this.entity.linkTo(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)) {

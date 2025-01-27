@@ -283,12 +283,12 @@ export default class LinkElement extends IFromToPositionedElement {
         this.origin = pin
     }
 
-    /** @param {NodeElement} pin */
-    getOtherPin(pin) {
-        if (this.origin?.nodeElement === pin) {
+    /** @param {NodeElement} node */
+    getOtherPin(node) {
+        if (this.origin?.nodeElement === node) {
             return this.target
         }
-        if (this.target?.nodeElement === pin) {
+        if (this.target?.nodeElement === node) {
             return this.origin
         }
     }
