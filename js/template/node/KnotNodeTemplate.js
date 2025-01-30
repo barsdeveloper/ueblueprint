@@ -35,6 +35,17 @@ export default class KnotNodeTemplate extends NodeTemplate {
         this.element.classList.add("ueb-node-style-minimal")
     }
 
+    /** @param {PropertyValues} changedProperties */
+    update(changedProperties) {
+        super.update(changedProperties)
+        if (!this.#inputPin.isLinked && !this.#outputPin.isLinked) {
+            this.#inputPin.entity.PinType.PinCategory.value = "wildcard"
+            this.#inputPin.updateColor()
+            this.#outputPin.entity.PinType.PinCategory.value = "wildcard"
+            this.#inputPin.updateColor()
+        }
+    }
+
     render() {
         return html`
             <div class="ueb-node-border"></div>

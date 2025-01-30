@@ -3,6 +3,7 @@ import { expect, test } from "./fixtures/test.js"
 const firstRowOnly = v => v.replaceAll(/^\s+|\n.+/gs, "")
 
 test("Renaming", async ({ blueprintPage }) => {
+    blueprintPage = await blueprintPage.clone()
     let source = String.raw`
         Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="MaterialGraphNode_40" ExportPath=/Script/UnrealEd.MaterialGraphNode'"/Engine/Transient.M_Brick_Cut_Stone:MaterialGraph_0.MaterialGraphNode_40"'
         End Object
@@ -27,4 +28,5 @@ test("Renaming", async ({ blueprintPage }) => {
     expect(firstRowOnly(await blueprintPage.getSerializedNodes())).toEqual(
         `Begin Object Class=/Script/UnrealEd.MaterialGraphNode ExportPath=/Script/UnrealEd.MaterialGraphNode'"/Engine/Transient.M_Brick_Cut_Stone:MaterialGraph_0."'`
     )
+    await blueprintPage.cleanup()
 })

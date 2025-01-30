@@ -3,6 +3,7 @@ import { expect, test } from "./fixtures/test.js"
 const firstRowOnly = v => v.replaceAll(/^\s+|\n.+/gs, "")
 
 test("Inner renaming", async ({ blueprintPage }) => {
+    blueprintPage = await blueprintPage.clone()
     let source = String.raw`
         Begin Object Class=/Script/PCGEditor.PCGEditorGraphNode Name="PCGEditorGraphNode_2" ExportPath=/Script/PCGEditor.PCGEditorGraphNode'"/Game/NewPCGGraph.NewPCGGraph:PCGEditorGraph_1.PCGEditorGraphNode_2"'
             Begin Object Class=/Script/PCG.PCGNode Name="ExecuteBlueprint_7" ExportPath=/Script/PCG.PCGNode'"/Game/NewPCGGraph.NewPCGGraph:PCGEditorGraph_1.PCGEditorGraphNode_2.ExecuteBlueprint_7"'
@@ -169,4 +170,5 @@ test("Inner renaming", async ({ blueprintPage }) => {
     ))).toEqual(
         `Begin Object Name="PCGBlueprintSettings_0" ExportPath=/Script/PCG.PCGBlueprintSettings'"/Game/NewPCGGraph.NewPCGGraph:PCGEditorGraph_1..ExecuteBlueprint_7.PCGBlueprintSettings_0"'`
     )
+    blueprintPage.cleanup()
 })

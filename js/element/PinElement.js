@@ -98,13 +98,17 @@ export default class PinElement extends IElement {
         this.pinId = this.entity.PinId
         this.pinType = this.entity.getType()
         this.defaultValue = this.entity.getDefaultValue()
-        this.color = PinElement.properties.color.converter.fromAttribute(this.getColor().toString())
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden"
+        this.updateColor()
     }
 
     setup() {
         super.setup()
         this.nodeElement = this.closest("ueb-node")
+    }
+
+    updateColor() {
+        this.color = PinElement.properties.color.converter.fromAttribute(this.entity.pinColor().toString())
     }
 
     createPinReference() {
@@ -121,11 +125,6 @@ export default class PinElement extends IElement {
 
     getPinDisplayName() {
         return this.entity.pinTitle()
-    }
-
-    /** @return {CSSResult} */
-    getColor() {
-        return this.entity.pinColor()
     }
 
     /** @param {PinElement} pin */
@@ -271,8 +270,8 @@ export default class PinElement extends IElement {
     }
 
     unlinkFromAll() {
-        const isLinked = this.getLinks().length
         this.getLinks().map(ref => this.blueprint.getPin(ref)).forEach(pin => this.unlinkFrom(pin))
+        const isLinked = false
     }
 
     /**

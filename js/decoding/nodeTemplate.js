@@ -78,10 +78,11 @@ const paths = Configuration.paths
  * @return {new () => NodeTemplate}
  */
 export default function nodeTemplateClass(nodeEntity) {
+    const className = nodeEntity.getClass()
     if (
-        nodeEntity.getClass() === paths.callFunction
-        || nodeEntity.getClass() === paths.commutativeAssociativeBinaryOperator
-        || nodeEntity.getClass() === paths.callArrayFunction
+        className === paths.callFunction
+        || className === paths.commutativeAssociativeBinaryOperator
+        || className === paths.callArrayFunction
     ) {
         const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? ""
         const memberName = nodeEntity.FunctionReference?.MemberName?.toString()
@@ -89,6 +90,7 @@ export default function nodeTemplateClass(nodeEntity) {
             memberName && (
                 memberParent === paths.kismetMathLibrary
                 || memberParent === paths.kismetArrayLibrary
+                || memberParent === paths.kismetStringLibrary
             )) {
             if (memberName.startsWith("Conv_")) {
                 return VariableConversionNodeTemplate
@@ -148,7 +150,7 @@ export default function nodeTemplateClass(nodeEntity) {
             return VariableOperationNodeTemplate
         }
     }
-    switch (nodeEntity.getClass()) {
+    switch (className) {
         case paths.comment:
         case paths.materialGraphNodeComment:
             return CommentNodeTemplate

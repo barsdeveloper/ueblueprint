@@ -32,6 +32,12 @@ export default class BlueprintFixture {
         }
     }
 
+    async clone() {
+        const result = new BlueprintFixture(await this.page.context().newPage())
+        await result.setup()
+        return result
+    }
+
     /** 
      * @param {Locator<HTMLElement>} draggable
      * @param {Coordinates} offset
@@ -144,6 +150,7 @@ export default class BlueprintFixture {
     }
 
     async cleanup() {
+        await this.page.close()
     }
 
     blur() {

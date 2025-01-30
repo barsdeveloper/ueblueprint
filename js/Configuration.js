@@ -151,6 +151,7 @@ export default class Configuration {
         isValid: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:IsValid",
         kismetArrayLibrary: "/Script/Engine.KismetArrayLibrary",
         kismetMathLibrary: "/Script/Engine.KismetMathLibrary",
+        kismetStringLibrary: "/Script/Engine.KismetStringLibrary",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         linearColor: "/Script/CoreUObject.LinearColor",
         literal: "/Script/BlueprintGraph.K2Node_Literal",

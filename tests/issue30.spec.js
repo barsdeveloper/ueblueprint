@@ -63,12 +63,12 @@ test("Issue 30", async ({ blueprintPage }) => {
     `)
     await expect(blueprintPage.blueprintLocator.locator("ueb-node")).toHaveCount(5)
     await expect(blueprintPage.blueprintLocator.locator("ueb-link")).toHaveCount(4)
-    expect(blueprintPage.blueprintLocator.evaluate(blueprint =>
+    expect(await blueprintPage.blueprintLocator.evaluate(blueprint =>
         /** @type {KnotNodeTemplate} */(
             /** @type {NodeElement} */(blueprint.querySelectorAll("ueb-node")[3]).template
         ).switchDirectionsVisually
     )).toBeTruthy()
-    expect(blueprintPage.blueprintLocator.evaluate(blueprint =>
+    expect(await blueprintPage.blueprintLocator.evaluate(blueprint =>
         /** @type {KnotNodeTemplate} */(
             /** @type {NodeElement} */(blueprint.querySelectorAll("ueb-node")[4]).template
         ).switchDirectionsVisually

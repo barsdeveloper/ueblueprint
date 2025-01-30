@@ -7,6 +7,7 @@ import IntPinTemplate from "../template/pin/IntPinTemplate.js"
 import LinearColorPinTemplate from "../template/pin/LinearColorPinTemplate.js"
 import NamePinTemplate from "../template/pin/NamePinTemplate.js"
 import PinTemplate from "../template/pin/PinTemplate.js"
+import ReadonlyNamePinTemplate from "../template/pin/ReadonlyInputPinTemplate.js"
 import RealPinTemplate from "../template/pin/RealPinTemplate.js"
 import ReferencePinTemplate from "../template/pin/ReferencePinTemplate.js"
 import RotatorPinTemplate from "../template/pin/RotatorPinTemplate.js"
@@ -14,6 +15,7 @@ import StringPinTemplate from "../template/pin/StringPinTemplate.js"
 import Vector2DPinTemplate from "../template/pin/Vector2DPinTemplate.js"
 import Vector4DPinTemplate from "../template/pin/Vector4DPinTemplate.js"
 import VectorPinTemplate from "../template/pin/VectorPinTemplate.js"
+import pinTitle from "./pinTitle.js"
 
 const inputPinTemplates = {
     "bool": BoolPinTemplate,
@@ -50,6 +52,9 @@ export default function pinTemplate(entity) {
     }
     if (entity.isExecution()) {
         return ExecPinTemplate
+    }
+    if (entity.PinName?.toString() === "self" && pinTitle(entity) === "Target") {
+        return ReadonlyNamePinTemplate
     }
     const type = entity.getType()
     return (entity.isInput() ? inputPinTemplates[type] : PinTemplate) ?? PinTemplate

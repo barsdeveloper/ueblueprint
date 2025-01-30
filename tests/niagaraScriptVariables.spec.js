@@ -36,9 +36,8 @@ test.describe("Niagara ScriptVariables", () => {
         await blueprintPage.removeNodes()
     })
 
-    test.describe.configure({ mode: "parallel" })
-
     test("Deserialization", async ({ blueprintPage }) => {
+        blueprintPage = await blueprintPage.clone()
         expect(await blueprintPage.blueprintLocator.evaluate(blueprint => blueprint.entity.serialize()))
             .toEqual('Begin Object Name="Blueprint"\nEnd Object\n')
         const source = String.raw`
@@ -83,9 +82,11 @@ test.describe("Niagara ScriptVariables", () => {
             return entity.serialize()
         }))
             .toEqual(serialized(source, "###########"))
+        blueprintPage.cleanup()
     })
 
     test("Merging", async ({ blueprintPage }) => {
+        blueprintPage = await blueprintPage.clone()
         // Var: Local.Module.Input, Local.Module.Input001, Local.Module.NewOutput
         let source = String.raw`
             Begin Object Class=/Script/NiagaraEditor.NiagaraClipboardContent Name="NiagaraClipboardContent_6" ExportPath="/Script/NiagaraEditor.NiagaraClipboardContent'/Engine/Transient.NiagaraClipboardContent_6'"
@@ -357,5 +358,6 @@ test.describe("Niagara ScriptVariables", () => {
             .filter(v => v?.length > 0)
         source = await blueprintPage.getSerializedNodes()
         expect(source).toMatch(Utility.getFirstWordOrder(expectedWords))
+        blueprintPage.cleanup()
     })
 })

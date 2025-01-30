@@ -175,6 +175,7 @@ class Configuration {
         isValid: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:IsValid",
         kismetArrayLibrary: "/Script/Engine.KismetArrayLibrary",
         kismetMathLibrary: "/Script/Engine.KismetMathLibrary",
+        kismetStringLibrary: "/Script/Engine.KismetStringLibrary",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         linearColor: "/Script/CoreUObject.LinearColor",
         literal: "/Script/BlueprintGraph.K2Node_Literal",
@@ -3747,10 +3748,6 @@ function nodeColor(entity) {
             }
     }
     switch (entity.getClass()) {
-        case Configuration.paths.callFunction:
-            return entity.bIsPureFunc?.valueOf()
-                ? Configuration.nodeColors.green
-                : Configuration.nodeColors.blue
         case Configuration.paths.niagaraNodeFunctionCall:
             return Configuration.nodeColors.darkerBlue
         case Configuration.paths.dynamicCast:
@@ -3798,7 +3795,7 @@ function nodeColor(entity) {
                 return Configuration.nodeColors.intenseGreen
         }
     }
-    if (entity.bIsPureFunc?.valueOf()) {
+    if (entity.bIsPureFunc?.valueOf() || entity.bDefaultsToPureFunc?.valueOf()) {
         return Configuration.nodeColors.green
     }
     if (entity["Input"]?.["Name"]) {
@@ -4376,6 +4373,7 @@ function nodeTitle(entity) {
         switch (memberParent) {
             case paths$1.blueprintGameplayTagLibrary:
             case paths$1.kismetMathLibrary:
+            case paths$1.kismetStringLibrary:
             case paths$1.slateBlueprintLibrary:
             case paths$1.timeManagementBlueprintLibrary:
                 const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/);
@@ -6335,6 +6333,7 @@ class ObjectEntity extends IEntity {
         bIsPureFunc: BooleanEntity,
         bIsConstFunc: BooleanEntity,
         bIsCaseSensitive: BooleanEntity,
+        bDefaultsToPureFunc: BooleanEntity,
         VariableReference: VariableReferenceEntity,
         SelfContextInfo: SymbolEntity,
         DelegatePropertyName: StringEntity,
@@ -6485,6 +6484,7 @@ class ObjectEntity extends IEntity {
         /** @type {InstanceType<typeof ObjectEntity.attributes.Archetype>} */ this.Archetype;
         /** @type {InstanceType<typeof ObjectEntity.attributes.AxisKey>} */ this.AxisKey;
         /** @type {InstanceType<typeof ObjectEntity.attributes.bIsPureFunc>} */ this.bIsPureFunc;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.bDefaultsToPureFunc>} */ this.bDefaultsToPureFunc;
         /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementInstance>} */ this.BlueprintElementInstance;
         /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementType>} */ this.BlueprintElementType;
         /** @type {InstanceType<typeof ObjectEntity.attributes.Class>} */ this.Class;
@@ -8926,15 +8926,11 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         super.initialize(element);
         this.#subtitle = nodeSubtitle(element.entity);
         this.element.classList.add(.../** @type {typeof NodeTemplate} */(this.constructor).nodeStyleClasses);
-        this.element.style.setProperty("--ueb-node-color", this.getColor().cssText);
+        this.element.style.setProperty("--ueb-node-color", this.element.entity.nodeColor().cssText);
         this.pinInserter = this.element.entity.additionalPinInserter();
         if (this.pinInserter) {
             this.element.classList.add("ueb-node-is-variadic");
         }
-    }
-
-    getColor() {
-        return this.element.entity.nodeColor()
     }
 
     render() {
@@ -9205,7 +9201,7 @@ class CommentNodeTemplate extends IResizeableTemplate {
         element.classList.add("ueb-node-style-comment", "ueb-node-resizeable");
         element.sizeX = 25 * Configuration.gridSize;
         element.sizeY = 6 * Configuration.gridSize;
-        super.initialize(element); // Keep it at the end because it calls this.getColor() where this.#color must be initialized
+        super.initialize(element); // Keep it at the end because it needs the color. this.#color must be initialized
     }
 
     /** @returns {HTMLElement} */
@@ -9303,9 +9299,6 @@ class MouseCreateLink extends IMouseClickDrag {
     /** @type {NodeListOf<PinElement>} */
     #listenedPins
 
-    /** @type {PinElement} */
-    #knotPin = null
-
     /** @param {MouseEvent} e */
     #mouseenterHandler = e => {
         if (!this.enteredPin) {
@@ -9369,9 +9362,6 @@ class MouseCreateLink extends IMouseClickDrag {
     }
 
     startDrag(location) {
-        if (this.target.isKnot()) {
-            this.#knotPin = this.target;
-        }
         /** @type {LinkElement} */
         this.link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
             .newObject(this.target, null);
@@ -9399,20 +9389,22 @@ class MouseCreateLink extends IMouseClickDrag {
         });
         this.#listenedPins = null;
         if (this.enteredPin && this.linkValid) {
+            const knot = this.enteredPin.isKnot()
+                ? this.enteredPin
+                : this.link.origin.isKnot() ? this.link.origin : null;
             // Knot can use wither the input or output (by default) part indifferently, check if a switch is needed
-            if (this.#knotPin) {
-                const otherPin = this.#knotPin !== this.link.origin ? this.link.origin : this.enteredPin;
+            if (knot) {
+                const otherPin = knot !== this.link.origin ? this.link.origin : this.enteredPin;
                 // Knot pin direction correction
-                if (this.#knotPin.isInput() && otherPin.isInput() || this.#knotPin.isOutput() && otherPin.isOutput()) {
-                    const oppositePin = /** @type {KnotPinTemplate} */(this.#knotPin.template).getoppositePin();
-                    if (this.#knotPin === this.link.origin) {
+                if (knot.isInput() && otherPin.isInput() || knot.isOutput() && otherPin.isOutput()) {
+                    const oppositePin = /** @type {KnotPinTemplate} */(knot.template).getoppositePin();
+                    if (knot === this.link.origin) {
                         this.link.origin = oppositePin;
                     } else {
                         this.enteredPin = oppositePin;
                     }
                 }
             } else if (this.enteredPin.isKnot()) {
-                this.#knotPin = this.enteredPin;
                 if (this.link.origin.isOutput()) {
                     // Knot uses by default the output pin, let's switch to keep it coherent with the origin node we have
                     this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).getoppositePin();
@@ -9431,7 +9423,6 @@ class MouseCreateLink extends IMouseClickDrag {
         this.link.removeMessage();
         this.link.finishDragging();
         this.link = null;
-        this.#knotPin = null;
     }
 }
 
@@ -9828,6 +9819,17 @@ class KnotNodeTemplate extends NodeTemplate {
         this.element.classList.add("ueb-node-style-minimal");
     }
 
+    /** @param {PropertyValues} changedProperties */
+    update(changedProperties) {
+        super.update(changedProperties);
+        if (!this.#inputPin.isLinked && !this.#outputPin.isLinked) {
+            this.#inputPin.entity.PinType.PinCategory.value = "wildcard";
+            this.#inputPin.updateColor();
+            this.#outputPin.entity.PinType.PinCategory.value = "wildcard";
+            this.#inputPin.updateColor();
+        }
+    }
+
     render() {
         return x`
             <div class="ueb-node-border"></div>
@@ -9903,7 +9905,7 @@ class VariableAccessNodeTemplate extends VariableManagementNodeTemplate {
     setupPins() {
         super.setupPins();
         let outputPin = this.element.getPinElements().find(p => !p.entity.isHidden() && !p.entity.isExecution());
-        this.element.style.setProperty("--ueb-node-color", outputPin.getColor().cssText);
+        this.element.style.setProperty("--ueb-node-color", outputPin.entity.pinColor().cssText);
     }
 }
 
@@ -9976,10 +9978,11 @@ const paths = Configuration.paths;
  * @return {new () => NodeTemplate}
  */
 function nodeTemplateClass(nodeEntity) {
+    const className = nodeEntity.getClass();
     if (
-        nodeEntity.getClass() === paths.callFunction
-        || nodeEntity.getClass() === paths.commutativeAssociativeBinaryOperator
-        || nodeEntity.getClass() === paths.callArrayFunction
+        className === paths.callFunction
+        || className === paths.commutativeAssociativeBinaryOperator
+        || className === paths.callArrayFunction
     ) {
         const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? "";
         const memberName = nodeEntity.FunctionReference?.MemberName?.toString();
@@ -9987,6 +9990,7 @@ function nodeTemplateClass(nodeEntity) {
             memberName && (
                 memberParent === paths.kismetMathLibrary
                 || memberParent === paths.kismetArrayLibrary
+                || memberParent === paths.kismetStringLibrary
             )) {
             if (memberName.startsWith("Conv_")) {
                 return VariableConversionNodeTemplate
@@ -10046,7 +10050,7 @@ function nodeTemplateClass(nodeEntity) {
             return VariableOperationNodeTemplate
         }
     }
-    switch (nodeEntity.getClass()) {
+    switch (className) {
         case paths.comment:
         case paths.materialGraphNodeComment:
             return CommentNodeTemplate
@@ -12089,7 +12093,9 @@ class InputTemplate extends ITemplate {
         super.initialize(element);
         this.element.classList.add("ueb-pin-input-content");
         this.element.setAttribute("role", "textbox");
-        this.element.contentEditable = "true";
+        if (this.element.contentEditable !== "false") {
+            this.element.contentEditable = "true";
+        }
     }
 
     /** @param {PropertyValues} changedProperties */
@@ -12158,6 +12164,7 @@ class InputElement extends IElement {
         this.singleLine = false;
         this.selectOnFocus = true;
         this.blurOnEnter = true;
+        this.editable = true;
         super.initialize({}, new InputTemplate());
     }
 
@@ -13004,6 +13011,23 @@ class NamePinTemplate extends IInputPinTemplate {
     static singleLineInput = true
 }
 
+/** @extends PinTemplate<StringEntity> */
+class ReadonlyNamePinTemplate extends PinTemplate {
+
+    setDefaultValue(values = [], rawValues = values) {
+    }
+
+    renderInput() {
+        return x`
+            <div class="ueb-pin-input-wrapper ueb-pin-input">
+                <ueb-input contenteditable="false" .singleLine="${true}" .selectOnFocus="${false}"
+                    .innerText="${this.element.entity.PinName.toString()}">
+                </ueb-input>
+            </div>
+        `
+    }
+}
+
 /**
  * @template {NumberEntity} T
  * @extends INumericPinTemplate<T>
@@ -13274,6 +13298,9 @@ function pinTemplate(entity) {
     if (entity.isExecution()) {
         return ExecPinTemplate
     }
+    if (entity.PinName?.toString() === "self" && pinTitle(entity) === "Target") {
+        return ReadonlyNamePinTemplate
+    }
     const type = entity.getType();
     return (entity.isInput() ? inputPinTemplates[type] : PinTemplate) ?? PinTemplate
 }
@@ -13366,13 +13393,17 @@ class PinElement extends IElement {
         this.pinId = this.entity.PinId;
         this.pinType = this.entity.getType();
         this.defaultValue = this.entity.getDefaultValue();
-        this.color = PinElement.properties.color.converter.fromAttribute(this.getColor().toString());
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden";
+        this.updateColor();
     }
 
     setup() {
         super.setup();
         this.nodeElement = this.closest("ueb-node");
+    }
+
+    updateColor() {
+        this.color = PinElement.properties.color.converter.fromAttribute(this.entity.pinColor().toString());
     }
 
     createPinReference() {
@@ -13389,11 +13420,6 @@ class PinElement extends IElement {
 
     getPinDisplayName() {
         return this.entity.pinTitle()
-    }
-
-    /** @return {CSSResult} */
-    getColor() {
-        return this.entity.pinColor()
     }
 
     /** @param {PinElement} pin */
@@ -13537,7 +13563,6 @@ class PinElement extends IElement {
     }
 
     unlinkFromAll() {
-        this.getLinks().length;
         this.getLinks().map(ref => this.blueprint.getPin(ref)).forEach(pin => this.unlinkFrom(pin));
     }
 

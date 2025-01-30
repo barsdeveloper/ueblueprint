@@ -372,6 +372,7 @@ export default function nodeTitle(entity) {
         switch (memberParent) {
             case paths.blueprintGameplayTagLibrary:
             case paths.kismetMathLibrary:
+            case paths.kismetStringLibrary:
             case paths.slateBlueprintLibrary:
             case paths.timeManagementBlueprintLibrary:
                 const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/)

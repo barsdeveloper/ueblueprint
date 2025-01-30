@@ -31,10 +31,6 @@ export default function nodeColor(entity) {
             }
     }
     switch (entity.getClass()) {
-        case Configuration.paths.callFunction:
-            return entity.bIsPureFunc?.valueOf()
-                ? Configuration.nodeColors.green
-                : Configuration.nodeColors.blue
         case Configuration.paths.niagaraNodeFunctionCall:
             return Configuration.nodeColors.darkerBlue
         case Configuration.paths.dynamicCast:
@@ -82,7 +78,7 @@ export default function nodeColor(entity) {
                 return Configuration.nodeColors.intenseGreen
         }
     }
-    if (entity.bIsPureFunc?.valueOf()) {
+    if (entity.bIsPureFunc?.valueOf() || entity.bDefaultsToPureFunc?.valueOf()) {
         return Configuration.nodeColors.green
     }
     if (entity["Input"]?.["Name"]) {

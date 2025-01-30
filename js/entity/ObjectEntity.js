@@ -63,6 +63,7 @@ export default class ObjectEntity extends IEntity {
         bIsPureFunc: BooleanEntity,
         bIsConstFunc: BooleanEntity,
         bIsCaseSensitive: BooleanEntity,
+        bDefaultsToPureFunc: BooleanEntity,
         VariableReference: VariableReferenceEntity,
         SelfContextInfo: SymbolEntity,
         DelegatePropertyName: StringEntity,
@@ -213,6 +214,7 @@ export default class ObjectEntity extends IEntity {
         /** @type {InstanceType<typeof ObjectEntity.attributes.Archetype>} */ this.Archetype
         /** @type {InstanceType<typeof ObjectEntity.attributes.AxisKey>} */ this.AxisKey
         /** @type {InstanceType<typeof ObjectEntity.attributes.bIsPureFunc>} */ this.bIsPureFunc
+        /** @type {InstanceType<typeof ObjectEntity.attributes.bDefaultsToPureFunc>} */ this.bDefaultsToPureFunc
         /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementInstance>} */ this.BlueprintElementInstance
         /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementType>} */ this.BlueprintElementType
         /** @type {InstanceType<typeof ObjectEntity.attributes.Class>} */ this.Class

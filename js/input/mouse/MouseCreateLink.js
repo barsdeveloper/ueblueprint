@@ -14,9 +14,6 @@ export default class MouseCreateLink extends IMouseClickDrag {
     /** @type {NodeListOf<PinElement>} */
     #listenedPins
 
-    /** @type {PinElement} */
-    #knotPin = null
-
     /** @param {MouseEvent} e */
     #mouseenterHandler = e => {
         if (!this.enteredPin) {
@@ -80,9 +77,6 @@ export default class MouseCreateLink extends IMouseClickDrag {
     }
 
     startDrag(location) {
-        if (this.target.isKnot()) {
-            this.#knotPin = this.target
-        }
         /** @type {LinkElement} */
         this.link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
             .newObject(this.target, null)
@@ -110,20 +104,22 @@ export default class MouseCreateLink extends IMouseClickDrag {
         })
         this.#listenedPins = null
         if (this.enteredPin && this.linkValid) {
+            const knot = this.enteredPin.isKnot()
+                ? this.enteredPin
+                : this.link.origin.isKnot() ? this.link.origin : null
             // Knot can use wither the input or output (by default) part indifferently, check if a switch is needed
-            if (this.#knotPin) {
-                const otherPin = this.#knotPin !== this.link.origin ? this.link.origin : this.enteredPin
+            if (knot) {
+                const otherPin = knot !== this.link.origin ? this.link.origin : this.enteredPin
                 // Knot pin direction correction
-                if (this.#knotPin.isInput() && otherPin.isInput() || this.#knotPin.isOutput() && otherPin.isOutput()) {
-                    const oppositePin = /** @type {KnotPinTemplate} */(this.#knotPin.template).getoppositePin()
-                    if (this.#knotPin === this.link.origin) {
+                if (knot.isInput() && otherPin.isInput() || knot.isOutput() && otherPin.isOutput()) {
+                    const oppositePin = /** @type {KnotPinTemplate} */(knot.template).getoppositePin()
+                    if (knot === this.link.origin) {
                         this.link.origin = oppositePin
                     } else {
                         this.enteredPin = oppositePin
                     }
                 }
             } else if (this.enteredPin.isKnot()) {
-                this.#knotPin = this.enteredPin
                 if (this.link.origin.isOutput()) {
                     // Knot uses by default the output pin, let's switch to keep it coherent with the origin node we have
                     this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).getoppositePin()
@@ -142,6 +138,5 @@ export default class MouseCreateLink extends IMouseClickDrag {
         this.link.removeMessage()
         this.link.finishDragging()
         this.link = null
-        this.#knotPin = null
     }
 }
