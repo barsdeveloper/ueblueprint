@@ -1,6 +1,7 @@
 import { css } from "lit"
 import Configuration from "../Configuration.js"
 
+const p = Configuration.paths
 const colors = {
     "Any": css`132, 132, 132`,
     "Any[]": css`132, 132, 132`,
@@ -36,21 +37,21 @@ const colors = {
     "Volume": css`230, 69, 188`,
     "Volume[]": css`230, 69, 188`,
     "wildcard": css`128, 120, 120`,
-    [Configuration.paths.linearColor]: css`0, 88, 200`,
-    [Configuration.paths.niagaraBool]: css`146, 0, 0`,
-    [Configuration.paths.niagaraDataInterfaceCollisionQuery]: css`0, 168, 242`,
-    [Configuration.paths.niagaraDataInterfaceCurlNoise]: css`0, 168, 242`,
-    [Configuration.paths.niagaraDataInterfaceVolumeTexture]: css`0, 168, 242`,
-    [Configuration.paths.niagaraFloat]: css`160, 250, 68`,
-    [Configuration.paths.niagaraInt32]: css`30, 224, 172`,
-    [Configuration.paths.niagaraPosition]: css`251, 146, 251`,
-    [Configuration.paths.quat4f]: css`0, 88, 200`,
-    [Configuration.paths.rotator]: css`157, 177, 251`,
-    [Configuration.paths.transform]: css`227, 103, 0`,
-    [Configuration.paths.vector]: css`251, 198, 34`,
-    [Configuration.paths.vector2f]: css`0, 88, 200`,
-    [Configuration.paths.vector3f]: css`250, 200, 36`,
-    [Configuration.paths.vector4f]: css`0, 88, 200`,
+    [p.linearColor]: css`0, 88, 200`,
+    [p.niagaraBool]: css`146, 0, 0`,
+    [p.niagaraDataInterfaceCollisionQuery]: css`0, 168, 242`,
+    [p.niagaraDataInterfaceCurlNoise]: css`0, 168, 242`,
+    [p.niagaraDataInterfaceVolumeTexture]: css`0, 168, 242`,
+    [p.niagaraFloat]: css`160, 250, 68`,
+    [p.niagaraInt32]: css`30, 224, 172`,
+    [p.niagaraPosition]: css`251, 146, 251`,
+    [p.quat4f]: css`0, 88, 200`,
+    [p.rotator]: css`157, 177, 251`,
+    [p.transform]: css`227, 103, 0`,
+    [p.vector]: css`251, 198, 34`,
+    [p.vector2f]: css`0, 88, 200`,
+    [p.vector3f]: css`250, 200, 36`,
+    [p.vector4f]: css`0, 88, 200`,
 }
 
 const pinColorMaterial = css`120, 120, 120`

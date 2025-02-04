@@ -5,7 +5,6 @@ import LinearColorEntity from "../entity/LinearColorEntity.js"
 import MirroredEntity from "../entity/MirroredEntity.js"
 import VectorEntity from "../entity/VectorEntity.js"
 
-const paths = Configuration.paths
 const sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
 const keyNameValue = {
     "A_AccentGrave": "à",
@@ -95,6 +94,8 @@ const niagaraNodeNames = {
         "TWO_PI": `2 ${String.fromCharCode(0x03C0)}`,
     }).map(([k, v]) => ["Numeric::" + k, v])),
 }
+const p = Configuration.paths
+const format = Utility.formatStringName
 
 /** @param {String} value */
 function numberFromText(value = "") {
@@ -139,58 +140,58 @@ function keyName(value) {
 export default function nodeTitle(entity) {
     let value
     switch (entity.getType()) {
-        case paths.addDelegate:
+        case p.addDelegate:
             value ??= "Bind Event to "
-        case paths.clearDelegate:
+        case p.clearDelegate:
             value ??= "Unbind all Events from "
-        case paths.removeDelegate:
+        case p.removeDelegate:
             value ??= "Unbind Event from "
-            return value + Utility.formatStringName(
+            return value + format(
                 entity.DelegateReference?.MemberName?.toString().replace(/Delegate$/, "") ?? "None"
             )
-        case paths.asyncAction:
+        case p.asyncAction:
             if (entity.ProxyFactoryFunctionName) {
-                return Utility.formatStringName(entity.ProxyFactoryFunctionName?.toString())
+                return format(entity.ProxyFactoryFunctionName?.toString())
             }
-        case paths.actorBoundEvent:
-        case paths.componentBoundEvent:
-            return `${Utility.formatStringName(entity.DelegatePropertyName?.toString())} (${entity.ComponentPropertyName?.toString() ?? "Unknown"})`
-        case paths.callDelegate:
+        case p.actorBoundEvent:
+        case p.componentBoundEvent:
+            return `${format(entity.DelegatePropertyName?.toString())} (${entity.ComponentPropertyName?.toString() ?? "Unknown"})`
+        case p.callDelegate:
             return `Call ${entity.DelegateReference?.MemberName?.toString() ?? "None"}`
-        case paths.createDelegate:
+        case p.createDelegate:
             return "Create Event"
-        case paths.customEvent:
+        case p.customEvent:
             if (entity.CustomFunctionName) {
                 return entity.CustomFunctionName?.toString()
             }
-        case paths.dynamicCast:
+        case p.dynamicCast:
             if (!entity.TargetType) {
                 return "Bad cast node" // Target type not found
             }
             return `Cast To ${entity.TargetType?.getName()}`
-        case paths.enumLiteral:
+        case p.enumLiteral:
             return `Literal enum ${entity.Enum?.getName()}`
-        case paths.event:
+        case p.event:
             return `Event ${(entity.EventReference?.MemberName?.toString() ?? "").replace(/^Receive/, "")}`
-        case paths.executionSequence:
+        case p.executionSequence:
             return "Sequence"
-        case paths.forEachElementInEnum:
+        case p.forEachElementInEnum:
             return `For Each ${entity.Enum?.getName()}`
-        case paths.forEachLoopWithBreak:
+        case p.forEachLoopWithBreak:
             return "For Each Loop with Break"
-        case paths.functionEntry:
+        case p.functionEntry:
             return entity.FunctionReference?.MemberName?.toString() === "UserConstructionScript"
                 ? "Construction Script"
                 : entity.FunctionReference?.MemberName?.toString()
-        case paths.functionResult:
+        case p.functionResult:
             return "Return Node"
-        case paths.ifThenElse:
+        case p.ifThenElse:
             return "Branch"
-        case paths.makeStruct:
+        case p.makeStruct:
             if (entity.StructType) {
                 return `Make ${entity.StructType.getName()}`
             }
-        case paths.materialExpressionComponentMask: {
+        case p.materialExpressionComponentMask: {
             const materialObject = entity.getMaterialSubobject()
             if (materialObject) {
                 return `Mask ( ${Configuration.rgba
@@ -199,15 +200,15 @@ export default function nodeTitle(entity) {
                     .join("")})`
             }
         }
-        case paths.materialExpressionConstant:
+        case p.materialExpressionConstant:
             value ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName.toString() == "Value")?.DefaultValue]
-        case paths.materialExpressionConstant2Vector:
+        case p.materialExpressionConstant2Vector:
             value ??= [
                 entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "X")?.DefaultValue,
                 entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "Y")?.DefaultValue,
             ]
-        case paths.materialExpressionConstant3Vector:
-        case paths.materialExpressionConstant4Vector:
+        case p.materialExpressionConstant3Vector:
+        case p.materialExpressionConstant4Vector:
             if (!value) {
                 const vector = entity.getCustomproperties()
                     .find(pinEntity => pinEntity.PinName?.toString() == "Constant")
@@ -221,32 +222,32 @@ export default function nodeTitle(entity) {
             }
             value = undefined
             break
-        case paths.materialExpressionFunctionInput: {
+        case p.materialExpressionFunctionInput: {
             const materialObject = entity.getMaterialSubobject()
             const inputName = materialObject?.InputName ?? "In"
             const inputType = materialObject?.InputType?.value.match(/^.+?_(\w+)$/)?.[1] ?? "Vector3"
             return `Input ${inputName} (${inputType})`
         }
-        case paths.materialExpressionLogarithm:
+        case p.materialExpressionLogarithm:
             return "Ln"
-        case paths.materialExpressionLogarithm10:
+        case p.materialExpressionLogarithm10:
             return "Log10"
-        case paths.materialExpressionLogarithm2:
+        case p.materialExpressionLogarithm2:
             return "Log2"
-        case paths.materialExpressionMaterialFunctionCall:
+        case p.materialExpressionMaterialFunctionCall:
             const materialFunction = entity.getMaterialSubobject()?.MaterialFunction
             if (materialFunction) {
                 return materialFunction.getName()
             }
             break
-        case paths.materialExpressionSquareRoot:
+        case p.materialExpressionSquareRoot:
             return "Sqrt"
-        case paths.materialExpressionSubtract:
+        case p.materialExpressionSubtract:
             const materialObject = entity.getMaterialSubobject()
             if (materialObject) {
                 return `Subtract(${materialObject.ConstA ?? "1"},${materialObject.ConstB ?? "1"})`
             }
-        case paths.metasoundEditorGraphExternalNode: {
+        case p.metasoundEditorGraphExternalNode: {
             const name = entity["ClassName"]?.["Name"]
             if (name) {
                 switch (name) {
@@ -255,7 +256,7 @@ export default function nodeTitle(entity) {
                 }
             }
         }
-        case paths.niagaraNodeConvert:
+        case p.niagaraNodeConvert:
             /** @type {String} */
             const targetType = (entity["AutowireMakeType"]?.["ClassStructOrEnum"] ?? "")
                 .toString()
@@ -263,11 +264,11 @@ export default function nodeTitle(entity) {
                 ?.[1]
                 ?? ""
             return `Make ${targetType}`
-        case paths.pcgEditorGraphNodeInput:
+        case p.pcgEditorGraphNodeInput:
             return "Input"
-        case paths.pcgEditorGraphNodeOutput:
+        case p.pcgEditorGraphNodeOutput:
             return "Output"
-        case paths.spawnActorFromClass:
+        case p.spawnActorFromClass:
             let className = entity.getCustomproperties()
                 .find(pinEntity => pinEntity.PinName.toString() == "ReturnValue")
                 ?.PinType
@@ -276,21 +277,21 @@ export default function nodeTitle(entity) {
             if (className === "Actor") {
                 className = null
             }
-            return `SpawnActor ${Utility.formatStringName(className ?? "NONE")}`
-        case paths.switchEnum:
+            return `SpawnActor ${format(className ?? "NONE")}`
+        case p.switchEnum:
             return `Switch on ${entity.Enum?.getName() ?? "Enum"}`
-        case paths.switchInteger:
+        case p.switchInteger:
             return `Switch on Int`
-        case paths.variableGet:
+        case p.variableGet:
             return ""
-        case paths.variableSet:
+        case p.variableSet:
             return "SET"
     }
     const className = entity.getClass()
     let switchTarget = entity.switchTarget()
     if (switchTarget) {
         if (switchTarget[0] !== "E") {
-            switchTarget = Utility.formatStringName(switchTarget)
+            switchTarget = format(switchTarget)
         }
         return `Switch on ${switchTarget}`
     }
@@ -300,16 +301,16 @@ export default function nodeTitle(entity) {
     const keyNameSymbol = entity.getHIDAttribute()
     if (keyNameSymbol) {
         const name = keyNameSymbol.toString()
-        let title = keyName(name) ?? Utility.formatStringName(name)
-        if (className === paths.inputDebugKey) {
+        let title = keyName(name) ?? format(name)
+        if (className === p.inputDebugKey) {
             title = "Debug Key " + title
-        } else if (className === paths.getInputAxisKeyValue) {
+        } else if (className === p.getInputAxisKeyValue) {
             title = "Get " + title
         }
         return title
     }
-    if (className === paths.macro) {
-        return Utility.formatStringName(entity.MacroGraphReference?.getMacroName())
+    if (className === p.macro) {
+        return format(entity.MacroGraphReference?.getMacroName())
     }
     const materialSubobject = entity.getMaterialSubobject()
     if (materialSubobject) {
@@ -328,19 +329,19 @@ export default function nodeTitle(entity) {
     }
     const settingsObject = entity.getSettingsObject()
     if (settingsObject) {
-        if (settingsObject.ExportPath?.valueOf()?.type === paths.pcgHiGenGridSizeSettings) {
+        if (settingsObject.ExportPath?.valueOf()?.type === p.pcgHiGenGridSizeSettings) {
             return `Grid Size: ${(
                 settingsObject.HiGenGridSize?.toString().match(/\d+/)?.[0]?.concat("00")
                 ?? settingsObject.HiGenGridSize?.toString().match(/^\w+$/)?.[0]
             ) ?? "256"}`
         }
         if (settingsObject.BlueprintElementInstance) {
-            return Utility.formatStringName(settingsObject.BlueprintElementType.getName())
+            return format(settingsObject.BlueprintElementType.getName())
         }
         if (settingsObject.Operation) {
             const match = settingsObject.Name?.toString().match(/PCGMetadata(\w+)Settings_\d+/)
             if (match) {
-                return Utility.formatStringName(match[1] + ": " + settingsObject.Operation)
+                return format(match[1] + ": " + settingsObject.Operation)
             }
         }
         const settingsSubgraphObject = settingsObject.getSubgraphObject()
@@ -355,7 +356,7 @@ export default function nodeTitle(entity) {
             case "AddKey":
                 let result = memberParent.match(sequencerScriptingNameRegex)
                 if (result) {
-                    return `Add Key (${Utility.formatStringName(result[1])})`
+                    return `Add Key (${format(result[1])})`
                 }
             case "Concat_StrStr":
                 return "Append"
@@ -366,16 +367,16 @@ export default function nodeTitle(entity) {
                 + (memberNameTraceLineMatch[1] === "Multi" ? " Multi " : " ")
                 + (memberNameTraceLineMatch[2] === ""
                     ? "By Channel"
-                    : Utility.formatStringName(memberNameTraceLineMatch[2])
+                    : format(memberNameTraceLineMatch[2])
                 )
         }
         switch (memberParent) {
-            case paths.blueprintGameplayTagLibrary:
-            case paths.kismetMathLibrary:
-            case paths.kismetStringLibrary:
-            case paths.slateBlueprintLibrary:
-            case paths.timeManagementBlueprintLibrary:
-            case paths.typedElementHandleLibrary:
+            case p.blueprintGameplayTagLibrary:
+            case p.kismetMathLibrary:
+            case p.kismetStringLibrary:
+            case p.slateBlueprintLibrary:
+            case p.timeManagementBlueprintLibrary:
+            case p.typedElementHandleLibrary:
                 const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/)
                 if (leadingLetter) {
                     // Some functions start with B or F (Like FCeil, FMax, BMin)
@@ -460,23 +461,23 @@ export default function nodeTitle(entity) {
                     return "^"
                 }
                 break
-            case paths.blueprintSetLibrary:
+            case p.blueprintSetLibrary:
                 {
                     const setOperationMatch = memberName.match(/Set_(\w+)/)
                     if (setOperationMatch) {
-                        return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
+                        return format(setOperationMatch[1]).toUpperCase()
                     }
                 }
                 break
-            case paths.blueprintMapLibrary:
+            case p.blueprintMapLibrary:
                 {
                     const setOperationMatch = memberName.match(/Map_(\w+)/)
                     if (setOperationMatch) {
-                        return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
+                        return format(setOperationMatch[1]).toUpperCase()
                     }
                 }
                 break
-            case paths.kismetArrayLibrary:
+            case p.kismetArrayLibrary:
                 {
                     const arrayOperationMath = memberName.match(/Array_(\w+)/)
                     if (arrayOperationMath) {
@@ -485,14 +486,14 @@ export default function nodeTitle(entity) {
                 }
                 break
         }
-        return Utility.formatStringName(memberName)
+        return format(memberName)
     }
     if (entity.OpName) {
         return niagaraNodeNames[entity.OpName.toString()]
-            ?? Utility.formatStringName(entity.OpName.toString().replaceAll(/(?:^\w+(?<!^Matrix))?::/g, " "))
+            ?? format(entity.OpName.toString().replaceAll(/(?:^\w+(?<!^Matrix))?::/g, " "))
     }
     if (entity.FunctionDisplayName) {
-        return Utility.formatStringName(entity.FunctionDisplayName.toString())
+        return format(entity.FunctionDisplayName.toString())
     }
     if (entity.ObjectRef) {
         return entity.ObjectRef.getName()
@@ -502,10 +503,10 @@ export default function nodeTitle(entity) {
         className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNodeParameter")
         || className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNode")
     ) {
-        return entity["Input"]?.["Name"]?.toString() ?? Utility.formatStringName(className.substring(prefix.length))
+        return entity["Input"]?.["Name"]?.toString() ?? format(className.substring(prefix.length))
     }
     if (entity.ParameterName) {
         return entity.ParameterName.toString()
     }
-    return Utility.formatStringName(entity.getNameAndCounter()[0])
+    return format(entity.getNameAndCounter()[0])
 }

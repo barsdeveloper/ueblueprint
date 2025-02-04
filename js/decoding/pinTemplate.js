@@ -17,6 +17,7 @@ import Vector4DPinTemplate from "../template/pin/Vector4DPinTemplate.js"
 import VectorPinTemplate from "../template/pin/VectorPinTemplate.js"
 import pinTitle from "./pinTitle.js"
 
+const p = Configuration.paths
 const inputPinTemplates = {
     "bool": BoolPinTemplate,
     "byte": IntPinTemplate,
@@ -29,17 +30,17 @@ const inputPinTemplates = {
     "real": RealPinTemplate,
     "rg": Vector2DPinTemplate,
     "string": StringPinTemplate,
-    [Configuration.paths.linearColor]: LinearColorPinTemplate,
-    [Configuration.paths.niagaraBool]: BoolPinTemplate,
-    [Configuration.paths.niagaraFloat]: RealPinTemplate,
-    [Configuration.paths.niagaraInt32]: IntPinTemplate,
-    [Configuration.paths.niagaraPosition]: VectorPinTemplate,
-    [Configuration.paths.rotator]: RotatorPinTemplate,
-    [Configuration.paths.vector]: VectorPinTemplate,
-    [Configuration.paths.vector2D]: Vector2DPinTemplate,
-    [Configuration.paths.vector2f]: Vector2DPinTemplate,
-    [Configuration.paths.vector3f]: VectorPinTemplate,
-    [Configuration.paths.vector4f]: Vector4DPinTemplate,
+    [p.linearColor]: LinearColorPinTemplate,
+    [p.niagaraBool]: BoolPinTemplate,
+    [p.niagaraFloat]: RealPinTemplate,
+    [p.niagaraInt32]: IntPinTemplate,
+    [p.niagaraPosition]: VectorPinTemplate,
+    [p.rotator]: RotatorPinTemplate,
+    [p.vector]: VectorPinTemplate,
+    [p.vector2D]: Vector2DPinTemplate,
+    [p.vector2f]: Vector2DPinTemplate,
+    [p.vector3f]: VectorPinTemplate,
+    [p.vector4f]: Vector4DPinTemplate,
 }
 
 /** @param {PinEntity<IEntity>} entity */

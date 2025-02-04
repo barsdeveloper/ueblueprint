@@ -71,7 +71,7 @@ const niagaraOperationNodes = [
     "Vector3::Cross",
 ]
 
-const paths = Configuration.paths
+const p = Configuration.paths
 
 /**
  * @param {ObjectEntity} nodeEntity
@@ -80,18 +80,18 @@ const paths = Configuration.paths
 export default function nodeTemplateClass(nodeEntity) {
     const className = nodeEntity.getClass()
     if (
-        className === paths.callFunction
-        || className === paths.commutativeAssociativeBinaryOperator
-        || className === paths.callArrayFunction
+        className === p.callFunction
+        || className === p.commutativeAssociativeBinaryOperator
+        || className === p.callArrayFunction
     ) {
         const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? ""
         const memberName = nodeEntity.FunctionReference?.MemberName?.toString()
         if (
             memberName && (
-                memberParent === paths.kismetArrayLibrary
-                || memberParent === paths.kismetMathLibrary
-                || memberParent === paths.kismetStringLibrary
-                || memberParent === paths.typedElementHandleLibrary
+                memberParent === p.kismetArrayLibrary
+                || memberParent === p.kismetMathLibrary
+                || memberParent === p.kismetStringLibrary
+                || memberParent === p.typedElementHandleLibrary
             )) {
             if (memberName.startsWith("Conv_")) {
                 return VariableConversionNodeTemplate
@@ -145,37 +145,37 @@ export default function nodeTemplateClass(nodeEntity) {
                     return VariableOperationNodeTemplate
             }
         }
-        if (memberParent === paths.blueprintSetLibrary) {
+        if (memberParent === p.blueprintSetLibrary) {
             return VariableOperationNodeTemplate
         }
-        if (memberParent === paths.blueprintMapLibrary) {
+        if (memberParent === p.blueprintMapLibrary) {
             return VariableOperationNodeTemplate
         }
     }
     switch (className) {
-        case paths.comment:
-        case paths.materialGraphNodeComment:
+        case p.comment:
+        case p.materialGraphNodeComment:
             return CommentNodeTemplate
-        case paths.createDelegate:
+        case p.createDelegate:
             return NodeTemplate
-        case paths.metasoundEditorGraphExternalNode:
+        case p.metasoundEditorGraphExternalNode:
             if (nodeEntity["ClassName"]?.["Name"] == "Add") {
                 return MetasoundOperationTemplate
             }
             return MetasoundNodeTemplate
-        case paths.niagaraNodeOp:
+        case p.niagaraNodeOp:
             if (niagaraOperationNodes.includes(nodeEntity.OpName?.toString())) {
                 return VariableOperationNodeTemplate
             }
             break
-        case paths.promotableOperator:
+        case p.promotableOperator:
             return VariableOperationNodeTemplate
-        case paths.knot:
+        case p.knot:
             return KnotNodeTemplate
-        case paths.literal:
-        case paths.self:
-        case paths.variableGet:
-        case paths.variableSet:
+        case p.literal:
+        case p.self:
+        case p.variableGet:
+        case p.variableSet:
             return VariableAccessNodeTemplate
     }
     if (nodeEntity.isEvent()) {

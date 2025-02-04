@@ -9,14 +9,14 @@ const t$2=globalThis,e$3=t$2.ShadowRoot&&(void 0===t$2.ShadyCSS||t$2.ShadyCSS.na
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */const{is:i$4,defineProperty:e$2,getOwnPropertyDescriptor:r$2,getOwnPropertyNames:h$1,getOwnPropertySymbols:o$2,getPrototypeOf:n$2}=Object,a$1=globalThis,c$1=a$1.trustedTypes,l$1=c$1?c$1.emptyScript:"",p$1=a$1.reactiveElementPolyfillSupport,d$1=(t,s)=>t,u$1={toAttribute(t,s){switch(s){case Boolean:t=t?l$1:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t);}return t},fromAttribute(t,s){let i=t;switch(s){case Boolean:i=null!==t;break;case Number:i=null===t?null:Number(t);break;case Object:case Array:try{i=JSON.parse(t);}catch(t){i=null;}}return i}},f$1=(t,s)=>!i$4(t,s),y$1={attribute:!0,type:String,converter:u$1,reflect:!1,hasChanged:f$1};Symbol.metadata??=Symbol("metadata"),a$1.litPropertyMetadata??=new WeakMap;class b extends HTMLElement{static addInitializer(t){this._$Ei(),(this.l??=[]).push(t);}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(t,s=y$1){if(s.state&&(s.attribute=!1),this._$Ei(),this.elementProperties.set(t,s),!s.noAccessor){const i=Symbol(),r=this.getPropertyDescriptor(t,i,s);void 0!==r&&e$2(this.prototype,t,r);}}static getPropertyDescriptor(t,s,i){const{get:e,set:h}=r$2(this.prototype,t)??{get(){return this[s]},set(t){this[s]=t;}};return {get(){return e?.call(this)},set(s){const r=e?.call(this);h.call(this,s),this.requestUpdate(t,r,i);},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)??y$1}static _$Ei(){if(this.hasOwnProperty(d$1("elementProperties")))return;const t=n$2(this);t.finalize(),void 0!==t.l&&(this.l=[...t.l]),this.elementProperties=new Map(t.elementProperties);}static finalize(){if(this.hasOwnProperty(d$1("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(d$1("properties"))){const t=this.properties,s=[...h$1(t),...o$2(t)];for(const i of s)this.createProperty(i,t[i]);}const t=this[Symbol.metadata];if(null!==t){const s=litPropertyMetadata.get(t);if(void 0!==s)for(const[t,i]of s)this.elementProperties.set(t,i);}this._$Eh=new Map;for(const[t,s]of this.elementProperties){const i=this._$Eu(t,s);void 0!==i&&this._$Eh.set(i,t);}this.elementStyles=this.finalizeStyles(this.styles);}static finalizeStyles(s){const i=[];if(Array.isArray(s)){const e=new Set(s.flat(1/0).reverse());for(const s of e)i.unshift(c$2(s));}else void 0!==s&&i.push(c$2(s));return i}static _$Eu(t,s){const i=s.attribute;return !1===i?void 0:"string"==typeof i?i:"string"==typeof t?t.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev();}_$Ev(){this._$ES=new Promise((t=>this.enableUpdating=t)),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach((t=>t(this)));}addController(t){(this._$EO??=new Set).add(t),void 0!==this.renderRoot&&this.isConnected&&t.hostConnected?.();}removeController(t){this._$EO?.delete(t);}_$E_(){const t=new Map,s=this.constructor.elementProperties;for(const i of s.keys())this.hasOwnProperty(i)&&(t.set(i,this[i]),delete this[i]);t.size>0&&(this._$Ep=t);}createRenderRoot(){const t=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return S$1(t,this.constructor.elementStyles),t}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach((t=>t.hostConnected?.()));}enableUpdating(t){}disconnectedCallback(){this._$EO?.forEach((t=>t.hostDisconnected?.()));}attributeChangedCallback(t,s,i){this._$AK(t,i);}_$EC(t,s){const i=this.constructor.elementProperties.get(t),e=this.constructor._$Eu(t,i);if(void 0!==e&&!0===i.reflect){const r=(void 0!==i.converter?.toAttribute?i.converter:u$1).toAttribute(s,i.type);this._$Em=t,null==r?this.removeAttribute(e):this.setAttribute(e,r),this._$Em=null;}}_$AK(t,s){const i=this.constructor,e=i._$Eh.get(t);if(void 0!==e&&this._$Em!==e){const t=i.getPropertyOptions(e),r="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==t.converter?.fromAttribute?t.converter:u$1;this._$Em=e,this[e]=r.fromAttribute(s,t.type),this._$Em=null;}}requestUpdate(t,s,i){if(void 0!==t){if(i??=this.constructor.getPropertyOptions(t),!(i.hasChanged??f$1)(this[t],s))return;this.P(t,s,i);}!1===this.isUpdatePending&&(this._$ES=this._$ET());}P(t,s,i){this._$AL.has(t)||this._$AL.set(t,s),!0===i.reflect&&this._$Em!==t&&(this._$Ej??=new Set).add(t);}async _$ET(){this.isUpdatePending=!0;try{await this._$ES;}catch(t){Promise.reject(t);}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[t,s]of this._$Ep)this[t]=s;this._$Ep=void 0;}const t=this.constructor.elementProperties;if(t.size>0)for(const[s,i]of t)!0!==i.wrapped||this._$AL.has(s)||void 0===this[s]||this.P(s,this[s],i);}let t=!1;const s=this._$AL;try{t=this.shouldUpdate(s),t?(this.willUpdate(s),this._$EO?.forEach((t=>t.hostUpdate?.())),this.update(s)):this._$EU();}catch(s){throw t=!1,this._$EU(),s}t&&this._$AE(s);}willUpdate(t){}_$AE(t){this._$EO?.forEach((t=>t.hostUpdated?.())),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t);}_$EU(){this._$AL=new Map,this.isUpdatePending=!1;}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(t){return !0}update(t){this._$Ej&&=this._$Ej.forEach((t=>this._$EC(t,this[t]))),this._$EU();}updated(t){}firstUpdated(t){}}b.elementStyles=[],b.shadowRootOptions={mode:"open"},b[d$1("elementProperties")]=new Map,b[d$1("finalized")]=new Map,p$1?.({ReactiveElement:b}),(a$1.reactiveElementVersions??=[]).push("2.0.4");
+ */const{is:i$4,defineProperty:e$2,getOwnPropertyDescriptor:r$2,getOwnPropertyNames:h$1,getOwnPropertySymbols:o$2,getPrototypeOf:n$2}=Object,a$1=globalThis,c$1=a$1.trustedTypes,l$1=c$1?c$1.emptyScript:"",p$9=a$1.reactiveElementPolyfillSupport,d$1=(t,s)=>t,u$1={toAttribute(t,s){switch(s){case Boolean:t=t?l$1:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t);}return t},fromAttribute(t,s){let i=t;switch(s){case Boolean:i=null!==t;break;case Number:i=null===t?null:Number(t);break;case Object:case Array:try{i=JSON.parse(t);}catch(t){i=null;}}return i}},f$1=(t,s)=>!i$4(t,s),y$1={attribute:!0,type:String,converter:u$1,reflect:!1,hasChanged:f$1};Symbol.metadata??=Symbol("metadata"),a$1.litPropertyMetadata??=new WeakMap;class b extends HTMLElement{static addInitializer(t){this._$Ei(),(this.l??=[]).push(t);}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(t,s=y$1){if(s.state&&(s.attribute=!1),this._$Ei(),this.elementProperties.set(t,s),!s.noAccessor){const i=Symbol(),r=this.getPropertyDescriptor(t,i,s);void 0!==r&&e$2(this.prototype,t,r);}}static getPropertyDescriptor(t,s,i){const{get:e,set:h}=r$2(this.prototype,t)??{get(){return this[s]},set(t){this[s]=t;}};return {get(){return e?.call(this)},set(s){const r=e?.call(this);h.call(this,s),this.requestUpdate(t,r,i);},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)??y$1}static _$Ei(){if(this.hasOwnProperty(d$1("elementProperties")))return;const t=n$2(this);t.finalize(),void 0!==t.l&&(this.l=[...t.l]),this.elementProperties=new Map(t.elementProperties);}static finalize(){if(this.hasOwnProperty(d$1("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(d$1("properties"))){const t=this.properties,s=[...h$1(t),...o$2(t)];for(const i of s)this.createProperty(i,t[i]);}const t=this[Symbol.metadata];if(null!==t){const s=litPropertyMetadata.get(t);if(void 0!==s)for(const[t,i]of s)this.elementProperties.set(t,i);}this._$Eh=new Map;for(const[t,s]of this.elementProperties){const i=this._$Eu(t,s);void 0!==i&&this._$Eh.set(i,t);}this.elementStyles=this.finalizeStyles(this.styles);}static finalizeStyles(s){const i=[];if(Array.isArray(s)){const e=new Set(s.flat(1/0).reverse());for(const s of e)i.unshift(c$2(s));}else void 0!==s&&i.push(c$2(s));return i}static _$Eu(t,s){const i=s.attribute;return !1===i?void 0:"string"==typeof i?i:"string"==typeof t?t.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev();}_$Ev(){this._$ES=new Promise((t=>this.enableUpdating=t)),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach((t=>t(this)));}addController(t){(this._$EO??=new Set).add(t),void 0!==this.renderRoot&&this.isConnected&&t.hostConnected?.();}removeController(t){this._$EO?.delete(t);}_$E_(){const t=new Map,s=this.constructor.elementProperties;for(const i of s.keys())this.hasOwnProperty(i)&&(t.set(i,this[i]),delete this[i]);t.size>0&&(this._$Ep=t);}createRenderRoot(){const t=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return S$1(t,this.constructor.elementStyles),t}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach((t=>t.hostConnected?.()));}enableUpdating(t){}disconnectedCallback(){this._$EO?.forEach((t=>t.hostDisconnected?.()));}attributeChangedCallback(t,s,i){this._$AK(t,i);}_$EC(t,s){const i=this.constructor.elementProperties.get(t),e=this.constructor._$Eu(t,i);if(void 0!==e&&!0===i.reflect){const r=(void 0!==i.converter?.toAttribute?i.converter:u$1).toAttribute(s,i.type);this._$Em=t,null==r?this.removeAttribute(e):this.setAttribute(e,r),this._$Em=null;}}_$AK(t,s){const i=this.constructor,e=i._$Eh.get(t);if(void 0!==e&&this._$Em!==e){const t=i.getPropertyOptions(e),r="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==t.converter?.fromAttribute?t.converter:u$1;this._$Em=e,this[e]=r.fromAttribute(s,t.type),this._$Em=null;}}requestUpdate(t,s,i){if(void 0!==t){if(i??=this.constructor.getPropertyOptions(t),!(i.hasChanged??f$1)(this[t],s))return;this.P(t,s,i);}!1===this.isUpdatePending&&(this._$ES=this._$ET());}P(t,s,i){this._$AL.has(t)||this._$AL.set(t,s),!0===i.reflect&&this._$Em!==t&&(this._$Ej??=new Set).add(t);}async _$ET(){this.isUpdatePending=!0;try{await this._$ES;}catch(t){Promise.reject(t);}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[t,s]of this._$Ep)this[t]=s;this._$Ep=void 0;}const t=this.constructor.elementProperties;if(t.size>0)for(const[s,i]of t)!0!==i.wrapped||this._$AL.has(s)||void 0===this[s]||this.P(s,this[s],i);}let t=!1;const s=this._$AL;try{t=this.shouldUpdate(s),t?(this.willUpdate(s),this._$EO?.forEach((t=>t.hostUpdate?.())),this.update(s)):this._$EU();}catch(s){throw t=!1,this._$EU(),s}t&&this._$AE(s);}willUpdate(t){}_$AE(t){this._$EO?.forEach((t=>t.hostUpdated?.())),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t);}_$EU(){this._$AL=new Map,this.isUpdatePending=!1;}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(t){return !0}update(t){this._$Ej&&=this._$Ej.forEach((t=>this._$EC(t,this[t]))),this._$EU();}updated(t){}firstUpdated(t){}}b.elementStyles=[],b.shadowRootOptions={mode:"open"},b[d$1("elementProperties")]=new Map,b[d$1("finalized")]=new Map,p$9?.({ReactiveElement:b}),(a$1.reactiveElementVersions??=[]).push("2.0.4");
 
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const t$1=globalThis,i$3=t$1.trustedTypes,s=i$3?i$3.createPolicy("lit-html",{createHTML:t=>t}):void 0,e$1="$lit$",h=`lit$${Math.random().toFixed(9).slice(2)}$`,o$1="?"+h,n$1=`<${o$1}>`,r$1=document,l=()=>r$1.createComment(""),c=t=>null===t||"object"!=typeof t&&"function"!=typeof t,a=Array.isArray,u=t=>a(t)||"function"==typeof t?.[Symbol.iterator],d="[ \t\n\f\r]",f=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,v=/-->/g,_=/>/g,m=RegExp(`>|${d}(?:([^\\s"'>=/]+)(${d}*=${d}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),p=/'/g,g=/"/g,$=/^(?:script|style|textarea|title)$/i,y=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),x=y(1),T=Symbol.for("lit-noChange"),E=Symbol.for("lit-nothing"),A=new WeakMap,C=r$1.createTreeWalker(r$1,129);function P(t,i){if(!a(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==s?s.createHTML(i):i}const V=(t,i)=>{const s=t.length-1,o=[];let r,l=2===i?"<svg>":3===i?"<math>":"",c=f;for(let i=0;i<s;i++){const s=t[i];let a,u,d=-1,y=0;for(;y<s.length&&(c.lastIndex=y,u=c.exec(s),null!==u);)y=c.lastIndex,c===f?"!--"===u[1]?c=v:void 0!==u[1]?c=_:void 0!==u[2]?($.test(u[2])&&(r=RegExp("</"+u[2],"g")),c=m):void 0!==u[3]&&(c=m):c===m?">"===u[0]?(c=r??f,d=-1):void 0===u[1]?d=-2:(d=c.lastIndex-u[2].length,a=u[1],c=void 0===u[3]?m:'"'===u[3]?g:p):c===g||c===p?c=m:c===v||c===_?c=f:(c=m,r=void 0);const x=c===m&&t[i+1].startsWith("/>")?" ":"";l+=c===f?s+n$1:d>=0?(o.push(a),s.slice(0,d)+e$1+s.slice(d)+h+x):s+h+(-2===d?i:x);}return [P(t,l+(t[s]||"<?>")+(2===i?"</svg>":3===i?"</math>":"")),o]};class N{constructor({strings:t,_$litType$:s},n){let r;this.parts=[];let c=0,a=0;const u=t.length-1,d=this.parts,[f,v]=V(t,s);if(this.el=N.createElement(f,n),C.currentNode=this.el.content,2===s||3===s){const t=this.el.content.firstChild;t.replaceWith(...t.childNodes);}for(;null!==(r=C.nextNode())&&d.length<u;){if(1===r.nodeType){if(r.hasAttributes())for(const t of r.getAttributeNames())if(t.endsWith(e$1)){const i=v[a++],s=r.getAttribute(t).split(h),e=/([.?@])?(.*)/.exec(i);d.push({type:1,index:c,name:e[2],strings:s,ctor:"."===e[1]?H:"?"===e[1]?I:"@"===e[1]?L:k}),r.removeAttribute(t);}else t.startsWith(h)&&(d.push({type:6,index:c}),r.removeAttribute(t));if($.test(r.tagName)){const t=r.textContent.split(h),s=t.length-1;if(s>0){r.textContent=i$3?i$3.emptyScript:"";for(let i=0;i<s;i++)r.append(t[i],l()),C.nextNode(),d.push({type:2,index:++c});r.append(t[s],l());}}}else if(8===r.nodeType)if(r.data===o$1)d.push({type:2,index:c});else {let t=-1;for(;-1!==(t=r.data.indexOf(h,t+1));)d.push({type:7,index:c}),t+=h.length-1;}c++;}}static createElement(t,i){const s=r$1.createElement("template");return s.innerHTML=t,s}}function S(t,i,s=t,e){if(i===T)return i;let h=void 0!==e?s._$Co?.[e]:s._$Cl;const o=c(i)?void 0:i._$litDirective$;return h?.constructor!==o&&(h?._$AO?.(!1),void 0===o?h=void 0:(h=new o(t),h._$AT(t,s,e)),void 0!==e?(s._$Co??=[])[e]=h:s._$Cl=h),void 0!==h&&(i=S(t,h._$AS(t,i.values),h,e)),i}class M{constructor(t,i){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){const{el:{content:i},parts:s}=this._$AD,e=(t?.creationScope??r$1).importNode(i,!0);C.currentNode=e;let h=C.nextNode(),o=0,n=0,l=s[0];for(;void 0!==l;){if(o===l.index){let i;2===l.type?i=new R(h,h.nextSibling,this,t):1===l.type?i=new l.ctor(h,l.name,l.strings,this,t):6===l.type&&(i=new z(h,this,t)),this._$AV.push(i),l=s[++n];}o!==l?.index&&(h=C.nextNode(),o++);}return C.currentNode=r$1,e}p(t){let i=0;for(const s of this._$AV)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class R{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(t,i,s,e){this.type=2,this._$AH=E,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cv=e?.isConnected??!0;}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t?.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=S(this,t,i),c(t)?t===E||null==t||""===t?(this._$AH!==E&&this._$AR(),this._$AH=E):t!==this._$AH&&t!==T&&this._(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):u(t)?this.k(t):this._(t);}O(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t));}_(t){this._$AH!==E&&c(this._$AH)?this._$AA.nextSibling.data=t:this.T(r$1.createTextNode(t)),this._$AH=t;}$(t){const{values:i,_$litType$:s}=t,e="number"==typeof s?this._$AC(t):(void 0===s.el&&(s.el=N.createElement(P(s.h,s.h[0]),this.options)),s);if(this._$AH?._$AD===e)this._$AH.p(i);else {const t=new M(e,this),s=t.u(this.options);t.p(i),this.T(s),this._$AH=t;}}_$AC(t){let i=A.get(t.strings);return void 0===i&&A.set(t.strings,i=new N(t)),i}k(t){a(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const h of t)e===i.length?i.push(s=new R(this.O(l()),this.O(l()),this,this.options)):s=i[e],s._$AI(h),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){for(this._$AP?.(!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){void 0===this._$AM&&(this._$Cv=t,this._$AP?.(t));}}class k{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(t,i,s,e,h){this.type=1,this._$AH=E,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=h,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=E;}_$AI(t,i=this,s,e){const h=this.strings;let o=!1;if(void 0===h)t=S(this,t,i,0),o=!c(t)||t!==this._$AH&&t!==T,o&&(this._$AH=t);else {const e=t;let n,r;for(t=h[0],n=0;n<h.length-1;n++)r=S(this,e[s+n],i,n),r===T&&(r=this._$AH[n]),o||=!c(r)||r!==this._$AH[n],r===E?t=E:t!==E&&(t+=(r??"")+h[n+1]),this._$AH[n]=r;}o&&!e&&this.j(t);}j(t){t===E?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,t??"");}}class H extends k{constructor(){super(...arguments),this.type=3;}j(t){this.element[this.name]=t===E?void 0:t;}}class I extends k{constructor(){super(...arguments),this.type=4;}j(t){this.element.toggleAttribute(this.name,!!t&&t!==E);}}class L extends k{constructor(t,i,s,e,h){super(t,i,s,e,h),this.type=5;}_$AI(t,i=this){if((t=S(this,t,i,0)??E)===T)return;const s=this._$AH,e=t===E&&s!==E||t.capture!==s.capture||t.once!==s.once||t.passive!==s.passive,h=t!==E&&(s===E||e);e&&this.element.removeEventListener(this.name,this,s),h&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,t):this._$AH.handleEvent(t);}}class z{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){S(this,t);}}const j=t$1.litHtmlPolyfillSupport;j?.(N,R),(t$1.litHtmlVersions??=[]).push("3.2.1");const B=(t,i,s)=>{const e=s?.renderBefore??i;let h=e._$litPart$;if(void 0===h){const t=s?.renderBefore??null;e._$litPart$=h=new R(i.insertBefore(l(),t),t,void 0,s??{});}return h._$AI(t),h};
+const t$1=globalThis,i$3=t$1.trustedTypes,s=i$3?i$3.createPolicy("lit-html",{createHTML:t=>t}):void 0,e$1="$lit$",h=`lit$${Math.random().toFixed(9).slice(2)}$`,o$1="?"+h,n$1=`<${o$1}>`,r$1=document,l=()=>r$1.createComment(""),c=t=>null===t||"object"!=typeof t&&"function"!=typeof t,a=Array.isArray,u=t=>a(t)||"function"==typeof t?.[Symbol.iterator],d="[ \t\n\f\r]",f=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,v=/-->/g,_=/>/g,m=RegExp(`>|${d}(?:([^\\s"'>=/]+)(${d}*=${d}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),p$8=/'/g,g=/"/g,$=/^(?:script|style|textarea|title)$/i,y=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),x=y(1),T=Symbol.for("lit-noChange"),E=Symbol.for("lit-nothing"),A=new WeakMap,C=r$1.createTreeWalker(r$1,129);function P(t,i){if(!a(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==s?s.createHTML(i):i}const V=(t,i)=>{const s=t.length-1,o=[];let r,l=2===i?"<svg>":3===i?"<math>":"",c=f;for(let i=0;i<s;i++){const s=t[i];let a,u,d=-1,y=0;for(;y<s.length&&(c.lastIndex=y,u=c.exec(s),null!==u);)y=c.lastIndex,c===f?"!--"===u[1]?c=v:void 0!==u[1]?c=_:void 0!==u[2]?($.test(u[2])&&(r=RegExp("</"+u[2],"g")),c=m):void 0!==u[3]&&(c=m):c===m?">"===u[0]?(c=r??f,d=-1):void 0===u[1]?d=-2:(d=c.lastIndex-u[2].length,a=u[1],c=void 0===u[3]?m:'"'===u[3]?g:p$8):c===g||c===p$8?c=m:c===v||c===_?c=f:(c=m,r=void 0);const x=c===m&&t[i+1].startsWith("/>")?" ":"";l+=c===f?s+n$1:d>=0?(o.push(a),s.slice(0,d)+e$1+s.slice(d)+h+x):s+h+(-2===d?i:x);}return [P(t,l+(t[s]||"<?>")+(2===i?"</svg>":3===i?"</math>":"")),o]};class N{constructor({strings:t,_$litType$:s},n){let r;this.parts=[];let c=0,a=0;const u=t.length-1,d=this.parts,[f,v]=V(t,s);if(this.el=N.createElement(f,n),C.currentNode=this.el.content,2===s||3===s){const t=this.el.content.firstChild;t.replaceWith(...t.childNodes);}for(;null!==(r=C.nextNode())&&d.length<u;){if(1===r.nodeType){if(r.hasAttributes())for(const t of r.getAttributeNames())if(t.endsWith(e$1)){const i=v[a++],s=r.getAttribute(t).split(h),e=/([.?@])?(.*)/.exec(i);d.push({type:1,index:c,name:e[2],strings:s,ctor:"."===e[1]?H:"?"===e[1]?I:"@"===e[1]?L:k}),r.removeAttribute(t);}else t.startsWith(h)&&(d.push({type:6,index:c}),r.removeAttribute(t));if($.test(r.tagName)){const t=r.textContent.split(h),s=t.length-1;if(s>0){r.textContent=i$3?i$3.emptyScript:"";for(let i=0;i<s;i++)r.append(t[i],l()),C.nextNode(),d.push({type:2,index:++c});r.append(t[s],l());}}}else if(8===r.nodeType)if(r.data===o$1)d.push({type:2,index:c});else {let t=-1;for(;-1!==(t=r.data.indexOf(h,t+1));)d.push({type:7,index:c}),t+=h.length-1;}c++;}}static createElement(t,i){const s=r$1.createElement("template");return s.innerHTML=t,s}}function S(t,i,s=t,e){if(i===T)return i;let h=void 0!==e?s._$Co?.[e]:s._$Cl;const o=c(i)?void 0:i._$litDirective$;return h?.constructor!==o&&(h?._$AO?.(!1),void 0===o?h=void 0:(h=new o(t),h._$AT(t,s,e)),void 0!==e?(s._$Co??=[])[e]=h:s._$Cl=h),void 0!==h&&(i=S(t,h._$AS(t,i.values),h,e)),i}class M{constructor(t,i){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){const{el:{content:i},parts:s}=this._$AD,e=(t?.creationScope??r$1).importNode(i,!0);C.currentNode=e;let h=C.nextNode(),o=0,n=0,l=s[0];for(;void 0!==l;){if(o===l.index){let i;2===l.type?i=new R(h,h.nextSibling,this,t):1===l.type?i=new l.ctor(h,l.name,l.strings,this,t):6===l.type&&(i=new z(h,this,t)),this._$AV.push(i),l=s[++n];}o!==l?.index&&(h=C.nextNode(),o++);}return C.currentNode=r$1,e}p(t){let i=0;for(const s of this._$AV)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class R{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(t,i,s,e){this.type=2,this._$AH=E,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cv=e?.isConnected??!0;}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t?.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=S(this,t,i),c(t)?t===E||null==t||""===t?(this._$AH!==E&&this._$AR(),this._$AH=E):t!==this._$AH&&t!==T&&this._(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):u(t)?this.k(t):this._(t);}O(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t));}_(t){this._$AH!==E&&c(this._$AH)?this._$AA.nextSibling.data=t:this.T(r$1.createTextNode(t)),this._$AH=t;}$(t){const{values:i,_$litType$:s}=t,e="number"==typeof s?this._$AC(t):(void 0===s.el&&(s.el=N.createElement(P(s.h,s.h[0]),this.options)),s);if(this._$AH?._$AD===e)this._$AH.p(i);else {const t=new M(e,this),s=t.u(this.options);t.p(i),this.T(s),this._$AH=t;}}_$AC(t){let i=A.get(t.strings);return void 0===i&&A.set(t.strings,i=new N(t)),i}k(t){a(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const h of t)e===i.length?i.push(s=new R(this.O(l()),this.O(l()),this,this.options)):s=i[e],s._$AI(h),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){for(this._$AP?.(!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){void 0===this._$AM&&(this._$Cv=t,this._$AP?.(t));}}class k{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(t,i,s,e,h){this.type=1,this._$AH=E,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=h,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=E;}_$AI(t,i=this,s,e){const h=this.strings;let o=!1;if(void 0===h)t=S(this,t,i,0),o=!c(t)||t!==this._$AH&&t!==T,o&&(this._$AH=t);else {const e=t;let n,r;for(t=h[0],n=0;n<h.length-1;n++)r=S(this,e[s+n],i,n),r===T&&(r=this._$AH[n]),o||=!c(r)||r!==this._$AH[n],r===E?t=E:t!==E&&(t+=(r??"")+h[n+1]),this._$AH[n]=r;}o&&!e&&this.j(t);}j(t){t===E?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,t??"");}}class H extends k{constructor(){super(...arguments),this.type=3;}j(t){this.element[this.name]=t===E?void 0:t;}}class I extends k{constructor(){super(...arguments),this.type=4;}j(t){this.element.toggleAttribute(this.name,!!t&&t!==E);}}class L extends k{constructor(t,i,s,e,h){super(t,i,s,e,h),this.type=5;}_$AI(t,i=this){if((t=S(this,t,i,0)??E)===T)return;const s=this._$AH,e=t===E&&s!==E||t.capture!==s.capture||t.once!==s.once||t.passive!==s.passive,h=t!==E&&(s===E||e);e&&this.element.removeEventListener(this.name,this,s),h&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,t):this._$AH.handleEvent(t);}}class z{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){S(this,t);}}const j=t$1.litHtmlPolyfillSupport;j?.(N,R),(t$1.litHtmlVersions??=[]).push("3.2.1");const B=(t,i,s)=>{const e=s?.renderBefore??i;let h=e._$litPart$;if(void 0===h){const t=s?.renderBefore??null;e._$litPart$=h=new R(i.insertBefore(l(),t),t,void 0,s??{});}return h._$AI(t),h};
 
 /**
  * @license
@@ -3720,26 +3720,28 @@ class LinearColorEntity extends IEntity {
     }
 }
 
+const p$7 = Configuration.paths;
+
 /** @param {ObjectEntity} entity */
 function nodeColor(entity) {
     switch (entity.getType()) {
-        case Configuration.paths.materialExpressionConstant2Vector:
-        case Configuration.paths.materialExpressionConstant3Vector:
-        case Configuration.paths.materialExpressionConstant4Vector:
+        case p$7.materialExpressionConstant2Vector:
+        case p$7.materialExpressionConstant3Vector:
+        case p$7.materialExpressionConstant4Vector:
             return Configuration.nodeColors.yellow
-        case Configuration.paths.materialExpressionFunctionInput:
-        case Configuration.paths.materialExpressionTextureCoordinate:
-        case Configuration.paths.materialExpressionWorldPosition:
-        case Configuration.paths.pcgEditorGraphNodeInput:
-        case Configuration.paths.pcgEditorGraphNodeOutput:
+        case p$7.materialExpressionFunctionInput:
+        case p$7.materialExpressionTextureCoordinate:
+        case p$7.materialExpressionWorldPosition:
+        case p$7.pcgEditorGraphNodeInput:
+        case p$7.pcgEditorGraphNodeOutput:
             return Configuration.nodeColors.red
-        case Configuration.paths.makeStruct:
+        case p$7.makeStruct:
             return Configuration.nodeColors.darkBlue
-        case Configuration.paths.materialExpressionMaterialFunctionCall:
+        case p$7.materialExpressionMaterialFunctionCall:
             return Configuration.nodeColors.blue
-        case Configuration.paths.materialExpressionTextureSample:
+        case p$7.materialExpressionTextureSample:
             return Configuration.nodeColors.darkTurquoise
-        case Configuration.paths.niagaraNodeInput:
+        case p$7.niagaraNodeInput:
             switch (entity["Usage"]?.toString()) {
                 case "Attribute": return Configuration.nodeColors.intenseGreen
                 case "Parameter": return Configuration.nodeColors.red
@@ -3750,29 +3752,29 @@ function nodeColor(entity) {
             }
     }
     switch (entity.getClass()) {
-        case Configuration.paths.niagaraNodeFunctionCall:
+        case p$7.niagaraNodeFunctionCall:
             return Configuration.nodeColors.darkerBlue
-        case Configuration.paths.dynamicCast:
+        case p$7.dynamicCast:
             return Configuration.nodeColors.turquoise
-        case Configuration.paths.inputDebugKey:
-        case Configuration.paths.inputKey:
+        case p$7.inputDebugKey:
+        case p$7.inputKey:
             return Configuration.nodeColors.red
-        case Configuration.paths.createDelegate:
-        case Configuration.paths.enumLiteral:
-        case Configuration.paths.makeArray:
-        case Configuration.paths.makeMap:
-        case Configuration.paths.materialGraphNode:
-        case Configuration.paths.select:
+        case p$7.createDelegate:
+        case p$7.enumLiteral:
+        case p$7.makeArray:
+        case p$7.makeMap:
+        case p$7.materialGraphNode:
+        case p$7.select:
             return Configuration.nodeColors.green
-        case Configuration.paths.executionSequence:
-        case Configuration.paths.ifThenElse:
-        case Configuration.paths.macro:
-        case Configuration.paths.multiGate:
+        case p$7.executionSequence:
+        case p$7.ifThenElse:
+        case p$7.macro:
+        case p$7.multiGate:
             return Configuration.nodeColors.gray
-        case Configuration.paths.functionEntry:
-        case Configuration.paths.functionResult:
+        case p$7.functionEntry:
+        case p$7.functionResult:
             return Configuration.nodeColors.violet
-        case Configuration.paths.timeline:
+        case p$7.timeline:
             return Configuration.nodeColors.yellow
     }
     if (entity.switchTarget()) {
@@ -4008,7 +4010,6 @@ class VectorEntity extends IEntity {
     }
 }
 
-const paths$2 = Configuration.paths;
 const sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/;
 const keyNameValue = {
     "A_AccentGrave": "à",
@@ -4098,6 +4099,8 @@ const niagaraNodeNames = {
         "TWO_PI": `2 ${String.fromCharCode(0x03C0)}`,
     }).map(([k, v]) => ["Numeric::" + k, v])),
 };
+const p$6 = Configuration.paths;
+const format = Utility.formatStringName;
 
 /** @param {String} value */
 function numberFromText(value = "") {
@@ -4142,58 +4145,58 @@ function keyName(value) {
 function nodeTitle(entity) {
     let value;
     switch (entity.getType()) {
-        case paths$2.addDelegate:
+        case p$6.addDelegate:
             value ??= "Bind Event to ";
-        case paths$2.clearDelegate:
+        case p$6.clearDelegate:
             value ??= "Unbind all Events from ";
-        case paths$2.removeDelegate:
+        case p$6.removeDelegate:
             value ??= "Unbind Event from ";
-            return value + Utility.formatStringName(
+            return value + format(
                 entity.DelegateReference?.MemberName?.toString().replace(/Delegate$/, "") ?? "None"
             )
-        case paths$2.asyncAction:
+        case p$6.asyncAction:
             if (entity.ProxyFactoryFunctionName) {
-                return Utility.formatStringName(entity.ProxyFactoryFunctionName?.toString())
+                return format(entity.ProxyFactoryFunctionName?.toString())
             }
-        case paths$2.actorBoundEvent:
-        case paths$2.componentBoundEvent:
-            return `${Utility.formatStringName(entity.DelegatePropertyName?.toString())} (${entity.ComponentPropertyName?.toString() ?? "Unknown"})`
-        case paths$2.callDelegate:
+        case p$6.actorBoundEvent:
+        case p$6.componentBoundEvent:
+            return `${format(entity.DelegatePropertyName?.toString())} (${entity.ComponentPropertyName?.toString() ?? "Unknown"})`
+        case p$6.callDelegate:
             return `Call ${entity.DelegateReference?.MemberName?.toString() ?? "None"}`
-        case paths$2.createDelegate:
+        case p$6.createDelegate:
             return "Create Event"
-        case paths$2.customEvent:
+        case p$6.customEvent:
             if (entity.CustomFunctionName) {
                 return entity.CustomFunctionName?.toString()
             }
-        case paths$2.dynamicCast:
+        case p$6.dynamicCast:
             if (!entity.TargetType) {
                 return "Bad cast node" // Target type not found
             }
             return `Cast To ${entity.TargetType?.getName()}`
-        case paths$2.enumLiteral:
+        case p$6.enumLiteral:
             return `Literal enum ${entity.Enum?.getName()}`
-        case paths$2.event:
+        case p$6.event:
             return `Event ${(entity.EventReference?.MemberName?.toString() ?? "").replace(/^Receive/, "")}`
-        case paths$2.executionSequence:
+        case p$6.executionSequence:
             return "Sequence"
-        case paths$2.forEachElementInEnum:
+        case p$6.forEachElementInEnum:
             return `For Each ${entity.Enum?.getName()}`
-        case paths$2.forEachLoopWithBreak:
+        case p$6.forEachLoopWithBreak:
             return "For Each Loop with Break"
-        case paths$2.functionEntry:
+        case p$6.functionEntry:
             return entity.FunctionReference?.MemberName?.toString() === "UserConstructionScript"
                 ? "Construction Script"
                 : entity.FunctionReference?.MemberName?.toString()
-        case paths$2.functionResult:
+        case p$6.functionResult:
             return "Return Node"
-        case paths$2.ifThenElse:
+        case p$6.ifThenElse:
             return "Branch"
-        case paths$2.makeStruct:
+        case p$6.makeStruct:
             if (entity.StructType) {
                 return `Make ${entity.StructType.getName()}`
             }
-        case paths$2.materialExpressionComponentMask: {
+        case p$6.materialExpressionComponentMask: {
             const materialObject = entity.getMaterialSubobject();
             if (materialObject) {
                 return `Mask ( ${Configuration.rgba
@@ -4202,15 +4205,15 @@ function nodeTitle(entity) {
                     .join("")})`
             }
         }
-        case paths$2.materialExpressionConstant:
+        case p$6.materialExpressionConstant:
             value ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName.toString() == "Value")?.DefaultValue];
-        case paths$2.materialExpressionConstant2Vector:
+        case p$6.materialExpressionConstant2Vector:
             value ??= [
                 entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "X")?.DefaultValue,
                 entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "Y")?.DefaultValue,
             ];
-        case paths$2.materialExpressionConstant3Vector:
-        case paths$2.materialExpressionConstant4Vector:
+        case p$6.materialExpressionConstant3Vector:
+        case p$6.materialExpressionConstant4Vector:
             if (!value) {
                 const vector = entity.getCustomproperties()
                     .find(pinEntity => pinEntity.PinName?.toString() == "Constant")
@@ -4224,32 +4227,32 @@ function nodeTitle(entity) {
             }
             value = undefined;
             break
-        case paths$2.materialExpressionFunctionInput: {
+        case p$6.materialExpressionFunctionInput: {
             const materialObject = entity.getMaterialSubobject();
             const inputName = materialObject?.InputName ?? "In";
             const inputType = materialObject?.InputType?.value.match(/^.+?_(\w+)$/)?.[1] ?? "Vector3";
             return `Input ${inputName} (${inputType})`
         }
-        case paths$2.materialExpressionLogarithm:
+        case p$6.materialExpressionLogarithm:
             return "Ln"
-        case paths$2.materialExpressionLogarithm10:
+        case p$6.materialExpressionLogarithm10:
             return "Log10"
-        case paths$2.materialExpressionLogarithm2:
+        case p$6.materialExpressionLogarithm2:
             return "Log2"
-        case paths$2.materialExpressionMaterialFunctionCall:
+        case p$6.materialExpressionMaterialFunctionCall:
             const materialFunction = entity.getMaterialSubobject()?.MaterialFunction;
             if (materialFunction) {
                 return materialFunction.getName()
             }
             break
-        case paths$2.materialExpressionSquareRoot:
+        case p$6.materialExpressionSquareRoot:
             return "Sqrt"
-        case paths$2.materialExpressionSubtract:
+        case p$6.materialExpressionSubtract:
             const materialObject = entity.getMaterialSubobject();
             if (materialObject) {
                 return `Subtract(${materialObject.ConstA ?? "1"},${materialObject.ConstB ?? "1"})`
             }
-        case paths$2.metasoundEditorGraphExternalNode: {
+        case p$6.metasoundEditorGraphExternalNode: {
             const name = entity["ClassName"]?.["Name"];
             if (name) {
                 switch (name) {
@@ -4258,7 +4261,7 @@ function nodeTitle(entity) {
                 }
             }
         }
-        case paths$2.niagaraNodeConvert:
+        case p$6.niagaraNodeConvert:
             /** @type {String} */
             const targetType = (entity["AutowireMakeType"]?.["ClassStructOrEnum"] ?? "")
                 .toString()
@@ -4266,11 +4269,11 @@ function nodeTitle(entity) {
                 ?.[1]
                 ?? "";
             return `Make ${targetType}`
-        case paths$2.pcgEditorGraphNodeInput:
+        case p$6.pcgEditorGraphNodeInput:
             return "Input"
-        case paths$2.pcgEditorGraphNodeOutput:
+        case p$6.pcgEditorGraphNodeOutput:
             return "Output"
-        case paths$2.spawnActorFromClass:
+        case p$6.spawnActorFromClass:
             let className = entity.getCustomproperties()
                 .find(pinEntity => pinEntity.PinName.toString() == "ReturnValue")
                 ?.PinType
@@ -4279,21 +4282,21 @@ function nodeTitle(entity) {
             if (className === "Actor") {
                 className = null;
             }
-            return `SpawnActor ${Utility.formatStringName(className ?? "NONE")}`
-        case paths$2.switchEnum:
+            return `SpawnActor ${format(className ?? "NONE")}`
+        case p$6.switchEnum:
             return `Switch on ${entity.Enum?.getName() ?? "Enum"}`
-        case paths$2.switchInteger:
+        case p$6.switchInteger:
             return `Switch on Int`
-        case paths$2.variableGet:
+        case p$6.variableGet:
             return ""
-        case paths$2.variableSet:
+        case p$6.variableSet:
             return "SET"
     }
     const className = entity.getClass();
     let switchTarget = entity.switchTarget();
     if (switchTarget) {
         if (switchTarget[0] !== "E") {
-            switchTarget = Utility.formatStringName(switchTarget);
+            switchTarget = format(switchTarget);
         }
         return `Switch on ${switchTarget}`
     }
@@ -4303,16 +4306,16 @@ function nodeTitle(entity) {
     const keyNameSymbol = entity.getHIDAttribute();
     if (keyNameSymbol) {
         const name = keyNameSymbol.toString();
-        let title = keyName(name) ?? Utility.formatStringName(name);
-        if (className === paths$2.inputDebugKey) {
+        let title = keyName(name) ?? format(name);
+        if (className === p$6.inputDebugKey) {
             title = "Debug Key " + title;
-        } else if (className === paths$2.getInputAxisKeyValue) {
+        } else if (className === p$6.getInputAxisKeyValue) {
             title = "Get " + title;
         }
         return title
     }
-    if (className === paths$2.macro) {
-        return Utility.formatStringName(entity.MacroGraphReference?.getMacroName())
+    if (className === p$6.macro) {
+        return format(entity.MacroGraphReference?.getMacroName())
     }
     const materialSubobject = entity.getMaterialSubobject();
     if (materialSubobject) {
@@ -4331,19 +4334,19 @@ function nodeTitle(entity) {
     }
     const settingsObject = entity.getSettingsObject();
     if (settingsObject) {
-        if (settingsObject.ExportPath?.valueOf()?.type === paths$2.pcgHiGenGridSizeSettings) {
+        if (settingsObject.ExportPath?.valueOf()?.type === p$6.pcgHiGenGridSizeSettings) {
             return `Grid Size: ${(
                 settingsObject.HiGenGridSize?.toString().match(/\d+/)?.[0]?.concat("00")
                 ?? settingsObject.HiGenGridSize?.toString().match(/^\w+$/)?.[0]
             ) ?? "256"}`
         }
         if (settingsObject.BlueprintElementInstance) {
-            return Utility.formatStringName(settingsObject.BlueprintElementType.getName())
+            return format(settingsObject.BlueprintElementType.getName())
         }
         if (settingsObject.Operation) {
             const match = settingsObject.Name?.toString().match(/PCGMetadata(\w+)Settings_\d+/);
             if (match) {
-                return Utility.formatStringName(match[1] + ": " + settingsObject.Operation)
+                return format(match[1] + ": " + settingsObject.Operation)
             }
         }
         const settingsSubgraphObject = settingsObject.getSubgraphObject();
@@ -4358,7 +4361,7 @@ function nodeTitle(entity) {
             case "AddKey":
                 let result = memberParent.match(sequencerScriptingNameRegex);
                 if (result) {
-                    return `Add Key (${Utility.formatStringName(result[1])})`
+                    return `Add Key (${format(result[1])})`
                 }
             case "Concat_StrStr":
                 return "Append"
@@ -4369,16 +4372,16 @@ function nodeTitle(entity) {
                 + (memberNameTraceLineMatch[1] === "Multi" ? " Multi " : " ")
                 + (memberNameTraceLineMatch[2] === ""
                     ? "By Channel"
-                    : Utility.formatStringName(memberNameTraceLineMatch[2])
+                    : format(memberNameTraceLineMatch[2])
                 )
         }
         switch (memberParent) {
-            case paths$2.blueprintGameplayTagLibrary:
-            case paths$2.kismetMathLibrary:
-            case paths$2.kismetStringLibrary:
-            case paths$2.slateBlueprintLibrary:
-            case paths$2.timeManagementBlueprintLibrary:
-            case paths$2.typedElementHandleLibrary:
+            case p$6.blueprintGameplayTagLibrary:
+            case p$6.kismetMathLibrary:
+            case p$6.kismetStringLibrary:
+            case p$6.slateBlueprintLibrary:
+            case p$6.timeManagementBlueprintLibrary:
+            case p$6.typedElementHandleLibrary:
                 const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/);
                 if (leadingLetter) {
                     // Some functions start with B or F (Like FCeil, FMax, BMin)
@@ -4463,23 +4466,23 @@ function nodeTitle(entity) {
                     return "^"
                 }
                 break
-            case paths$2.blueprintSetLibrary:
+            case p$6.blueprintSetLibrary:
                 {
                     const setOperationMatch = memberName.match(/Set_(\w+)/);
                     if (setOperationMatch) {
-                        return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
+                        return format(setOperationMatch[1]).toUpperCase()
                     }
                 }
                 break
-            case paths$2.blueprintMapLibrary:
+            case p$6.blueprintMapLibrary:
                 {
                     const setOperationMatch = memberName.match(/Map_(\w+)/);
                     if (setOperationMatch) {
-                        return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
+                        return format(setOperationMatch[1]).toUpperCase()
                     }
                 }
                 break
-            case paths$2.kismetArrayLibrary:
+            case p$6.kismetArrayLibrary:
                 {
                     const arrayOperationMath = memberName.match(/Array_(\w+)/);
                     if (arrayOperationMath) {
@@ -4488,14 +4491,14 @@ function nodeTitle(entity) {
                 }
                 break
         }
-        return Utility.formatStringName(memberName)
+        return format(memberName)
     }
     if (entity.OpName) {
         return niagaraNodeNames[entity.OpName.toString()]
-            ?? Utility.formatStringName(entity.OpName.toString().replaceAll(/(?:^\w+(?<!^Matrix))?::/g, " "))
+            ?? format(entity.OpName.toString().replaceAll(/(?:^\w+(?<!^Matrix))?::/g, " "))
     }
     if (entity.FunctionDisplayName) {
-        return Utility.formatStringName(entity.FunctionDisplayName.toString())
+        return format(entity.FunctionDisplayName.toString())
     }
     if (entity.ObjectRef) {
         return entity.ObjectRef.getName()
@@ -4505,13 +4508,15 @@ function nodeTitle(entity) {
         className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNodeParameter")
         || className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNode")
     ) {
-        return entity["Input"]?.["Name"]?.toString() ?? Utility.formatStringName(className.substring(prefix.length))
+        return entity["Input"]?.["Name"]?.toString() ?? format(className.substring(prefix.length))
     }
     if (entity.ParameterName) {
         return entity.ParameterName.toString()
     }
-    return Utility.formatStringName(entity.getNameAndCounter()[0])
+    return format(entity.getNameAndCounter()[0])
 }
+
+const p$5 = Configuration.paths;
 
 /** @param {ObjectEntity} entity */
 function nodeIcon(entity) {
@@ -4519,44 +4524,44 @@ function nodeIcon(entity) {
         return null
     }
     switch (entity.getType()) {
-        case Configuration.paths.addDelegate:
-        case Configuration.paths.asyncAction:
-        case Configuration.paths.callDelegate:
-        case Configuration.paths.clearDelegate:
-        case Configuration.paths.createDelegate:
-        case Configuration.paths.functionEntry:
-        case Configuration.paths.functionResult:
-        case Configuration.paths.removeDelegate:
+        case p$5.addDelegate:
+        case p$5.asyncAction:
+        case p$5.callDelegate:
+        case p$5.clearDelegate:
+        case p$5.createDelegate:
+        case p$5.functionEntry:
+        case p$5.functionResult:
+        case p$5.removeDelegate:
             return SVGIcon.node
-        case Configuration.paths.customEvent: return SVGIcon.event
-        case Configuration.paths.doN: return SVGIcon.doN
-        case Configuration.paths.doOnce: return SVGIcon.doOnce
-        case Configuration.paths.dynamicCast: return SVGIcon.cast
-        case Configuration.paths.enumLiteral: return SVGIcon.enum
-        case Configuration.paths.event: return SVGIcon.event
-        case Configuration.paths.executionSequence:
-        case Configuration.paths.multiGate:
+        case p$5.customEvent: return SVGIcon.event
+        case p$5.doN: return SVGIcon.doN
+        case p$5.doOnce: return SVGIcon.doOnce
+        case p$5.dynamicCast: return SVGIcon.cast
+        case p$5.enumLiteral: return SVGIcon.enum
+        case p$5.event: return SVGIcon.event
+        case p$5.executionSequence:
+        case p$5.multiGate:
             return SVGIcon.sequence
-        case Configuration.paths.flipflop:
+        case p$5.flipflop:
             return SVGIcon.flipflop
-        case Configuration.paths.forEachElementInEnum:
-        case Configuration.paths.forLoop:
-        case Configuration.paths.forLoopWithBreak:
-        case Configuration.paths.whileLoop:
+        case p$5.forEachElementInEnum:
+        case p$5.forLoop:
+        case p$5.forLoopWithBreak:
+        case p$5.whileLoop:
             return SVGIcon.loop
-        case Configuration.paths.forEachLoop:
-        case Configuration.paths.forEachLoopWithBreak:
+        case p$5.forEachLoop:
+        case p$5.forEachLoopWithBreak:
             return SVGIcon.forEachLoop
-        case Configuration.paths.ifThenElse: return SVGIcon.branchNode
-        case Configuration.paths.isValid: return SVGIcon.questionMark
-        case Configuration.paths.makeArray: return SVGIcon.makeArray
-        case Configuration.paths.makeMap: return SVGIcon.makeMap
-        case Configuration.paths.makeSet: return SVGIcon.makeSet
-        case Configuration.paths.makeStruct: return SVGIcon.makeStruct
-        case Configuration.paths.metasoundEditorGraphExternalNode: return SVGIcon.metasoundFunction
-        case Configuration.paths.select: return SVGIcon.select
-        case Configuration.paths.spawnActorFromClass: return SVGIcon.spawnActor
-        case Configuration.paths.timeline: return SVGIcon.timer
+        case p$5.ifThenElse: return SVGIcon.branchNode
+        case p$5.isValid: return SVGIcon.questionMark
+        case p$5.makeArray: return SVGIcon.makeArray
+        case p$5.makeMap: return SVGIcon.makeMap
+        case p$5.makeSet: return SVGIcon.makeSet
+        case p$5.makeStruct: return SVGIcon.makeStruct
+        case p$5.metasoundEditorGraphExternalNode: return SVGIcon.metasoundFunction
+        case p$5.select: return SVGIcon.select
+        case p$5.spawnActorFromClass: return SVGIcon.spawnActor
+        case p$5.timeline: return SVGIcon.timer
     }
     if (entity.switchTarget()) {
         return SVGIcon.switch
@@ -4564,7 +4569,7 @@ function nodeIcon(entity) {
     if (nodeTitle(entity).startsWith("Break")) {
         return SVGIcon.breakStruct
     }
-    if (entity.getClass() === Configuration.paths.macro) {
+    if (entity.getClass() === p$5.macro) {
         return SVGIcon.macro
     }
     const hidValue = entity.getHIDAttribute()?.toString();
@@ -4584,7 +4589,7 @@ function nodeIcon(entity) {
     if (entity.getDelegatePin()) {
         return SVGIcon.event
     }
-    if (entity.ObjectRef?.type === Configuration.paths.ambientSound) {
+    if (entity.ObjectRef?.type === p$5.ambientSound) {
         return SVGIcon.sound
     }
     return SVGIcon.functionSymbol
@@ -4783,6 +4788,7 @@ class NaturalNumberEntity extends IntegerEntity {
     }
 }
 
+const p$4 = Configuration.paths;
 const colors = {
     "Any": i$5`132, 132, 132`,
     "Any[]": i$5`132, 132, 132`,
@@ -4818,21 +4824,21 @@ const colors = {
     "Volume": i$5`230, 69, 188`,
     "Volume[]": i$5`230, 69, 188`,
     "wildcard": i$5`128, 120, 120`,
-    [Configuration.paths.linearColor]: i$5`0, 88, 200`,
-    [Configuration.paths.niagaraBool]: i$5`146, 0, 0`,
-    [Configuration.paths.niagaraDataInterfaceCollisionQuery]: i$5`0, 168, 242`,
-    [Configuration.paths.niagaraDataInterfaceCurlNoise]: i$5`0, 168, 242`,
-    [Configuration.paths.niagaraDataInterfaceVolumeTexture]: i$5`0, 168, 242`,
-    [Configuration.paths.niagaraFloat]: i$5`160, 250, 68`,
-    [Configuration.paths.niagaraInt32]: i$5`30, 224, 172`,
-    [Configuration.paths.niagaraPosition]: i$5`251, 146, 251`,
-    [Configuration.paths.quat4f]: i$5`0, 88, 200`,
-    [Configuration.paths.rotator]: i$5`157, 177, 251`,
-    [Configuration.paths.transform]: i$5`227, 103, 0`,
-    [Configuration.paths.vector]: i$5`251, 198, 34`,
-    [Configuration.paths.vector2f]: i$5`0, 88, 200`,
-    [Configuration.paths.vector3f]: i$5`250, 200, 36`,
-    [Configuration.paths.vector4f]: i$5`0, 88, 200`,
+    [p$4.linearColor]: i$5`0, 88, 200`,
+    [p$4.niagaraBool]: i$5`146, 0, 0`,
+    [p$4.niagaraDataInterfaceCollisionQuery]: i$5`0, 168, 242`,
+    [p$4.niagaraDataInterfaceCurlNoise]: i$5`0, 168, 242`,
+    [p$4.niagaraDataInterfaceVolumeTexture]: i$5`0, 168, 242`,
+    [p$4.niagaraFloat]: i$5`160, 250, 68`,
+    [p$4.niagaraInt32]: i$5`30, 224, 172`,
+    [p$4.niagaraPosition]: i$5`251, 146, 251`,
+    [p$4.quat4f]: i$5`0, 88, 200`,
+    [p$4.rotator]: i$5`157, 177, 251`,
+    [p$4.transform]: i$5`227, 103, 0`,
+    [p$4.vector]: i$5`251, 198, 34`,
+    [p$4.vector2f]: i$5`0, 88, 200`,
+    [p$4.vector3f]: i$5`250, 200, 36`,
+    [p$4.vector4f]: i$5`0, 88, 200`,
 };
 
 const pinColorMaterial = i$5`120, 120, 120`;
@@ -5726,7 +5732,7 @@ class SimpleSerializationVectorEntity extends VectorEntity {
     }
 }
 
-const paths$1 = Configuration.paths;
+const paths = Configuration.paths;
 
 /** @template {IEntity} T */
 class PinEntity extends IEntity {
@@ -5743,24 +5749,24 @@ class PinEntity extends IEntity {
         "name": StringEntity,
         "real": NumberEntity,
         "string": StringEntity,
-        [paths$1.linearColor]: LinearColorEntity,
-        [paths$1.niagaraBool]: BooleanEntity,
-        [paths$1.niagaraFloat]: NumberEntity,
-        [paths$1.niagaraPosition]: VectorEntity,
-        [paths$1.rotator]: RotatorEntity,
-        [paths$1.vector]: VectorEntity,
-        [paths$1.vector2D]: Vector2DEntity,
-        [paths$1.vector4f]: Vector4DEntity,
+        [paths.linearColor]: LinearColorEntity,
+        [paths.niagaraBool]: BooleanEntity,
+        [paths.niagaraFloat]: NumberEntity,
+        [paths.niagaraPosition]: VectorEntity,
+        [paths.rotator]: RotatorEntity,
+        [paths.vector]: VectorEntity,
+        [paths.vector2D]: Vector2DEntity,
+        [paths.vector4f]: Vector4DEntity,
     }
     static #alternativeTypeEntityMap = {
         "enum": EnumDisplayValueEntity,
         "rg": RBSerializationVector2DEntity,
-        [paths$1.niagaraPosition]: SimpleSerializationVectorEntity.flagAllowShortSerialization(),
-        [paths$1.rotator]: SimpleSerializationRotatorEntity,
-        [paths$1.vector]: SimpleSerializationVectorEntity,
-        [paths$1.vector2D]: SimpleSerializationVector2DEntity,
-        [paths$1.vector3f]: SimpleSerializationVectorEntity,
-        [paths$1.vector4f]: SimpleSerializationVector4DEntity,
+        [paths.niagaraPosition]: SimpleSerializationVectorEntity.flagAllowShortSerialization(),
+        [paths.rotator]: SimpleSerializationRotatorEntity,
+        [paths.vector]: SimpleSerializationVectorEntity,
+        [paths.vector2D]: SimpleSerializationVector2DEntity,
+        [paths.vector3f]: SimpleSerializationVectorEntity,
+        [paths.vector4f]: SimpleSerializationVector4DEntity,
     }
     static attributes = {
         PinId: GuidEntity.withDefault(),
@@ -5910,9 +5916,9 @@ class PinEntity extends IEntity {
                 case "rg":
                     return "rg"
                 case "rgb":
-                    return paths$1.vector
+                    return paths.vector
                 case "rgba":
-                    return paths$1.linearColor
+                    return paths.linearColor
                 default:
                     return subCategory
             }
@@ -5948,14 +5954,14 @@ class PinEntity extends IEntity {
 
     isEnum() {
         const type = this.PinType.PinSubCategoryObject?.type;
-        return type === paths$1.enum
-            || type === paths$1.userDefinedEnum
+        return type === paths.enum
+            || type === paths.userDefinedEnum
             || type?.toLowerCase() === "enum"
     }
 
     isExecution() {
         return this.PinType.PinCategory.toString() === "exec"
-            || this.getType() === paths$1.niagaraParameterMap
+            || this.getType() === paths.niagaraParameterMap
     }
 
     isHidden() {
@@ -6023,6 +6029,7 @@ class PinEntity extends IEntity {
 /** @param {PinEntity} pinEntity */
 const indexFromUpperCaseLetterName = pinEntity =>
     pinEntity.PinName?.toString().match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0);
+const p$3 = Configuration.paths;
 
 /** @param {ObjectEntity} entity */
 function nodeVariadic(entity) {
@@ -6036,8 +6043,8 @@ function nodeVariadic(entity) {
     let prefix;
     let name;
     switch (type) {
-        case Configuration.paths.commutativeAssociativeBinaryOperator:
-        case Configuration.paths.promotableOperator:
+        case p$3.commutativeAssociativeBinaryOperator:
+        case p$3.promotableOperator:
             name = entity.FunctionReference?.MemberName?.toString();
             switch (name) {
                 default:
@@ -6075,9 +6082,9 @@ function nodeVariadic(entity) {
                     break
             }
             break
-        case Configuration.paths.executionSequence:
+        case p$3.executionSequence:
             prefix ??= "Then";
-        case Configuration.paths.multiGate:
+        case p$3.multiGate:
             prefix ??= "Out";
             pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput());
             pinIndexFromEntity ??= pinEntity => Number(
@@ -6086,7 +6093,7 @@ function nodeVariadic(entity) {
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) =>
                 `${prefix} ${index >= 0 ? index : min > 0 ? `${prefix} 0` : max + 1}`;
             break
-        // case Configuration.paths.niagaraNodeOp:
+        // case p.niagaraNodeOp:
         //     pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isInput())
         //     pinIndexFromEntity ??= indexFromUpperCaseLetterName
         //     pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
@@ -6096,12 +6103,12 @@ function nodeVariadic(entity) {
         //         return result
         //     }
         //     break
-        case Configuration.paths.switchInteger:
+        case p$3.switchInteger:
             pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput());
             pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName?.toString().match(/^\s*(\d+)\s*$/)?.[1]);
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => (index < 0 ? max + 1 : index).toString();
             break
-        case Configuration.paths.switchGameplayTag:
+        case p$3.switchGameplayTag:
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
                 const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`;
                 entity.PinNames ??= new ArrayEntity();
@@ -6110,8 +6117,8 @@ function nodeVariadic(entity) {
                 entity.PinTags.valueOf()[entity.PinTags.length] = null;
                 return result
             };
-        case Configuration.paths.switchName:
-        case Configuration.paths.switchString:
+        case p$3.switchName:
+        case p$3.switchString:
             pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput());
             pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.toString().match(/^\s*Case[_\s]+(\d+)\s*$/i)?.[1]);
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
@@ -8716,16 +8723,18 @@ class MouseClickDrag extends MouseMoveDraggable {
     }
 }
 
+const p$2 = Configuration.paths;
+
 /**
  * @param {ObjectEntity} entity
  * @returns {String?}
  */
 function nodeSubtitle(entity) {
     switch (entity.getType()) {
-        case Configuration.paths.addDelegate:
-        case Configuration.paths.clearDelegate:
-        case Configuration.paths.callDelegate:
-        case Configuration.paths.removeDelegate:
+        case p$2.addDelegate:
+        case p$2.clearDelegate:
+        case p$2.callDelegate:
+        case p$2.removeDelegate:
             return null
     }
     const targetPin = entity
@@ -10046,7 +10055,7 @@ const niagaraOperationNodes = [
     "Vector3::Cross",
 ];
 
-const paths = Configuration.paths;
+const p$1 = Configuration.paths;
 
 /**
  * @param {ObjectEntity} nodeEntity
@@ -10055,18 +10064,18 @@ const paths = Configuration.paths;
 function nodeTemplateClass(nodeEntity) {
     const className = nodeEntity.getClass();
     if (
-        className === paths.callFunction
-        || className === paths.commutativeAssociativeBinaryOperator
-        || className === paths.callArrayFunction
+        className === p$1.callFunction
+        || className === p$1.commutativeAssociativeBinaryOperator
+        || className === p$1.callArrayFunction
     ) {
         const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? "";
         const memberName = nodeEntity.FunctionReference?.MemberName?.toString();
         if (
             memberName && (
-                memberParent === paths.kismetArrayLibrary
-                || memberParent === paths.kismetMathLibrary
-                || memberParent === paths.kismetStringLibrary
-                || memberParent === paths.typedElementHandleLibrary
+                memberParent === p$1.kismetArrayLibrary
+                || memberParent === p$1.kismetMathLibrary
+                || memberParent === p$1.kismetStringLibrary
+                || memberParent === p$1.typedElementHandleLibrary
             )) {
             if (memberName.startsWith("Conv_")) {
                 return VariableConversionNodeTemplate
@@ -10120,37 +10129,37 @@ function nodeTemplateClass(nodeEntity) {
                     return VariableOperationNodeTemplate
             }
         }
-        if (memberParent === paths.blueprintSetLibrary) {
+        if (memberParent === p$1.blueprintSetLibrary) {
             return VariableOperationNodeTemplate
         }
-        if (memberParent === paths.blueprintMapLibrary) {
+        if (memberParent === p$1.blueprintMapLibrary) {
             return VariableOperationNodeTemplate
         }
     }
     switch (className) {
-        case paths.comment:
-        case paths.materialGraphNodeComment:
+        case p$1.comment:
+        case p$1.materialGraphNodeComment:
             return CommentNodeTemplate
-        case paths.createDelegate:
+        case p$1.createDelegate:
             return NodeTemplate
-        case paths.metasoundEditorGraphExternalNode:
+        case p$1.metasoundEditorGraphExternalNode:
             if (nodeEntity["ClassName"]?.["Name"] == "Add") {
                 return MetasoundOperationTemplate
             }
             return MetasoundNodeTemplate
-        case paths.niagaraNodeOp:
+        case p$1.niagaraNodeOp:
             if (niagaraOperationNodes.includes(nodeEntity.OpName?.toString())) {
                 return VariableOperationNodeTemplate
             }
             break
-        case paths.promotableOperator:
+        case p$1.promotableOperator:
             return VariableOperationNodeTemplate
-        case paths.knot:
+        case p$1.knot:
             return KnotNodeTemplate
-        case paths.literal:
-        case paths.self:
-        case paths.variableGet:
-        case paths.variableSet:
+        case p$1.literal:
+        case p$1.self:
+        case p$1.variableGet:
+        case p$1.variableSet:
             return VariableAccessNodeTemplate
     }
     if (nodeEntity.isEvent()) {
@@ -13332,6 +13341,7 @@ class VectorPinTemplate extends INumericPinTemplate {
     }
 }
 
+const p = Configuration.paths;
 const inputPinTemplates = {
     "bool": BoolPinTemplate,
     "byte": IntPinTemplate,
@@ -13344,17 +13354,17 @@ const inputPinTemplates = {
     "real": RealPinTemplate,
     "rg": Vector2DPinTemplate,
     "string": StringPinTemplate,
-    [Configuration.paths.linearColor]: LinearColorPinTemplate,
-    [Configuration.paths.niagaraBool]: BoolPinTemplate,
-    [Configuration.paths.niagaraFloat]: RealPinTemplate,
-    [Configuration.paths.niagaraInt32]: IntPinTemplate,
-    [Configuration.paths.niagaraPosition]: VectorPinTemplate,
-    [Configuration.paths.rotator]: RotatorPinTemplate,
-    [Configuration.paths.vector]: VectorPinTemplate,
-    [Configuration.paths.vector2D]: Vector2DPinTemplate,
-    [Configuration.paths.vector2f]: Vector2DPinTemplate,
-    [Configuration.paths.vector3f]: VectorPinTemplate,
-    [Configuration.paths.vector4f]: Vector4DPinTemplate,
+    [p.linearColor]: LinearColorPinTemplate,
+    [p.niagaraBool]: BoolPinTemplate,
+    [p.niagaraFloat]: RealPinTemplate,
+    [p.niagaraInt32]: IntPinTemplate,
+    [p.niagaraPosition]: VectorPinTemplate,
+    [p.rotator]: RotatorPinTemplate,
+    [p.vector]: VectorPinTemplate,
+    [p.vector2D]: Vector2DPinTemplate,
+    [p.vector2f]: Vector2DPinTemplate,
+    [p.vector3f]: VectorPinTemplate,
+    [p.vector4f]: Vector4DPinTemplate,
 };
 
 /** @param {PinEntity<IEntity>} entity */
