@@ -71,7 +71,7 @@ test("Linking 3", async ({ blueprintPage }) => {
     const knots = blueprintPage.blueprintLocator.locator('ueb-node[data-type="/Script/BlueprintGraph.K2Node_Knot"]')
     const links = blueprintPage.blueprintLocator.locator("ueb-link")
     const mouse = blueprintPage.page.mouse
-    const wildcardColor = "128, 120, 120"
+    const grayColor = "128, 120, 120"
     const blueColor = "0, 88, 200"
 
     /** @type {(i: Number) => Locator<NodeElement>} */
@@ -107,14 +107,14 @@ test("Linking 3", async ({ blueprintPage }) => {
 
     const knotsCount = await knots.count()
     for (let i = 0; i < knotsCount; ++i) {
-        expect(await knots.nth(i).evaluate(getKnotColors)).toEqual(Array(4).fill(wildcardColor))
+        expect(await knots.nth(i).evaluate(getKnotColors)).toEqual(Array(4).fill(grayColor))
     }
 
     const linksCount = await links.count()
     for (let i = 0; i < linksCount; ++i) {
         /** @type {Locator<LinkElement>} */
         const link = links.nth(i)
-        expect(await link.evaluate(l => l.color.toString())).toEqual(wildcardColor)
+        expect(await link.evaluate(l => l.color.toString())).toEqual(grayColor)
     }
 
     await link(blueprintPage.blueprintLocator.locator("ueb-pin").getByText("Color", { exact: true }), knots.nth(0))
@@ -129,7 +129,7 @@ test("Linking 3", async ({ blueprintPage }) => {
     }
     await links.evaluateAll(ls => ls.forEach(l => l.remove()))
     for (let i = 0; i < knotsCount; ++i) {
-        expect(await knots.nth(i).evaluate(getKnotColors)).toEqual(Array(4).fill(wildcardColor))
+        expect(await knots.nth(i).evaluate(getKnotColors)).toEqual(Array(4).fill(grayColor))
     }
     await expect(links).toHaveCount(0)
 })
