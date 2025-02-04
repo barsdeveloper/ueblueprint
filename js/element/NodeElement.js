@@ -138,16 +138,9 @@ export default class NodeElement extends ISelectableDraggableElement {
                 this.#redirectLinksBeforeRename(newName?.toString())
                 this.nodeTitle = newName?.toString()
                 this.nodeDisplayName = nodeTitle(entity)
+                this.acknowledgeUpdate()
             }
         )
-    }
-
-    async getUpdateComplete() {
-        let result = await super.getUpdateComplete()
-        for (const pin of this.getPinElements()) {
-            result &&= await pin.updateComplete
-        }
-        return result
     }
 
     /** @param {NodeElement} commentNode */
@@ -192,14 +185,14 @@ export default class NodeElement extends ISelectableDraggableElement {
     setNodeWidth(value) {
         this.entity.setNodeWidth(value)
         this.sizeX = value
-        this.acknowledgeReflow()
+        this.acknowledgeUpdate(true)
     }
 
     /** @param {Number} value */
     setNodeHeight(value) {
         this.entity.setNodeHeight(value)
         this.sizeY = value
-        this.acknowledgeReflow()
+        this.acknowledgeUpdate(true)
     }
 
     /** @param  {IElement[]} nodesWhitelist */
@@ -222,11 +215,13 @@ export default class NodeElement extends ISelectableDraggableElement {
         super.setLocation(x, y, acknowledge)
     }
 
-    acknowledgeReflow() {
-        this.requestUpdate()
-        this.updateComplete.then(() => this.computeSizes())
-        let reflowEvent = new CustomEvent(Configuration.nodeReflowEventName)
-        this.dispatchEvent(reflowEvent)
+    acknowledgeUpdate(resize = false) {
+        const event = new CustomEvent(Configuration.nodeUpdateEventName)
+        if (resize) {
+            this.requestUpdate()
+            this.updateComplete.then(() => this.computeSizes())
+        }
+        this.dispatchEvent(event)
     }
 
     setShowAdvancedPinDisplay(value) {

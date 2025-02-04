@@ -5,6 +5,7 @@ import Utility from "../Utility.js"
 import BooleanEntity from "../entity/BooleanEntity.js"
 import LinkTemplate from "../template/LinkTemplate.js"
 import IFromToPositionedElement from "./IFromToPositionedElement.js"
+import LinearColorEntity from "../entity/LinearColorEntity.js"
 
 /** @extends {IFromToPositionedElement<Object, LinkTemplate>} */
 export default class LinkElement extends IFromToPositionedElement {
@@ -43,6 +44,9 @@ export default class LinkElement extends IFromToPositionedElement {
             converter: BooleanEntity.booleanConverter,
             reflect: true,
         },
+        color: {
+            type: LinearColorEntity,
+        },
         svgPathD: {
             type: String,
             attribute: false,
@@ -75,6 +79,29 @@ export default class LinkElement extends IFromToPositionedElement {
         this.#setPin(pin, true)
     }
 
+    /** @param {UEBNodeUpdateEvent} e */
+    #nodeUpdateHandler = e => {
+        if (this.#origin.nodeElement === e.target) {
+            if (this.originNode != this.#origin.nodeElement.nodeTitle) {
+                this.originNode = this.#origin.nodeElement.nodeTitle
+            }
+            this.setOriginLocation()
+        } else if (this.#target.nodeElement === e.target) {
+            if (this.targetNode != this.#target.nodeElement.nodeTitle) {
+                this.targetNode = this.#target.nodeElement.nodeTitle
+            }
+            this.setTargetLocation()
+        } else {
+            throw new Error("Unexpected node update")
+        }
+    }
+    /** @param {UEBNodeUpdateEvent} e */
+    #pinUpdateHandler = e => {
+        const colorReferencePin = this.getOutputPin(true)
+        if (!this.color?.equals(colorReferencePin.color)) {
+            this.color = colorReferencePin.color
+        }
+    }
     #nodeDeleteHandler = () => this.remove()
     /** @param {UEBDragEvent} e */
     #nodeDragOriginHandler = e => this.addOriginLocation(...e.detail.value)
@@ -104,6 +131,7 @@ export default class LinkElement extends IFromToPositionedElement {
         this.targetNode = ""
         this.targetPin = ""
         this.originatesFromInput = false
+        this.color = new LinearColorEntity()
         this.startPercentage = 0
         this.svgPathD = ""
         this.startPixels = 0
@@ -153,15 +181,13 @@ export default class LinkElement extends IFromToPositionedElement {
         }
         if (getCurrentPin()) {
             const nodeElement = getCurrentPin().getNodeElement()
+            nodeElement.removeEventListener(Configuration.nodeUpdateEventName, this.#nodeUpdateHandler)
             nodeElement.removeEventListener(Configuration.removeEventName, this.#nodeDeleteHandler)
             nodeElement.removeEventListener(
                 Configuration.nodeDragEventName,
                 isTargetPin ? this.#nodeDragTargetHandler : this.#nodeDragOriginHandler
             )
-            nodeElement.removeEventListener(
-                Configuration.nodeReflowEventName,
-                isTargetPin ? this.#nodeReflowTargetHandler : this.#nodeReflowOriginHandler
-            )
+            getCurrentPin().removeEventListener(Configuration.pinUpdateEventName, this.#pinUpdateHandler)
             this.#unlinkPins()
         }
         if (isTargetPin) {
@@ -175,20 +201,20 @@ export default class LinkElement extends IFromToPositionedElement {
         }
         if (getCurrentPin()) {
             const nodeElement = getCurrentPin().getNodeElement()
+            nodeElement.addEventListener(Configuration.nodeUpdateEventName, this.#nodeUpdateHandler)
+            nodeElement.addEventListener(Configuration.pinUpdateEventName, this.#pinUpdateHandler)
             nodeElement.addEventListener(Configuration.removeEventName, this.#nodeDeleteHandler)
             nodeElement.addEventListener(
                 Configuration.nodeDragEventName,
                 isTargetPin ? this.#nodeDragTargetHandler : this.#nodeDragOriginHandler
             )
-            nodeElement.addEventListener(
-                Configuration.nodeReflowEventName,
-                isTargetPin ? this.#nodeReflowTargetHandler : this.#nodeReflowOriginHandler
-            )
+            getCurrentPin().addEventListener(Configuration.pinUpdateEventName, this.#pinUpdateHandler)
             isTargetPin
                 ? this.setTargetLocation()
                 : (this.setOriginLocation(), this.originatesFromInput = this.origin.isInputVisually())
             this.#linkPins()
         }
+        this.color = this.getOutputPin(true)?.color
     }
 
     #linkPins() {

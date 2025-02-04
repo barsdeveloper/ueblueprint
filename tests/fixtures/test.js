@@ -62,11 +62,9 @@ export function testNode(testData) {
     if (testData.color) {
         test(
             `${testData.name}: Has correct color`,
-            async ({ blueprintPage }) => {
-                expect(
-                    await blueprintPage.node.evaluate(node => node.entity.nodeColor().toString())
-                ).toBe(testData.color.toString())
-            }
+            async ({ blueprintPage }) =>
+                expect(await blueprintPage.node.evaluate(node => node.entity.nodeColor().toString()))
+                    .toBe(testData.color.toString())
         )
     }
 

@@ -31,14 +31,14 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
             } else {
                 (pin.isInput() ? this.inputContainer : this.outputContainer).appendChild(this.createPinElement(pin))
             }
-            this.element.acknowledgeReflow()
+            this.element.acknowledgeUpdate()
         }
     }
 
     toggleAdvancedDisplayHandler = () => {
         this.element.toggleShowAdvancedPinDisplay()
         this.element.requestUpdate()
-        this.element.updateComplete.then(() => this.element.acknowledgeReflow())
+        this.element.updateComplete.then(() => this.element.acknowledgeUpdate())
     }
 
     /** @param {PinEntity<IEntity>} pinEntity */
@@ -125,7 +125,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         this.inputContainer = this.element.querySelector(".ueb-node-inputs")
         this.outputContainer = this.element.querySelector(".ueb-node-outputs")
         this.setupPins()
-        this.element.updateComplete.then(() => this.element.acknowledgeReflow())
+        this.element.updateComplete.then(() => this.element.acknowledgeUpdate())
     }
 
     setupPins() {

@@ -44,7 +44,8 @@ export default class PinElement extends IElement {
                 fromAttribute: (value, type) => value
                     ? LinearColorEntity.getLinearColorFromAnyFormat().parse(value)
                     : null,
-                toAttribute: (value, type) => value ? LinearColorEntity.printLinearColor(value) : null,
+                /** @param {LinearColorEntity} value */
+                toAttribute: (value, type) => value?.toString() ?? "",
             },
             attribute: "data-color",
             reflect: true,
@@ -96,10 +97,11 @@ export default class PinElement extends IElement {
         this.connectable = !entity.bNotConnectable?.valueOf()
         super.initialize(entity, template)
         this.pinId = this.entity.PinId
-        this.pinType = this.entity.getType()
+        this.updateType()
         this.defaultValue = this.entity.getDefaultValue()
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden"
-        this.updateColor()
+        /** @type {LinearColorEntity} */
+        this.color = PinElement.properties.color.converter.fromAttribute(this.entity.pinColor().toString())
     }
 
     setup() {
@@ -107,8 +109,13 @@ export default class PinElement extends IElement {
         this.nodeElement = this.closest("ueb-node")
     }
 
-    updateColor() {
-        this.color = PinElement.properties.color.converter.fromAttribute(this.entity.pinColor().toString())
+    updateType() {
+        this.pinType = this.entity.getType()
+        const newColor = PinElement.properties.color.converter.fromAttribute(this.entity.pinColor().toString())
+        if (!this.color?.equals(newColor)) {
+            this.color = newColor
+            this.acknowledgeUpdate()
+        }
     }
 
     createPinReference() {
@@ -288,5 +295,10 @@ export default class PinElement extends IElement {
             return true
         }
         return false
+    }
+
+    acknowledgeUpdate() {
+        let event = new CustomEvent(Configuration.pinUpdateEventName)
+        this.dispatchEvent(event)
     }
 }

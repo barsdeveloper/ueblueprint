@@ -34,6 +34,8 @@ import Vector2DEntity from "./Vector2DEntity.js"
 import Vector4DEntity from "./Vector4DEntity.js"
 import VectorEntity from "./VectorEntity.js"
 
+const paths = Configuration.paths
+
 /** @template {IEntity} T */
 export default class PinEntity extends IEntity {
 
@@ -49,24 +51,24 @@ export default class PinEntity extends IEntity {
         "name": StringEntity,
         "real": NumberEntity,
         "string": StringEntity,
-        [Configuration.paths.linearColor]: LinearColorEntity,
-        [Configuration.paths.niagaraBool]: BooleanEntity,
-        [Configuration.paths.niagaraFloat]: NumberEntity,
-        [Configuration.paths.niagaraPosition]: VectorEntity,
-        [Configuration.paths.rotator]: RotatorEntity,
-        [Configuration.paths.vector]: VectorEntity,
-        [Configuration.paths.vector2D]: Vector2DEntity,
-        [Configuration.paths.vector4f]: Vector4DEntity,
+        [paths.linearColor]: LinearColorEntity,
+        [paths.niagaraBool]: BooleanEntity,
+        [paths.niagaraFloat]: NumberEntity,
+        [paths.niagaraPosition]: VectorEntity,
+        [paths.rotator]: RotatorEntity,
+        [paths.vector]: VectorEntity,
+        [paths.vector2D]: Vector2DEntity,
+        [paths.vector4f]: Vector4DEntity,
     }
     static #alternativeTypeEntityMap = {
         "enum": EnumDisplayValueEntity,
         "rg": RBSerializationVector2DEntity,
-        [Configuration.paths.niagaraPosition]: SimpleSerializationVectorEntity.flagAllowShortSerialization(),
-        [Configuration.paths.rotator]: SimpleSerializationRotatorEntity,
-        [Configuration.paths.vector]: SimpleSerializationVectorEntity,
-        [Configuration.paths.vector2D]: SimpleSerializationVector2DEntity,
-        [Configuration.paths.vector3f]: SimpleSerializationVectorEntity,
-        [Configuration.paths.vector4f]: SimpleSerializationVector4DEntity,
+        [paths.niagaraPosition]: SimpleSerializationVectorEntity.flagAllowShortSerialization(),
+        [paths.rotator]: SimpleSerializationRotatorEntity,
+        [paths.vector]: SimpleSerializationVectorEntity,
+        [paths.vector2D]: SimpleSerializationVector2DEntity,
+        [paths.vector3f]: SimpleSerializationVectorEntity,
+        [paths.vector4f]: SimpleSerializationVector4DEntity,
     }
     static attributes = {
         PinId: GuidEntity.withDefault(),
@@ -216,9 +218,9 @@ export default class PinEntity extends IEntity {
                 case "rg":
                     return "rg"
                 case "rgb":
-                    return Configuration.paths.vector
+                    return paths.vector
                 case "rgba":
-                    return Configuration.paths.linearColor
+                    return paths.linearColor
                 default:
                     return subCategory
             }
@@ -254,14 +256,14 @@ export default class PinEntity extends IEntity {
 
     isEnum() {
         const type = this.PinType.PinSubCategoryObject?.type
-        return type === Configuration.paths.enum
-            || type === Configuration.paths.userDefinedEnum
+        return type === paths.enum
+            || type === paths.userDefinedEnum
             || type?.toLowerCase() === "enum"
     }
 
     isExecution() {
         return this.PinType.PinCategory.toString() === "exec"
-            || this.getType() === Configuration.paths.niagaraParameterMap
+            || this.getType() === paths.niagaraParameterMap
     }
 
     isHidden() {

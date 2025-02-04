@@ -88,9 +88,10 @@ export default function nodeTemplateClass(nodeEntity) {
         const memberName = nodeEntity.FunctionReference?.MemberName?.toString()
         if (
             memberName && (
-                memberParent === paths.kismetMathLibrary
-                || memberParent === paths.kismetArrayLibrary
+                memberParent === paths.kismetArrayLibrary
+                || memberParent === paths.kismetMathLibrary
                 || memberParent === paths.kismetStringLibrary
+                || memberParent === paths.typedElementHandleLibrary
             )) {
             if (memberName.startsWith("Conv_")) {
                 return VariableConversionNodeTemplate
@@ -117,6 +118,7 @@ export default function nodeTemplateClass(nodeEntity) {
                 case "BMin":
                 case "CrossProduct2D":
                 case "DotProduct2D":
+                case "Equal":
                 case "Exp":
                 case "FMax":
                 case "FMin":

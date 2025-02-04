@@ -159,14 +159,16 @@ export default class PinTemplate extends ITemplate {
             // When connected, an input may drop its input fields which means the node has to reflow
             const node = this.element.nodeElement
             this.element.requestUpdate()
-            this.element.updateComplete.then(() => node.acknowledgeReflow())
+            this.element.updateComplete.then(() => node.acknowledgeUpdate())
+        }
+        if (changedProperties.has("color")) {
+            this.element.style.setProperty("--ueb-pin-color-rgb", this.element.color.toString())
         }
     }
 
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
-        this.element.style.setProperty("--ueb-pin-color-rgb", this.element.entity.pinColor().cssText)
         this.#iconElement = this.element.querySelector(".ueb-pin-icon svg") ?? this.element
         this.#wrapperElement = this.element.querySelector(".ueb-pin-wrapper")
     }

@@ -14,7 +14,7 @@ export default class KnotNodeTemplate extends NodeTemplate {
             return
         }
         this.#switchDirectionsVisually = value
-        this.element.acknowledgeReflow()
+        this.element.acknowledgeUpdate()
     }
 
     /** @type {PinElement} */
@@ -33,17 +33,6 @@ export default class KnotNodeTemplate extends NodeTemplate {
     initialize(element) {
         super.initialize(element)
         this.element.classList.add("ueb-node-style-minimal")
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    update(changedProperties) {
-        super.update(changedProperties)
-        if (!this.#inputPin.isLinked && !this.#outputPin.isLinked) {
-            this.#inputPin.entity.PinType.PinCategory.value = "wildcard"
-            this.#inputPin.updateColor()
-            this.#outputPin.entity.PinType.PinCategory.value = "wildcard"
-            this.#inputPin.updateColor()
-        }
     }
 
     render() {

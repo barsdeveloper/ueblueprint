@@ -93,9 +93,9 @@ export default class Configuration {
     static mouseWheelZoomThreshold = 80
     static nodeDragEventName = "ueb-node-drag"
     static nodeDragGeneralEventName = "ueb-node-drag-general"
-    static nodeTitle = (name, counter) => `${name}_${counter}`
     static nodeRadius = 8 // px
-    static nodeReflowEventName = "ueb-node-reflow"
+    static nodeTitle = (name, counter) => `${name}_${counter}`
+    static nodeUpdateEventName = "ueb-node-update"
     static paths = {
         actorBoundEvent: "/Script/BlueprintGraph.K2Node_ActorBoundEvent",
         addDelegate: "/Script/BlueprintGraph.K2Node_AddDelegate",
@@ -215,6 +215,7 @@ export default class Configuration {
         timeline: "/Script/BlueprintGraph.K2Node_Timeline",
         timeManagementBlueprintLibrary: "/Script/TimeManagement.TimeManagementBlueprintLibrary",
         transform: "/Script/CoreUObject.Transform",
+        typedElementHandleLibrary: "/Script/TypedElementFramework.TypedElementHandleLibrary",
         userDefinedEnum: "/Script/Engine.UserDefinedEnum",
         variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
@@ -226,6 +227,7 @@ export default class Configuration {
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
     static pinInputWrapWidth = 145 // px
+    static pinUpdateEventName = "ueb-pin-update"
     static removeEventName = "ueb-element-delete"
     static scale = {
         [-12]: 0.133333,

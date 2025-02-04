@@ -93,7 +93,7 @@ export default class BlueprintFixture {
             })
             webserver.listen(this.#port, "127.0.0.1", async () => {
                 console.log(`Server started on http://127.0.0.1:${this.#port}`)
-                const url = `http://127.0.0.1:${this.#port}/empty.html`
+                const url = `http://127.0.0.1:${this.#port}/debug.html`
                 try {
                     await this.checkServerReady(url)
                     BlueprintFixture.server = webserver
@@ -111,7 +111,7 @@ export default class BlueprintFixture {
     }
 
     async setup() {
-        const url = `http://127.0.0.1:${this.#port}/empty.html`
+        const url = `http://127.0.0.1:${this.#port}/debug.html`
         for (let i = 0; i < 1E4; ++i) {
             try {
                 await this.page.goto(url, { waitUntil: "domcontentloaded" })

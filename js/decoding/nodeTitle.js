@@ -375,6 +375,7 @@ export default function nodeTitle(entity) {
             case paths.kismetStringLibrary:
             case paths.slateBlueprintLibrary:
             case paths.timeManagementBlueprintLibrary:
+            case paths.typedElementHandleLibrary:
                 const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/)
                 if (leadingLetter) {
                     // Some functions start with B or F (Like FCeil, FMax, BMin)
@@ -385,6 +386,7 @@ export default function nodeTitle(entity) {
                     case "BooleanAND": return "AND"
                     case "BooleanNAND": return "NAND"
                     case "BooleanOR": return "OR"
+                    case "Equal": return "=="
                     case "Exp": return "e"
                     case "LineTraceSingle": return "Line Trace By Channel"
                     case "Max": return "MAX"

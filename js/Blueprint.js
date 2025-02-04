@@ -85,7 +85,6 @@ export default class Blueprint extends IElement {
     nodesNames = new Map()
     /** @type {Coordinates} */
     mousePosition = [0, 0]
-    waitingExpandUpdate = false
 
     constructor() {
         super()

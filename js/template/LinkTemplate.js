@@ -1,7 +1,6 @@
 import { html, nothing } from "lit"
 import Configuration from "../Configuration.js"
 import ElementFactory from "../element/ElementFactory.js"
-import LinearColorEntity from "../entity/LinearColorEntity.js"
 import KnotEntity from "../entity/objects/KnotEntity.js"
 import KeyboardShortcut from "../input/keyboard/KeyboardShortcut.js"
 import MouseClick from "../input/mouse/MouseClick.js"
@@ -53,8 +52,6 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         this.blueprint.addGraphElement(knot) // Important: keep it before changing existing links
         const inputPin = this.element.getInputPin()
         const outputPin = this.element.getOutputPin()
-        this.element.origin = null
-        this.element.target = null
         const link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
             .newObject(outputPin, knotTemplate.inputPin)
         this.blueprint.addGraphElement(link)
@@ -181,24 +178,28 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
     /** @param {PropertyValues} changedProperties */
     update(changedProperties) {
         super.update(changedProperties)
-        const referencePin = this.element.getOutputPin(true)
-        if (referencePin) {
-            this.element.style.setProperty("--ueb-link-color-rgb", LinearColorEntity.printLinearColor(referencePin.color))
+        const style = this.element.style
+        if (changedProperties.has("color")) {
+            style.setProperty("--ueb-link-color-rgb", this.element.color?.toString() ?? "255, 255, 255")
         }
-        this.element.style.setProperty("--ueb-start-percentage", `${Math.round(this.element.startPercentage)}%`)
-        this.element.style.setProperty("--ueb-link-start", `${Math.round(this.element.startPixels)}`)
+        style.setProperty("--ueb-start-percentage", `${Math.round(this.element.startPercentage)}%`)
+        style.setProperty("--ueb-link-start", `${Math.round(this.element.startPixels)}`)
         const mirrorV = (this.element.originY > this.element.targetY ? -1 : 1) // If from is below to => mirror
             * (this.element.originatesFromInput ? -1 : 1) // Unless fro refers to an input pin
             * (this.element.origin?.isInputVisually() && this.element.target?.isInputVisually() ? -1 : 1)
         const mirrorH = (this.element.origin?.isInputVisually() && this.element.target?.isInputVisually() ? -1 : 1)
-        this.element.style.setProperty("--ueb-link-scale-y", `${mirrorV}`)
-        this.element.style.setProperty("--ueb-link-scale-x", `${mirrorH}`)
+        style.setProperty("--ueb-link-scale-y", `${mirrorV}`)
+        style.setProperty("--ueb-link-scale-x", `${mirrorH}`)
     }
 
     render() {
         return html`
-            <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <path id="${this.#uniqueId}" fill="none" vector-effect="non-scaling-stroke" d="${this.element.svgPathD}" />
+            <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+            >
+                <path id="${this.#uniqueId}" fill="none" vector-effect="non-scaling-stroke"
+                    d="${this.element.svgPathD}"
+                />
                 <use href="#${this.#uniqueId}" class="ueb-link-area" pointer-events="all" />
                 <use href="#${this.#uniqueId}" class="ueb-link-path" pointer-events="none" />
             </svg>

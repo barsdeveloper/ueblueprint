@@ -7,6 +7,7 @@
  */
 /**
  * @typedef {CustomEvent<{ value: Coordinates }>} UEBDragEvent
+ * @typedef {CustomEvent} UEBNodeUpdateEvent
  */
 /** @typedef {typeof import("./js/entity/IEntity.js").default} IEntityConstructor */
 /**
