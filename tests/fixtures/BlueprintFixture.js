@@ -135,7 +135,7 @@ export default class BlueprintFixture {
 
     /** @param {String} text */
     async paste(text) {
-        return await this.#blueprintLocator.evaluate(
+        await this.#blueprintLocator.evaluate(
             (blueprint, text) => {
                 const event = new ClipboardEvent("paste", {
                     bubbles: true,
@@ -147,6 +147,7 @@ export default class BlueprintFixture {
             },
             text
         )
+        await this.#blueprintLocator.evaluate(b => b.template.centerContentInViewport(false))
     }
 
     async cleanup() {

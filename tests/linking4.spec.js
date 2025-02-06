@@ -139,7 +139,6 @@ test("Linking 4", async ({ blueprintPage }) => {
     await expect(links).toHaveCount(0)
 
     await blueprintPage.paste(source)
-    await blueprintPage.blueprintLocator.evaluate(b => b.template.centerContentInViewport(false))
 
     await expect(nodes).toHaveCount(7)
     await expect(knots).toHaveCount(2)

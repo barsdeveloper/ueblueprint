@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures/test.js"
 
-test("Linking 3", async ({ blueprintPage }) => {
+test("Linking color propagation", async ({ blueprintPage }) => {
     const source = String.raw`
         Begin Object Class=/Script/BlueprintGraph.K2Node_Knot Name="K2Node_Knot_25" ExportPath="/Script/BlueprintGraph.K2Node_Knot'/Game/NewWorld.NewWorld:PersistentLevel.NewWorld.EventGraph.K2Node_Knot_25'"
             NodePosX=976
@@ -74,8 +74,6 @@ test("Linking 3", async ({ blueprintPage }) => {
     const grayColor = "128, 120, 120"
     const blueColor = "0, 88, 200"
 
-    /** @type {(i: Number) => Locator<NodeElement>} */
-    const getNode = i => blueprintPage.blueprintLocator.locator("ueb-node").nth(i)
     const link = async (origin, target) => {
         await origin.hover()
         await mouse.down()
@@ -99,7 +97,6 @@ test("Linking 3", async ({ blueprintPage }) => {
     await expect(links).toHaveCount(0)
 
     await blueprintPage.paste(source)
-    await blueprintPage.blueprintLocator.evaluate(b => b.template.centerContentInViewport(false))
 
     await expect(nodes).toHaveCount(9)
     await expect(knots).toHaveCount(8)
@@ -109,24 +106,20 @@ test("Linking 3", async ({ blueprintPage }) => {
     for (let i = 0; i < knotsCount; ++i) {
         expect(await knots.nth(i).evaluate(getKnotColors)).toEqual(Array(4).fill(grayColor))
     }
+    expect(await links.evaluateAll(links => links.map(l => /** @type {LinkElement} */(l).color.toString())))
+        .toEqual(Array(await links.count()).fill(grayColor))
 
-    const linksCount = await links.count()
-    for (let i = 0; i < linksCount; ++i) {
-        /** @type {Locator<LinkElement>} */
-        const link = links.nth(i)
-        expect(await link.evaluate(l => l.color.toString())).toEqual(grayColor)
-    }
-
-    await link(blueprintPage.blueprintLocator.locator("ueb-pin").getByText("Color", { exact: true }), knots.nth(0))
-    await expect(links).toHaveCount(8)
+    await link(
+        nodes.locator("ueb-pin").filter({ hasText: "Color" }),
+        knots.nth(0),
+    )
     for (let i = 0; i < knotsCount; ++i) {
         expect(await knots.nth(i).evaluate(getKnotColors)).toEqual(Array(4).fill(blueColor))
     }
-    for (let i = 0; i < linksCount; ++i) {
-        /** @type {Locator<LinkElement>} */
-        const link = links.nth(i)
-        expect(await link.evaluate(l => l.color.toString())).toEqual(blueColor)
-    }
+    await expect(links).toHaveCount(8)
+    expect(await links.evaluateAll(links => links.map(l => /** @type {LinkElement} */(l).color.toString())))
+        .toEqual(Array(await links.count()).fill(blueColor))
+
     await links.evaluateAll(ls => ls.forEach(l => l.remove()))
     for (let i = 0; i < knotsCount; ++i) {
         expect(await knots.nth(i).evaluate(getKnotColors)).toEqual(Array(4).fill(grayColor))
