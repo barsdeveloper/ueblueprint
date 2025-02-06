@@ -2,20 +2,23 @@ import Configuration from "../Configuration.js"
 import Utility from "../Utility.js"
 import pinTitle from "./pinTitle.js"
 
+const p = Configuration.paths
+
 /**
  * @param {ObjectEntity} entity
  * @returns {String?}
  */
 export default function nodeSubtitle(entity) {
     switch (entity.getType()) {
-        case Configuration.paths.addDelegate:
-        case Configuration.paths.clearDelegate:
-        case Configuration.paths.removeDelegate:
+        case p.addDelegate:
+        case p.clearDelegate:
+        case p.callDelegate:
+        case p.removeDelegate:
             return null
     }
     const targetPin = entity
         .getPinEntities()
-        .find(pin => pin.PinName?.toString() === "self" && pinTitle(pin) === "Target")
+        .find(pin => !pin.isHidden() && pin.PinName?.toString() === "self" && pinTitle(pin) === "Target")
     if (targetPin) {
         const target = entity.FunctionReference?.MemberParent?.getName()
             ?? targetPin.PinType?.PinSubCategoryObject?.getName()

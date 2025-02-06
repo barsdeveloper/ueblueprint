@@ -5,6 +5,7 @@ import LinkElement from "./element/LinkElement.js"
 import NodeElement from "./element/NodeElement.js"
 import BlueprintEntity from "./entity/BlueprintEntity.js"
 import BooleanEntity from "./entity/BooleanEntity.js"
+import NiagaraClipboardContent from "./entity/objects/NiagaraClipboardContent.js"
 import BlueprintTemplate from "./template/BlueprintTemplate.js"
 
 /** @extends {IElement<BlueprintEntity, BlueprintTemplate>} */
@@ -84,7 +85,6 @@ export default class Blueprint extends IElement {
     nodesNames = new Map()
     /** @type {Coordinates} */
     mousePosition = [0, 0]
-    waitingExpandUpdate = false
 
     constructor() {
         super()
@@ -297,28 +297,10 @@ export default class Blueprint extends IElement {
         return [x, y]
     }
 
-    getNodes(
-        selected = false,
-        [t, r, b, l] = [
-            Number.MIN_SAFE_INTEGER,
-            Number.MAX_SAFE_INTEGER,
-            Number.MAX_SAFE_INTEGER,
-            Number.MIN_SAFE_INTEGER,
-        ]
-    ) {
+    getNodes(selected = false) {
         let result = this.nodes
         if (selected) {
             result = result.filter(n => n.selected)
-        }
-        if (
-            t > Number.MIN_SAFE_INTEGER
-            || r < Number.MAX_SAFE_INTEGER
-            || b < Number.MAX_SAFE_INTEGER
-            || l > Number.MIN_SAFE_INTEGER
-        ) {
-            result = result.filter(n => {
-                return n.topBoundary() >= t && n.rightBoundary() <= r && n.bottomBoundary() <= b && n.leftBoundary() >= l
-            })
         }
         return result
     }
@@ -354,25 +336,25 @@ export default class Blueprint extends IElement {
     getLinks(a = null, b = null) {
         if ((a == null) != (b == null)) {
             const pin = a ?? b
-            return this.links.filter(link => link.source == pin || link.destination == pin)
+            return this.links.filter(link => link.origin == pin || link.target == pin)
         }
         if (a != null && b != null) {
             return this.links.filter(link =>
-                link.source == a && link.destination == b
-                || link.source == b && link.destination == a
+                link.origin == a && link.target == b
+                || link.origin == b && link.target == a
             )
         }
         return this.links
     }
 
     /**
-     * @param {PinElement} sourcePin
-     * @param {PinElement} destinationPin
+     * @param {PinElement} originPin
+     * @param {PinElement} targetPin
      */
-    getLink(sourcePin, destinationPin, strictDirection = false) {
+    getLink(originPin, targetPin, strictDirection = false) {
         return this.links.find(link =>
-            link.source == sourcePin && link.destination == destinationPin
-            || !strictDirection && link.source == destinationPin && link.destination == sourcePin
+            link.origin == originPin && link.target == targetPin
+            || !strictDirection && link.origin == targetPin && link.target == originPin
         )
     }
 
@@ -382,6 +364,22 @@ export default class Blueprint extends IElement {
 
     unselectAll() {
         this.getNodes().forEach(node => Blueprint.nodeSelectToggleFunction(node, false))
+    }
+
+    getSerializedText() {
+        const nodes = this.blueprint.getNodes(true).map(n => n.entity)
+        let exports = false
+        let result = nodes
+            .filter(n => {
+                exports ||= n.exported
+                return !n.exported
+            })
+            .reduce((acc, cur) => acc + cur.serialize(), "")
+        if (exports) {
+            const object = new NiagaraClipboardContent(this.blueprint.entity, nodes)
+            result = object.serialize() + result
+        }
+        return result
     }
 
     /** @param  {...IElement} graphElements */
@@ -410,14 +408,17 @@ export default class Blueprint extends IElement {
         for (const element of graphElements) {
             element.blueprint = this
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
+                const name = element.entity.getObjectName()
+                this.entity.updateNameIndex(name)
                 if (element.getType() == Configuration.paths.niagaraClipboardContent) {
                     this.entity = this.entity.mergeWith(element.entity)
-                    const additionalSerialization = atob(element.entity.ExportedNodes.toString())
-                    this.template.getPasteInputObject().pasted(additionalSerialization)
-                        .forEach(node => node.entity._exported = true)
+                    const additionalSerialization = atob(element.entity.ExportedNodes?.toString() ?? "")
+                    if (additionalSerialization) {
+                        this.template.getPasteInputObject().pasted(additionalSerialization)
+                            .forEach(node => node.entity.exported = true)
+                    }
                     continue
                 }
-                const name = element.entity.getObjectName()
                 const homonym = this.entity.getHomonymObjectEntity(element.entity)
                 if (homonym) {
                     const newName = this.entity.takeFreeName(name)

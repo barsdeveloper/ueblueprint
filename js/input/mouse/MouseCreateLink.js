@@ -14,21 +14,15 @@ export default class MouseCreateLink extends IMouseClickDrag {
     /** @type {NodeListOf<PinElement>} */
     #listenedPins
 
-    /** @type {PinElement} */
-    #knotPin = null
-
     /** @param {MouseEvent} e */
     #mouseenterHandler = e => {
         if (!this.enteredPin) {
             this.linkValid = false
             this.enteredPin = /** @type {PinElement} */(e.target)
-            const a = this.link.source ?? this.target // Remember target might have change
+            const a = this.link.origin ?? this.target // Remember target might have change
             const b = this.enteredPin
             const outputPin = a.isOutput() ? a : b
-            if (
-                a.nodeElement.getType() === Configuration.paths.knot
-                || b.nodeElement.getType() === Configuration.paths.knot
-            ) {
+            if (a.isKnot() || b.isKnot()) {
                 // A knot can be linked to any pin, it doesn't matter the type or input/output direction
                 this.link.setMessageCorrect()
                 this.linkValid = true
@@ -83,9 +77,6 @@ export default class MouseCreateLink extends IMouseClickDrag {
     }
 
     startDrag(location) {
-        if (this.target.nodeElement.getType() == Configuration.paths.knot) {
-            this.#knotPin = this.target
-        }
         /** @type {LinkElement} */
         this.link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
             .newObject(this.target, null)
@@ -99,11 +90,11 @@ export default class MouseCreateLink extends IMouseClickDrag {
             }
         })
         this.link.startDragging()
-        this.link.setDestinationLocation(location)
+        this.link.setTargetLocation(location)
     }
 
     dragTo(location, movement) {
-        this.link.setDestinationLocation(location)
+        this.link.setTargetLocation(location)
     }
 
     endDrag() {
@@ -113,28 +104,30 @@ export default class MouseCreateLink extends IMouseClickDrag {
         })
         this.#listenedPins = null
         if (this.enteredPin && this.linkValid) {
+            const knot = this.enteredPin.isKnot()
+                ? this.enteredPin
+                : this.link.origin.isKnot() ? this.link.origin : null
             // Knot can use wither the input or output (by default) part indifferently, check if a switch is needed
-            if (this.#knotPin) {
-                const otherPin = this.#knotPin !== this.link.source ? this.link.source : this.enteredPin
+            if (knot) {
+                const otherPin = knot !== this.link.origin ? this.link.origin : this.enteredPin
                 // Knot pin direction correction
-                if (this.#knotPin.isInput() && otherPin.isInput() || this.#knotPin.isOutput() && otherPin.isOutput()) {
-                    const oppositePin = /** @type {KnotPinTemplate} */(this.#knotPin.template).getOppositePin()
-                    if (this.#knotPin === this.link.source) {
-                        this.link.source = oppositePin
+                if (knot.isInput() && otherPin.isInput() || knot.isOutput() && otherPin.isOutput()) {
+                    const oppositePin = /** @type {KnotPinTemplate} */(knot.template).getoppositePin()
+                    if (knot === this.link.origin) {
+                        this.link.origin = oppositePin
                     } else {
                         this.enteredPin = oppositePin
                     }
                 }
-            } else if (this.enteredPin.nodeElement.getType() === Configuration.paths.knot) {
-                this.#knotPin = this.enteredPin
-                if (this.link.source.isOutput()) {
-                    // Knot uses by default the output pin, let's switch to keep it coherent with the source node we have
-                    this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).getOppositePin()
+            } else if (this.enteredPin.isKnot()) {
+                if (this.link.origin.isOutput()) {
+                    // Knot uses by default the output pin, let's switch to keep it coherent with the origin node we have
+                    this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).getoppositePin()
                 }
             }
-            if (!this.link.source.getLinks().find(ref => ref.equals(this.enteredPin.createPinReference()))) {
+            if (!this.link.origin.getLinks().find(ref => ref.equals(this.enteredPin.createPinReference()))) {
                 this.blueprint.addGraphElement(this.link)
-                this.link.destination = this.enteredPin
+                this.link.target = this.enteredPin
             } else {
                 this.link.remove()
             }

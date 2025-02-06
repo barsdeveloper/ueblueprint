@@ -80,7 +80,7 @@ export default class Utility {
     }
 
     /**
-     * @param {Attribute} entity
+     * @param {IEntity} entity
      * @param {String} key
      * @returns {Boolean}
      */
@@ -147,29 +147,31 @@ export default class Utility {
 
     /**
      * @template T
-     * @param {Array<T>} a
-     * @param {Array<T>} b
+     * @param {T[]} reference
+     * @param {T[]} additional
+     * @param {(v: T) => void} adding - Process added element
      * @param {(l: T, r: T) => Boolean} predicate
+     * @returns {T[]}
      */
-    static mergeArrays(a = [], b = [], predicate = (l, r) => l == r) {
+    static mergeArrays(reference = [], additional = [], predicate = (l, r) => l == r, adding = v => { }) {
         let result = []
-        a = [...a]
-        b = [...b]
+        reference = [...reference]
+        additional = [...additional]
         restart:
         while (true) {
-            for (let j = 0; j < b.length; ++j) {
-                for (let i = 0; i < a.length; ++i) {
-                    if (predicate(a[i], b[j])) {
+            for (let j = 0; j < additional.length; ++j) {
+                for (let i = 0; i < reference.length; ++i) {
+                    if (predicate(reference[i], additional[j])) {
                         // Found an element in common in the two arrays
                         result.push(
                             // Take and append all the elements skipped from a
-                            ...a.splice(0, i),
+                            ...reference.splice(0, i),
                             // Take and append all the elements skippend from b
-                            ...b.splice(0, j),
+                            ...additional.splice(0, j).map(v => (adding(v), v)),
                             // Take and append the element in common
-                            ...a.splice(0, 1)
+                            ...reference.splice(0, 1)
                         )
-                        b.shift() // Remove the same element from b
+                        additional.shift() // Remove the same element from b
                         continue restart
                     }
                 }
@@ -177,7 +179,13 @@ export default class Utility {
             break restart
         }
         // Append remaining the elements in the arrays and make it unique
-        return [...(new Set(result.concat(...a, ...b)))]
+        result.push(...reference)
+        result.push(
+            ...additional
+                .filter(vb => !result.some(vr => predicate(vr, vb)))
+                .map((v, k) => (adding(v), v))
+        )
+        return result
     }
 
     /** @param {String} value */

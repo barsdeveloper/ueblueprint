@@ -164,6 +164,25 @@ ueb-node[data-type="/Script/BlueprintGraph.K2Node_VariableSet"] ueb-pin[data-dir
     }
 }
 
+.ueb-pin-input[type="checkbox"] {
+    display: grid;
+    place-content: center;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 1px solid #353535;
+    background: #0f0f0f;
+
+    &:checked::before {
+        content: "";
+        height: 0.7em;
+        width: 0.8em;
+        clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        background: #0070e0;
+    }
+
+}
+
 ueb-pin[data-linked="true"] .ueb-pin-input,
 ueb-pin[data-linked="true"] .ueb-pin-input-wrapper {
     display: none;
@@ -214,7 +233,7 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
     max-height: 16em;
     /* 97% is to get an effective font size of 12.6px from --ueb-font-size which is 13 px by default */
     font-size: 97%;
-    white-space: nowrap;
+    white-space: pre;
     background: none;
     color: inherit;
     overflow: auto;

@@ -5,31 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch index.html",
+            "name": "Launch Blueprintue",
             "type": "firefox",
             "request": "launch",
             "reAttach": true,
-            "file": "${workspaceFolder}/index.html"
+            "url": "http://127.0.0.1:8080/debug.html",
+            "tmpDir": "~/.tmp/"
         },
-        {
-            "name": "Launch localhost",
-            "type": "firefox",
-            "request": "launch",
-            "reAttach": true,
-            "url": "http://localhost/index.html",
-            "webRoot": "${workspaceFolder}"
-        },
-        {
-            "name": "Attach",
-            "type": "firefox",
-            "request": "attach"
-        },
-        {
-            "name": "Launch WebExtension",
-            "type": "firefox",
-            "request": "launch",
-            "reAttach": true,
-            "addonPath": "${workspaceFolder}"
-        }
     ]
 }

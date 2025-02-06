@@ -5,6 +5,7 @@ import Utility from "../Utility.js"
 import BooleanEntity from "../entity/BooleanEntity.js"
 import LinkTemplate from "../template/LinkTemplate.js"
 import IFromToPositionedElement from "./IFromToPositionedElement.js"
+import LinearColorEntity from "../entity/LinearColorEntity.js"
 
 /** @extends {IFromToPositionedElement<Object, LinkTemplate>} */
 export default class LinkElement extends IFromToPositionedElement {
@@ -17,9 +18,34 @@ export default class LinkElement extends IFromToPositionedElement {
             converter: BooleanEntity.booleanConverter,
             reflect: true,
         },
+        originNode: {
+            type: String,
+            attribute: "data-origin-node",
+            reflect: true,
+        },
+        originPin: {
+            type: String,
+            attribute: "data-origin-pin",
+            reflect: true,
+        },
+        targetNode: {
+            type: String,
+            attribute: "data-target-node",
+            reflect: true,
+        },
+        targetPin: {
+            type: String,
+            attribute: "data-target-pin",
+            reflect: true,
+        },
         originatesFromInput: {
             type: Boolean,
-            attribute: false,
+            attribute: "data-from-input",
+            converter: BooleanEntity.booleanConverter,
+            reflect: true,
+        },
+        color: {
+            type: LinearColorEntity,
         },
         svgPathD: {
             type: String,
@@ -36,30 +62,58 @@ export default class LinkElement extends IFromToPositionedElement {
     }
 
     /** @type {PinElement} */
-    #source
-    get source() {
-        return this.#source
+    #origin
+    get origin() {
+        return this.#origin
     }
-    set source(pin) {
+    set origin(pin) {
         this.#setPin(pin, false)
     }
 
     /** @type {PinElement} */
-    #destination
-    get destination() {
-        return this.#destination
+    #target
+    get target() {
+        return this.#target
     }
-    set destination(pin) {
+    set target(pin) {
         this.#setPin(pin, true)
     }
 
+    /** @param {UEBNodeUpdateEvent} e */
+    #nodeUpdateHandler = e => {
+        if (this.#origin.nodeElement === e.target) {
+            if (this.originNode != this.#origin.nodeElement.nodeTitle) {
+                this.originNode = this.#origin.nodeElement.nodeTitle
+            }
+            this.setOriginLocation()
+        } else if (this.#target.nodeElement === e.target) {
+            if (this.targetNode != this.#target.nodeElement.nodeTitle) {
+                this.targetNode = this.#target.nodeElement.nodeTitle
+            }
+            this.setTargetLocation()
+        } else {
+            throw new Error("Unexpected node update")
+        }
+    }
+    /** @param {UEBNodeUpdateEvent} e */
+    #pinUpdateHandler = e => {
+        const colorReferencePin = this.getOutputPin(true)
+        if (!this.color?.equals(colorReferencePin.color)) {
+            this.color = colorReferencePin.color
+        }
+    }
     #nodeDeleteHandler = () => this.remove()
     /** @param {UEBDragEvent} e */
-    #nodeDragSourceHandler = e => this.addSourceLocation(...e.detail.value)
+    #nodeDragOriginHandler = e => this.addOriginLocation(...e.detail.value)
     /** @param {UEBDragEvent} e */
-    #nodeDragDestinatonHandler = e => this.addDestinationLocation(...e.detail.value)
-    #nodeReflowSourceHandler = e => this.setSourceLocation()
-    #nodeReflowDestinatonHandler = e => this.setDestinationLocation()
+    #nodeDragTargetHandler = e => this.addTargetLocation(...e.detail.value)
+    #nodeReflowOriginHandler = e => {
+        if (this.origin.isKnot()) {
+            this.originatesFromInput = this.origin.isInputVisually()
+        }
+        this.setOriginLocation()
+    }
+    #nodeReflowTargetHandler = e => this.setTargetLocation()
 
     /** @type {TemplateResult | nothing} */
     linkMessageIcon = nothing
@@ -72,178 +126,197 @@ export default class LinkElement extends IFromToPositionedElement {
     constructor() {
         super()
         this.dragging = false
+        this.originNode = ""
+        this.originPin = ""
+        this.targetNode = ""
+        this.targetPin = ""
         this.originatesFromInput = false
+        this.color = new LinearColorEntity()
         this.startPercentage = 0
         this.svgPathD = ""
         this.startPixels = 0
     }
 
     /**
-     * @param {PinElement} source
-     * @param {PinElement?} destination
+     * @param {PinElement} origin
+     * @param {PinElement?} target
      */
-    static newObject(source, destination) {
+    static newObject(origin, target) {
         const result = new LinkElement()
-        result.initialize(source, destination)
+        result.initialize(origin, target)
         return result
     }
 
     /**
-     * @param {PinElement} source
-     * @param {PinElement?} destination
+     * @param {PinElement} origin
+     * @param {PinElement?} target
      */
     // @ts-expect-error
-    initialize(source, destination) {
+    initialize(origin, target) {
         super.initialize({}, new LinkTemplate())
-        if (source) {
-            this.source = source
-            if (!destination) {
-                this.toX = this.fromX
-                this.toY = this.fromY
+        if (origin) {
+            this.origin = origin
+            if (!target) {
+                this.targetX = this.originX
+                this.targetY = this.originY
             }
         }
-        if (destination) {
-            this.destination = destination
-            if (!source) {
-                this.fromX = this.toX
-                this.fromY = this.toY
+        if (target) {
+            this.target = target
+            if (!origin) {
+                this.originX = this.targetX
+                this.originY = this.targetY
             }
         }
     }
 
     /**
      * @param {PinElement} pin
-     * @param {Boolean} isDestinationPin
+     * @param {Boolean} isTargetPin
      */
-    #setPin(pin, isDestinationPin) {
-        const getCurrentPin = () => isDestinationPin ? this.destination : this.source
+    #setPin(pin, isTargetPin) {
+        const getCurrentPin = () => isTargetPin ? this.target : this.origin
         if (getCurrentPin() == pin) {
             return
         }
         if (getCurrentPin()) {
             const nodeElement = getCurrentPin().getNodeElement()
+            nodeElement.removeEventListener(Configuration.nodeUpdateEventName, this.#nodeUpdateHandler)
             nodeElement.removeEventListener(Configuration.removeEventName, this.#nodeDeleteHandler)
             nodeElement.removeEventListener(
                 Configuration.nodeDragEventName,
-                isDestinationPin ? this.#nodeDragDestinatonHandler : this.#nodeDragSourceHandler
+                isTargetPin ? this.#nodeDragTargetHandler : this.#nodeDragOriginHandler
             )
-            nodeElement.removeEventListener(
-                Configuration.nodeReflowEventName,
-                isDestinationPin ? this.#nodeReflowDestinatonHandler : this.#nodeReflowSourceHandler
-            )
+            getCurrentPin().removeEventListener(Configuration.pinUpdateEventName, this.#pinUpdateHandler)
             this.#unlinkPins()
         }
-        isDestinationPin
-            ? this.#destination = pin
-            : this.#source = pin
+        if (isTargetPin) {
+            this.#target = pin
+            this.targetNode = pin?.nodeElement.nodeTitle
+            this.targetPin = pin?.pinId.toString()
+        } else {
+            this.#origin = pin
+            this.originNode = pin?.nodeElement.nodeTitle
+            this.originPin = pin?.pinId.toString()
+        }
         if (getCurrentPin()) {
             const nodeElement = getCurrentPin().getNodeElement()
+            nodeElement.addEventListener(Configuration.nodeUpdateEventName, this.#nodeUpdateHandler)
+            nodeElement.addEventListener(Configuration.pinUpdateEventName, this.#pinUpdateHandler)
             nodeElement.addEventListener(Configuration.removeEventName, this.#nodeDeleteHandler)
             nodeElement.addEventListener(
                 Configuration.nodeDragEventName,
-                isDestinationPin ? this.#nodeDragDestinatonHandler : this.#nodeDragSourceHandler
+                isTargetPin ? this.#nodeDragTargetHandler : this.#nodeDragOriginHandler
             )
-            nodeElement.addEventListener(
-                Configuration.nodeReflowEventName,
-                isDestinationPin ? this.#nodeReflowDestinatonHandler : this.#nodeReflowSourceHandler
-            )
-            isDestinationPin
-                ? this.setDestinationLocation()
-                : (this.setSourceLocation(), this.originatesFromInput = this.source.isInput())
+            getCurrentPin().addEventListener(Configuration.pinUpdateEventName, this.#pinUpdateHandler)
+            isTargetPin
+                ? this.setTargetLocation()
+                : (this.setOriginLocation(), this.originatesFromInput = this.origin.isInputVisually())
             this.#linkPins()
         }
+        this.color = this.getOutputPin(true)?.color
     }
 
     #linkPins() {
-        if (this.source && this.destination) {
-            this.source.linkTo(this.destination)
-            this.destination.linkTo(this.source)
+        if (this.origin && this.target) {
+            this.origin.linkTo(this.target)
+            this.target.linkTo(this.origin)
         }
     }
 
     #unlinkPins() {
-        if (this.source && this.destination) {
-            this.source.unlinkFrom(this.destination, false)
-            this.destination.unlinkFrom(this.source, false)
+        if (this.origin && this.target) {
+            this.origin.unlinkFrom(this.target, false)
+            this.target.unlinkFrom(this.origin, false)
         }
     }
 
     cleanup() {
         super.cleanup()
         this.#unlinkPins()
-        this.source = null
-        this.destination = null
+        this.origin = null
+        this.target = null
     }
 
     /** @param {Coordinates} location */
-    setSourceLocation(location = null, canPostpone = true) {
+    setOriginLocation(location = null, canPostpone = true) {
         if (location == null) {
             const self = this
-            if (canPostpone && (!this.hasUpdated || !this.source.hasUpdated)) {
-                Promise.all([this.updateComplete, this.source.updateComplete])
-                    .then(() => self.setSourceLocation(null, false))
+            if (canPostpone && (!this.hasUpdated || !this.origin.hasUpdated)) {
+                Promise.all([this.updateComplete, this.origin.updateComplete])
+                    .then(() => self.setOriginLocation(null, false))
                 return
             }
-            location = this.source.template.getLinkLocation()
+            location = this.origin.template.getLinkLocation()
         }
         const [x, y] = location
-        this.fromX = x
-        this.fromY = y
+        this.originX = x
+        this.originY = y
     }
 
     /** @param {Coordinates} location */
-    setDestinationLocation(location = null, canPostpone = true) {
+    setTargetLocation(location = null, canPostpone = true) {
         if (location == null) {
             const self = this
-            if (canPostpone && (!this.hasUpdated || !this.destination.hasUpdated)) {
-                Promise.all([this.updateComplete, this.destination.updateComplete])
-                    .then(() => self.setDestinationLocation(null, false))
+            if (canPostpone && (!this.hasUpdated || !this.target.hasUpdated)) {
+                Promise.all([this.updateComplete, this.target.updateComplete])
+                    .then(() => self.setTargetLocation(null, false))
                 return
             }
-            location = this.destination.template.getLinkLocation()
+            location = this.target.template.getLinkLocation()
         }
-        this.toX = location[0]
-        this.toY = location[1]
+        this.targetX = location[0]
+        this.targetY = location[1]
     }
 
     getInputPin(getSomething = false) {
-        if (this.source?.isInput()) {
-            return this.source
+        if (this.origin?.isInput()) {
+            return this.origin
         }
-        if (this.destination?.isInput()) {
-            return this.destination
+        if (this.target?.isInput()) {
+            return this.target
         }
         if (getSomething) {
-            return this.source ?? this.destination
+            return this.origin ?? this.target
         }
     }
 
     /** @param {PinElement} pin */
     setInputPin(pin) {
-        if (this.source?.isInput()) {
-            this.source = pin
+        if (this.origin?.isInput()) {
+            this.origin = pin
         }
-        this.destination = pin
+        this.target = pin
     }
 
     getOutputPin(getSomething = false) {
-        if (this.source?.isOutput()) {
-            return this.source
+        if (this.origin?.isOutput()) {
+            return this.origin
         }
-        if (this.destination?.isOutput()) {
-            return this.destination
+        if (this.target?.isOutput()) {
+            return this.target
         }
         if (getSomething) {
-            return this.source ?? this.destination
+            return this.origin ?? this.target
         }
     }
 
     /** @param {PinElement} pin */
     setOutputPin(pin) {
-        if (this.destination?.isOutput()) {
-            this.destination = pin
+        if (this.target?.isOutput()) {
+            this.target = pin
         }
-        this.source = pin
+        this.origin = pin
+    }
+
+    /** @param {NodeElement} node */
+    getOtherPin(node) {
+        if (this.origin?.nodeElement === node) {
+            return this.target
+        }
+        if (this.target?.nodeElement === node) {
+            return this.origin
+        }
     }
 
     startDragging() {
@@ -261,7 +334,7 @@ export default class LinkElement extends IFromToPositionedElement {
 
     setMessageConvertType() {
         this.linkMessageIcon = SVGIcon.convert
-        this.linkMessageText = html`Convert ${this.source.pinType} to ${this.destination.pinType}.`
+        this.linkMessageText = html`Convert ${this.origin.pinType} to ${this.target.pinType}.`
     }
 
     setMessageCorrect() {

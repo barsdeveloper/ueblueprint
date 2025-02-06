@@ -10,7 +10,7 @@ export default class BoolPinTemplate extends PinTemplate {
     #input
 
     #onChangeHandler = () => {
-        const entity = this.element.getDefaultValue()
+        const entity = this.element.getDefaultValue(true)
         entity.value = this.#input.checked
         this.element.setDefaultValue(entity)
     }
@@ -40,7 +40,9 @@ export default class BoolPinTemplate extends PinTemplate {
 
     renderInput() {
         return html`
-            <input type="checkbox" class="ueb-pin-input-wrapper ueb-pin-input" ?checked="${this.element.defaultValue?.valueOf() === true}" />
+            <input type="checkbox" class="ueb-pin-input-wrapper ueb-pin-input"
+                ?checked="${this.element.defaultValue?.valueOf() === true}"
+            />
         `
     }
 }

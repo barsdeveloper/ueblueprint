@@ -1,0 +1,40 @@
+import SVGIcon from "../js/SVGIcon.js"
+import { expect, testNode } from "./fixtures/test.js"
+
+testNode({
+    name: "Map For With Continue",
+    value: String.raw`
+        Begin Object Class=/Script/NiagaraEditor.NiagaraNodeParameterMapForWithContinue Name="NiagaraNodeParameterMapForWithContinue_0" ExportPath="/Script/NiagaraEditor.NiagaraNodeParameterMapForWithContinue'/Engine/Transient.NewNiagaraScript:NiagaraScriptSource_0.NiagaraGraph_0.NiagaraNodeParameterMapForWithContinue_0'"
+            ChangeId=D516665BE460464D97C2890CBF7622C5
+            NodePosX=896
+            NodePosY=-1152
+            NodeGuid=9D7BA8EE31AA415385E8E7E58E8D4432
+            CustomProperties Pin (PinId=5C53D96B4D134961A40B7AE653122BEC,PinName="Source",PinType.PinCategory="Type",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.ScriptStruct'/Script/Niagara.NiagaraParameterMap'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+            CustomProperties Pin (PinId=F03D66AD0F4B49669611BC73BD246B72,PinName="Iteration Count",PinType.PinCategory="Type",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.ScriptStruct'/Script/Niagara.NiagaraInt32'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+            CustomProperties Pin (PinId=8311B369A7E24928B855AD7429F0433C,PinName="Iteration Enabled",PinType.PinCategory="Type",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.ScriptStruct'/Script/Niagara.NiagaraBool'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+            CustomProperties Pin (PinId=56EDD62A7A634BF79A765FA4FF78BB7A,PinName="Dest",Direction="EGPD_Output",PinType.PinCategory="Type",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.ScriptStruct'/Script/Niagara.NiagaraParameterMap'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+            CustomProperties Pin (PinId=6F8E4679877E439D8F2445553A6323BD,PinName="Particles.MeshOrientation",PinFriendlyName=INVTEXT("Particles.MeshOrientation"),PinType.PinCategory="Type",PinType.PinSubCategory="ParameterPin",PinType.PinSubCategoryObject="/Script/CoreUObject.ScriptStruct'/Script/CoreUObject.Quat4f'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=BA6564A4AFCF4552929F4B1F689454A6,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+            CustomProperties Pin (PinId=0C135DE347274399B5E076173B25F944,PinName="Emitter.OverrideGlobalSpawnCountScale",PinFriendlyName=INVTEXT("Emitter.OverrideGlobalSpawnCountScale"),PinType.PinCategory="Type",PinType.PinSubCategory="ParameterPin",PinType.PinSubCategoryObject="/Script/CoreUObject.ScriptStruct'/Script/Niagara.NiagaraBool'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=D5E987A3786E4DFE83C78D721EB28238,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+            CustomProperties Pin (PinId=95CD3BDD3F2144FAAC58BBF7928FB3F9,PinName="DataInstance.Alive",PinFriendlyName=INVTEXT("DataInstance.Alive"),PinType.PinCategory="Type",PinType.PinSubCategory="ParameterPin",PinType.PinSubCategoryObject="/Script/CoreUObject.ScriptStruct'/Script/Niagara.NiagaraBool'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=FF78A03CC74349009E21FA0C580A5D5D,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+            CustomProperties Pin (PinId=424BB6ED7C4842E5A2C6418D57FA4932,PinName="Engine.System.NumTimeSteps",PinFriendlyName=INVTEXT("Engine.System.NumTimeSteps"),PinType.PinCategory="Type",PinType.PinSubCategory="ParameterPin",PinType.PinSubCategoryObject="/Script/CoreUObject.ScriptStruct'/Script/Niagara.NiagaraInt32'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=4F1387D07F664AD6A320F979E46166FC,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+            CustomProperties Pin (PinId=DD864D32981147828323F10E017607F1,PinName="Add",PinType.PinCategory="Misc",PinType.PinSubCategory="DynamicAddPin",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+        End Object
+    `,
+    pins: 9,
+    delegate: false,
+    development: false,
+    additionalTest: async (node, pins) => {
+        expect(await node.evaluate(node => node.classList.contains("ueb-node-style-default"))).toBeTruthy()
+        expect(await pins[0].evaluate(p => p.entity.isExecution())).toBeTruthy()
+        expect(await pins[0].evaluate(p => p.template.renderIcon().strings.join("")))
+            .toEqual(SVGIcon.execPin.strings.join(""))
+        expect(await pins[1].evaluate(p => p.entity.isExecution())).toBeFalsy()
+        expect(await pins[1].evaluate(p => p.template.renderIcon().strings.join("")))
+            .toEqual(SVGIcon.genericPin.strings.join(""))
+        expect(await pins[2].evaluate(p => p.entity.isExecution())).toBeFalsy()
+        expect(await pins[7].evaluate(p => p.entity.isExecution())).toBeFalsy()
+        expect(await pins[8].evaluate(p => p.entity.isExecution())).toBeTruthy()
+        expect(await pins[8].evaluate(p => p.template.renderIcon().strings.join("")))
+            .toEqual(SVGIcon.execPin.strings.join(""))
+    },
+})

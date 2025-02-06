@@ -9,22 +9,89 @@ import VariableAccessNodeTemplate from "../template/node/VariableAccessNodeTempl
 import VariableConversionNodeTemplate from "../template/node/VariableConversionNodeTemplate.js"
 import VariableOperationNodeTemplate from "../template/node/VariableOperationNodeTemplate.js"
 
+const niagaraOperationNodes = [
+    "Boolean::LogicEq",
+    "Boolean::LogicNEq",
+    "Integer::EnumNEq",
+    "Integer::EnumEq",
+    ...[
+        "Abs",
+        "Add",
+        "ArcCosine(Degrees)",
+        "ArcCosine(Radians)",
+        "ArcSine(Degrees)",
+        "ArcSine(Radians)",
+        "ArcTangent(Degrees)",
+        "ArcTangent(Radians)",
+        "Ceil",
+        "CmpEQ",
+        "CmpGE",
+        "CmpGT",
+        "CmpLE",
+        "CmpLT",
+        "CmpNEQ",
+        "Cosine(Degrees)",
+        "Cosine(Radians)",
+        "DegreesToRadians",
+        "Div",
+        "Dot",
+        "Exp",
+        "Exp2",
+        "Floor",
+        "FMod",
+        "Frac",
+        "Length",
+        "Lerp",
+        "Log",
+        "Log2",
+        "Madd",
+        "Max",
+        "Min",
+        "Mul",
+        "Negate",
+        "Normalize",
+        "OneMinus",
+        "PI",
+        "RadiansToDegrees",
+        "Rcp",
+        "RcpFast",
+        "Round",
+        "RSqrt",
+        "Sign",
+        "Sine(Degrees)",
+        "Sine(Radians)",
+        "Sqrt",
+        "Step",
+        "Subtract",
+        "Tangent(Degrees)",
+        "Tangent(Radians)",
+        "Trunc",
+        "TWO_PI",
+    ].map(v => "Numeric::" + v),
+    "Vector3::Cross",
+]
+
+const p = Configuration.paths
+
 /**
  * @param {ObjectEntity} nodeEntity
  * @return {new () => NodeTemplate}
  */
 export default function nodeTemplateClass(nodeEntity) {
+    const className = nodeEntity.getClass()
     if (
-        nodeEntity.getClass() === Configuration.paths.callFunction
-        || nodeEntity.getClass() === Configuration.paths.commutativeAssociativeBinaryOperator
-        || nodeEntity.getClass() === Configuration.paths.callArrayFunction
+        className === p.callFunction
+        || className === p.commutativeAssociativeBinaryOperator
+        || className === p.callArrayFunction
     ) {
         const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? ""
         const memberName = nodeEntity.FunctionReference?.MemberName?.toString()
         if (
             memberName && (
-                memberParent === Configuration.paths.kismetMathLibrary
-                || memberParent === Configuration.paths.kismetArrayLibrary
+                memberParent === p.kismetArrayLibrary
+                || memberParent === p.kismetMathLibrary
+                || memberParent === p.kismetStringLibrary
+                || memberParent === p.typedElementHandleLibrary
             )) {
             if (memberName.startsWith("Conv_")) {
                 return VariableConversionNodeTemplate
@@ -51,6 +118,7 @@ export default function nodeTemplateClass(nodeEntity) {
                 case "BMin":
                 case "CrossProduct2D":
                 case "DotProduct2D":
+                case "Equal":
                 case "Exp":
                 case "FMax":
                 case "FMin":
@@ -77,45 +145,37 @@ export default function nodeTemplateClass(nodeEntity) {
                     return VariableOperationNodeTemplate
             }
         }
-        if (memberParent === Configuration.paths.blueprintSetLibrary) {
+        if (memberParent === p.blueprintSetLibrary) {
             return VariableOperationNodeTemplate
         }
-        if (memberParent === Configuration.paths.blueprintMapLibrary) {
+        if (memberParent === p.blueprintMapLibrary) {
             return VariableOperationNodeTemplate
         }
     }
-    switch (nodeEntity.getClass()) {
-        case Configuration.paths.comment:
-        case Configuration.paths.materialGraphNodeComment:
+    switch (className) {
+        case p.comment:
+        case p.materialGraphNodeComment:
             return CommentNodeTemplate
-        case Configuration.paths.createDelegate:
+        case p.createDelegate:
             return NodeTemplate
-        case Configuration.paths.metasoundEditorGraphExternalNode:
+        case p.metasoundEditorGraphExternalNode:
             if (nodeEntity["ClassName"]?.["Name"] == "Add") {
                 return MetasoundOperationTemplate
             }
             return MetasoundNodeTemplate
-        case Configuration.paths.niagaraNodeOp:
-            if (
-                [
-                    "Boolean::LogicEq",
-                    "Boolean::LogicNEq",
-                    "Numeric::Abs",
-                    "Numeric::Add",
-                    "Numeric::Mul",
-                ].includes(nodeEntity.OpName?.toString())
-            ) {
+        case p.niagaraNodeOp:
+            if (niagaraOperationNodes.includes(nodeEntity.OpName?.toString())) {
                 return VariableOperationNodeTemplate
             }
             break
-        case Configuration.paths.promotableOperator:
+        case p.promotableOperator:
             return VariableOperationNodeTemplate
-        case Configuration.paths.knot:
+        case p.knot:
             return KnotNodeTemplate
-        case Configuration.paths.literal:
-        case Configuration.paths.self:
-        case Configuration.paths.variableGet:
-        case Configuration.paths.variableSet:
+        case p.literal:
+        case p.self:
+        case p.variableGet:
+        case p.variableSet:
             return VariableAccessNodeTemplate
     }
     if (nodeEntity.isEvent()) {

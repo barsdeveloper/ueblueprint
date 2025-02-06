@@ -44,6 +44,7 @@ export default class IEntity {
         this.#keys = [... new Set(value)]
     }
 
+    // @ts-expect-error
     #lookbehind = /** @type {String} */(this.constructor.lookbehind)
     get lookbehind() {
         return this.#lookbehind.trim()
@@ -145,9 +146,9 @@ export default class IEntity {
      * @this {T}
      * @returns {T}
      */
-    static asUniqueClass() {
+    static asUniqueClass(alwaysCreate = false) {
         let result = this
-        if (this.name.length) {
+        if (this.name.length || alwaysCreate) {
             // @ts-expect-error
             result = (() => class extends this { })() // Comes from a lambda otherwise the class will have name "result"
             result.grammar = result.createGrammar() // Reassign grammar to capture the correct this from subclass
@@ -428,5 +429,10 @@ export default class IEntity {
             }
         }
         return true
+    }
+
+    /** @returns {IEntity | Boolean | Number | String | BigInt | (IEntity | Boolean | Number | String | BigInt)[]} */
+    valueOf() {
+        return this
     }
 }

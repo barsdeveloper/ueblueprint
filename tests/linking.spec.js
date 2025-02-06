@@ -60,7 +60,7 @@ test.describe("Linking", () => {
         await mouse.down()
         await mouse.move(aRect.left + aRect.width + 100, aRect.top + aRect.height + 100, { steps: 4 })
         // There is one link element ...
-        expect(blueprintPage.blueprintLocator.locator("ueb-link")).toHaveCount(1)
+        await expect(blueprintPage.blueprintLocator.locator("ueb-link")).toHaveCount(1)
         // ... but no pins are linked yet
         expect(await aPin.evaluate(pin => pin.entity.isLinked())).toBeFalsy()
         expect(await bPin.evaluate(pin => pin.entity.isLinked())).toBeFalsy()

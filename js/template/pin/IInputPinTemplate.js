@@ -78,13 +78,13 @@ export default class IInputPinTemplate extends PinTemplate {
         }
         if (Self.canWrapInput && this.isInputRendered()) {
             this.element.addEventListener("input", this.#checkWrapHandler)
-            this.element.nodeElement.addEventListener(Configuration.nodeReflowEventName, this.#checkWrapHandler)
+            this.element.nodeElement.addEventListener(Configuration.nodeUpdateEventName, this.#checkWrapHandler)
         }
     }
 
     cleanup() {
         super.cleanup()
-        this.element.nodeElement.removeEventListener(Configuration.nodeReflowEventName, this.#checkWrapHandler)
+        this.element.nodeElement.removeEventListener(Configuration.nodeUpdateEventName, this.#checkWrapHandler)
         this.element.removeEventListener("input", this.#checkWrapHandler)
         this.element.removeEventListener("input", this.#setInput)
         this.element.removeEventListener("focusout", this.#setInput)
@@ -112,7 +112,7 @@ export default class IInputPinTemplate extends PinTemplate {
             this.setDefaultValue(values.map(v => IInputPinTemplate.stringFromInputToUE(v)), values)
         }
         this.element.requestUpdate()
-        this.element.nodeElement.acknowledgeReflow()
+        this.element.updateComplete.then(() => this.element.nodeElement.acknowledgeUpdate())
     }
 
     setDefaultValue(values = [], rawValues = values) {

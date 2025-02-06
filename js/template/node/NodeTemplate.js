@@ -31,14 +31,14 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
             } else {
                 (pin.isInput() ? this.inputContainer : this.outputContainer).appendChild(this.createPinElement(pin))
             }
-            this.element.acknowledgeReflow()
+            this.element.acknowledgeUpdate()
         }
     }
 
     toggleAdvancedDisplayHandler = () => {
         this.element.toggleShowAdvancedPinDisplay()
         this.element.requestUpdate()
-        this.element.updateComplete.then(() => this.element.acknowledgeReflow())
+        this.element.updateComplete.then(() => this.element.acknowledgeUpdate())
     }
 
     /** @param {PinEntity<IEntity>} pinEntity */
@@ -57,15 +57,11 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         super.initialize(element)
         this.#subtitle = nodeSubtitle(element.entity)
         this.element.classList.add(.../** @type {typeof NodeTemplate} */(this.constructor).nodeStyleClasses)
-        this.element.style.setProperty("--ueb-node-color", this.getColor().cssText)
+        this.element.style.setProperty("--ueb-node-color", this.element.entity.nodeColor().cssText)
         this.pinInserter = this.element.entity.additionalPinInserter()
         if (this.pinInserter) {
             this.element.classList.add("ueb-node-is-variadic")
         }
-    }
-
-    getColor() {
-        return this.element.entity.nodeColor()
     }
 
     render() {
@@ -129,7 +125,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         this.inputContainer = this.element.querySelector(".ueb-node-inputs")
         this.outputContainer = this.element.querySelector(".ueb-node-outputs")
         this.setupPins()
-        this.element.updateComplete.then(() => this.element.acknowledgeReflow())
+        this.element.updateComplete.then(() => this.element.acknowledgeUpdate())
     }
 
     setupPins() {
@@ -169,5 +165,10 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
             .map(pinEntity => this.createPinElement(pinEntity))
     }
 
-    linksChanged() { }
+    /** All the link connected to this node */
+    getAllConnectedLinks() {
+        const nodeTitle = this.element.nodeTitle
+        const query = `ueb-link[data-origin-node="${nodeTitle}"],ueb-link[data-target-node="${nodeTitle}"]`
+        return /** @type {LinkElement[]} */([...this.blueprint.querySelectorAll(query)])
+    }
 }

@@ -1,4 +1,3 @@
-import commonjs from "@rollup/plugin-commonjs"
 import copy from "rollup-plugin-copy"
 import minifyHTML from "rollup-plugin-minify-html-literals"
 import resolve from "@rollup/plugin-node-resolve"
@@ -13,7 +12,6 @@ export default [
         },
         plugins: [
             resolve({ browser: true }),
-            commonjs(),
             copy({
                 targets: [{
                     src: ["assets/fonts/*"],
@@ -30,7 +28,6 @@ export default [
         },
         plugins: [
             resolve({ browser: true }),
-            commonjs(),
             minifyHTML({
                 minifyCSS: true,
             }),

@@ -19,11 +19,8 @@ export default class BlueprintTemplate extends ITemplate {
 
     static styleVariables = {
         "--ueb-font-size": `${Configuration.fontSize}`,
-        "--ueb-grid-axis-line-color": `${Configuration.gridAxisLineColor}`,
         "--ueb-grid-expand": `${Configuration.expandGridSize}px`,
-        "--ueb-grid-line-color": `${Configuration.gridLineColor}`,
         "--ueb-grid-line-width": `${Configuration.gridLineWidth}px`,
-        "--ueb-grid-set-line-color": `${Configuration.gridSetLineColor}`,
         "--ueb-grid-set": `${Configuration.gridSet}`,
         "--ueb-grid-size": `${Configuration.gridSize}px`,
         "--ueb-link-min-width": `${Configuration.linkMinWidth}`,
@@ -55,6 +52,7 @@ export default class BlueprintTemplate extends ITemplate {
     /** @type {HTMLElement} */ linksContainerElement
     /** @type {HTMLElement} */ nodesContainerElement
     viewportSize = [0, 0]
+    #removeZoomChanged = () => this.headerElement.classList.remove("ueb-zoom-changed")
 
     /** @param {Blueprint} element */
     initialize(element) {
@@ -139,6 +137,11 @@ export default class BlueprintTemplate extends ITemplate {
     render() {
         return html`
             <div class="ueb-viewport-header">
+                <div class="ueb-viewport-about">
+                    <a @click="${e => e.target.closest("ueb-blueprint").querySelector(".ueb-info-dialog").showModal()}">
+                        ⓘ
+                    </a>
+                </div>
                 <div class="ueb-viewport-zoom">
                     Zoom ${this.blueprint.zoom == 0 ? "1:1" : (this.blueprint.zoom > 0 ? "+" : "") + this.blueprint.zoom}
                 </div>
@@ -154,6 +157,22 @@ export default class BlueprintTemplate extends ITemplate {
                     </div>
                 </div>
             </div>
+            <dialog class="ueb-info-dialog" @click="${e => e.target.closest(".ueb-info-dialog").close()}">
+                <h2>UEBlueprint</h2>
+                <p>A stand alone implementation of the UE's Blueprint visual language editor.</p>
+                <p>
+                    Version: ${Configuration.VERSION}<br />
+                    Author: barsdeveloper<br />
+                    License: MIT<br />
+
+                    <a target="_blank" href="https://github.com/barsdeveloper/ueblueprint">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#e3b341" style="vertical-align: bottom">
+                            <path d="M 12 0.587 L 16 8 L 24 9 L 18 15 L 20 24 L 12 19 L 4 24 L 6 15 L 0 9 L 8 8 Z M 0 0"></path>
+                        </svg>
+                        https://github.com/barsdeveloper/ueblueprint
+                    </a>
+                </p>
+            </dialog>
         `
     }
 
@@ -176,11 +195,12 @@ export default class BlueprintTemplate extends ITemplate {
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties)
         if (this.headerElement && changedProperties.has("zoom")) {
+            if (this.headerElement.classList.contains("ueb-zoom-changed")) {
+                this.headerElement.classList.remove("ueb-zoom-changed")
+                void this.headerElement.offsetWidth // To trigger the reflow
+            }
             this.headerElement.classList.add("ueb-zoom-changed")
-            this.headerElement.addEventListener(
-                "animationend",
-                () => this.headerElement.classList.remove("ueb-zoom-changed")
-            )
+            this.headerElement.addEventListener("animationend", this.#removeZoomChanged, { once: true })
         }
     }
 

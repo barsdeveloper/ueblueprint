@@ -5,3 +5,11 @@
 @use "ueb-pin.scss";
 @use "ueb-ui-controls.scss";
 @use "ueb-window.scss";
+
+/* To improve a bit performance */
+.ueb-zoom--2 * {
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}

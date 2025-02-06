@@ -21,6 +21,6 @@ export default class VariableAccessNodeTemplate extends VariableManagementNodeTe
     setupPins() {
         super.setupPins()
         let outputPin = this.element.getPinElements().find(p => !p.entity.isHidden() && !p.entity.isExecution())
-        this.element.style.setProperty("--ueb-node-color", outputPin.getColor().cssText)
+        this.element.style.setProperty("--ueb-node-color", outputPin.entity.pinColor().cssText)
     }
 }

@@ -1,6 +1,7 @@
 import { css } from "lit"
 
 export default class Configuration {
+    static VERSION = "2.0.0"
     static nodeColors = {
         black: css`20, 20, 20`,
         blue: css`84, 122, 156`,
@@ -23,7 +24,7 @@ export default class Configuration {
     static colorWindowName = "Color Picker"
     static defaultCommentHeight = 96
     static defaultCommentWidth = 400
-    static distanceThreshold = 5 // px
+    static distanceThreshold = 20 // px
     static dragEventName = "ueb-drag"
     static dragGeneralEventName = "ueb-drag-general"
     static edgeScrollThreshold = 50
@@ -37,12 +38,9 @@ export default class Configuration {
         end: "blueprint-unfocus",
     }
     static fontSize = css`13px`
-    static gridAxisLineColor = css`black`
     static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
-    static gridLineColor = css`#353535`
     static gridLineWidth = 1 // px
     static gridSet = 8
-    static gridSetLineColor = css`#161616`
     static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event
     static gridSize = 16 // px
     static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
@@ -79,9 +77,13 @@ export default class Configuration {
      * @param {Number} c1
      * @param {Number} c2
      */
-    static linkRightSVGPath = (start, c1, c2) => {
-        let end = 100 - start
-        return `M ${start} 0 C ${c1.toFixed(3)} 0, ${c2.toFixed(3)} 0, 50 50 S ${(end - c1 + start).toFixed(3)} 100, `
+    static linkRightSVGPath = (start, c1, c2, arc = false) => {
+        const end = 100 - start
+        const mid = arc
+            ? 50 + (c2 - start)
+            : 50
+        const fin = arc ? end + c1 - start : end - c1 + start
+        return `M ${start} 0 C ${c1.toFixed(2)} 0, ${c2.toFixed(2)} 0, ${mid.toFixed(2)} 50 S ${fin.toFixed(2)} 100, `
             + `${end.toFixed(3)} 100`
     }
     static maxZoom = 7
@@ -91,9 +93,9 @@ export default class Configuration {
     static mouseWheelZoomThreshold = 80
     static nodeDragEventName = "ueb-node-drag"
     static nodeDragGeneralEventName = "ueb-node-drag-general"
-    static nodeTitle = (name, counter) => `${name}_${counter}`
     static nodeRadius = 8 // px
-    static nodeReflowEventName = "ueb-node-reflow"
+    static nodeTitle = (name, counter) => `${name}_${counter}`
+    static nodeUpdateEventName = "ueb-node-update"
     static paths = {
         actorBoundEvent: "/Script/BlueprintGraph.K2Node_ActorBoundEvent",
         addDelegate: "/Script/BlueprintGraph.K2Node_AddDelegate",
@@ -149,6 +151,7 @@ export default class Configuration {
         isValid: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:IsValid",
         kismetArrayLibrary: "/Script/Engine.KismetArrayLibrary",
         kismetMathLibrary: "/Script/Engine.KismetMathLibrary",
+        kismetStringLibrary: "/Script/Engine.KismetStringLibrary",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         linearColor: "/Script/CoreUObject.LinearColor",
         literal: "/Script/BlueprintGraph.K2Node_Literal",
@@ -178,12 +181,16 @@ export default class Configuration {
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         niagaraBool: "/Script/Niagara.NiagaraBool",
         niagaraClipboardContent: "/Script/NiagaraEditor.NiagaraClipboardContent",
+        niagaraDataInterfaceCollisionQuery: "/Script/Niagara.NiagaraDataInterfaceCollisionQuery",
+        niagaraDataInterfaceCurlNoise: "/Script/Niagara.NiagaraDataInterfaceCurlNoise",
         niagaraDataInterfaceVolumeTexture: "/Script/Niagara.NiagaraDataInterfaceVolumeTexture",
         niagaraFloat: "/Script/Niagara.NiagaraFloat",
-        niagaraMatrix: "/Script/Niagara.NiagaraMatrix",
+        niagaraInt32: "/Script/Niagara.NiagaraInt32",
+        niagaraNodeConvert: "/Script/NiagaraEditor.NiagaraNodeConvert",
         niagaraNodeFunctionCall: "/Script/NiagaraEditor.NiagaraNodeFunctionCall",
+        niagaraNodeInput: "/Script/NiagaraEditor.NiagaraNodeInput",
         niagaraNodeOp: "/Script/NiagaraEditor.NiagaraNodeOp",
-        niagaraNumeric: "/Script/Niagara.NiagaraNumeric",
+        niagaraParameterMap: "/Script/Niagara.NiagaraParameterMap",
         niagaraPosition: "/Script/Niagara.NiagaraPosition",
         pawn: "/Script/Engine.Pawn",
         pcgEditorGraphNode: "/Script/PCGEditor.PCGEditorGraphNode",
@@ -208,16 +215,19 @@ export default class Configuration {
         timeline: "/Script/BlueprintGraph.K2Node_Timeline",
         timeManagementBlueprintLibrary: "/Script/TimeManagement.TimeManagementBlueprintLibrary",
         transform: "/Script/CoreUObject.Transform",
+        typedElementHandleLibrary: "/Script/TypedElementFramework.TypedElementHandleLibrary",
         userDefinedEnum: "/Script/Engine.UserDefinedEnum",
         variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
         vector: "/Script/CoreUObject.Vector",
         vector2D: "/Script/CoreUObject.Vector2D",
+        vector2f: "/Script/CoreUObject.Vector2f",
         vector3f: "/Script/CoreUObject.Vector3f",
         vector4f: "/Script/CoreUObject.Vector4f",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
     static pinInputWrapWidth = 145 // px
+    static pinUpdateEventName = "ueb-pin-update"
     static removeEventName = "ueb-element-delete"
     static scale = {
         [-12]: 0.133333,

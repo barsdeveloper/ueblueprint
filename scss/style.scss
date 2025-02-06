@@ -13,6 +13,9 @@
 ueb-blueprint {
     --ueb-scale: 1;
     --ueb-grid-actual-size: var(--ueb-grid-size);
+    --ueb-grid-line-color: #353535;
+    --ueb-grid-set-line-color: #161616;
+    --ueb-grid-axis-line-color: #000;
     display: block;
     position: relative;
     font-family: Roboto, Noto, Oxygen, Ubuntu, "Open Sans", "Helvetica Neue", sans-serif;
@@ -36,6 +39,15 @@ ueb-blueprint svg {
     z-index: 1;
 }
 
+.ueb-viewport-about {
+    margin-top: -6px;
+    padding: 0 8px;
+    align-self: center;
+    font-size: 20px;
+    font-weight: bolder;
+    cursor: pointer;
+}
+
 @keyframes ueb-zoom-animation {
     0% {
         color: #7f7f7f;
@@ -47,7 +59,7 @@ ueb-blueprint svg {
 }
 
 .ueb-zoom-changed .ueb-viewport-zoom {
-    animation: 600ms ueb-zoom-animation;
+    animation: 1500ms ueb-zoom-animation;
 }
 
 .ueb-viewport-zoom {
@@ -130,7 +142,6 @@ ueb-blueprint[data-scrolling="false"] .ueb-grid {
 
 ueb-blueprint.ueb-zoom--4 {
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 2);
-    --ueb-node-radius: 0 !important;
 }
 
 ueb-blueprint.ueb-zoom--6 {
@@ -256,4 +267,50 @@ ueb-selector>* {
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+}
+
+.ueb-info-dialog {
+    border: 6px solid #202020;
+    padding: 5px 30px;
+    background: #121212;
+    color: #f0f0f0;
+    box-shadow: 0 2px 10px 0 #000;
+
+    a:link,
+    a:visited,
+    a:hover,
+    a:active {
+        outline: none;
+        color: #f0f0f0;
+    }
+}
+
+.ueb-info-dialog::backdrop {
+    background-color: #000000a0;
+    backdrop-filter: blur(4px);
+}
+
+/* Light mode */
+
+ueb-blueprint.ueb-light-mode {
+    --ueb-grid-line-color: #ddd;
+    --ueb-grid-set-line-color: #c0c0c0;
+    --ueb-grid-axis-line-color: #a0a0a0;
+}
+
+ueb-blueprint.ueb-light-mode .ueb-grid {
+    background-color: #f6f6f6;
+}
+
+ueb-blueprint.ueb-light-mode ueb-node.ueb-node-style-glass .ueb-node-wrapper {
+    background-color: #00000090;
+}
+
+ueb-blueprint.ueb-light-mode ueb-link .ueb-link-path {
+    filter: saturate(200%) brightness(0.6);
+}
+
+ueb-blueprint.ueb-light-mode .ueb-viewport-header {
+    background: rgba(0, 0, 0, .3);
+    color: #101010;
 }

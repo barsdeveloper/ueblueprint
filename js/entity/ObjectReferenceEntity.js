@@ -5,12 +5,6 @@ import IEntity from "./IEntity.js"
 
 export default class ObjectReferenceEntity extends IEntity {
 
-    /** @protected */
-    static _quotedParser = P.regArray(new RegExp(
-        `'"(${Grammar.Regex.InsideString.source})"'`
-        + "|"
-        + `'(${Grammar.Regex.InsideSingleQuotedString.source})'`
-    )).map(([_0, a, b]) => a ?? b)
     static typeReference = P.reg(
         // @ts-expect-error
         new RegExp(Grammar.Regex.Path.source + "|" + Grammar.symbol.getParser().regexp.source)
@@ -31,29 +25,31 @@ export default class ObjectReferenceEntity extends IEntity {
         return this.#path
     }
     set path(value) {
+        this.#name = ""
         this.#path = value
     }
 
-    #fullEscaped
-    /** @type {String} */
-    #full
+    #serializer
     get full() {
-        return this.#full
+        return this.#serializer
     }
     set full(value) {
-        this.#full = value
+        this.#serializer = value
     }
 
+    #name = ""
 
-    constructor(type = "None", path = "", full = null) {
+    /** @param {(t: String, p: String) => String} serializer */
+    constructor(
+        type = "None",
+        path = "",
+        serializer = type.includes("/") || path
+            ? (t, p) => `"${t + (p ? (`'${p}'`) : "")}"`
+            : (t, p) => t) {
         super()
         this.#type = type
         this.#path = path
-        this.#full = full ?? (
-            this.type.includes("/") || this.path
-                ? `"${this.type + (this.path ? (`'${this.path}'`) : "")}"`
-                : this.type
-        )
+        this.#serializer = serializer
     }
 
     /** @returns {P<ObjectReferenceEntity>} */
@@ -71,10 +67,21 @@ export default class ObjectReferenceEntity extends IEntity {
             new RegExp(
                 // @ts-expect-error
                 "(" + this.typeReference.getParser().regexp.source + ")"
-                // @ts-expect-error
-                + "(?:" + this._quotedParser.getParser().parser.regexp.source + ")"
+                + "(?:"
+                + `'"(${Grammar.Regex.InsideString.source})"'`
+                + "|"
+                + `'(${Grammar.Regex.InsideSingleQuotedString.source})'`
+                + ")"
             )
-        ).map(([full, type, ...path]) => new this(type, path.find(v => v), full))
+        ).map(([full, type, fullQuotedPath, simpleQuotedPath]) => {
+            let fullQuoted = fullQuotedPath ? true : false
+            let quotes = fullQuoted ? [`'"`, `"'`] : ["'", "'"]
+            return new this(
+                type,
+                fullQuoted ? fullQuotedPath : simpleQuotedPath,
+                (t, p) => t + quotes[0] + p + quotes[1]
+            )
+        })
     }
 
     /** @returns {P<ObjectReferenceEntity>} */
@@ -84,30 +91,34 @@ export default class ObjectReferenceEntity extends IEntity {
                 '"(' + Grammar.Regex.InsideString.source + "?)"
                 + "(?:'(" + Grammar.Regex.InsideSingleQuotedString.source + `?)')?"`
             )
-        ).map(([full, type, path]) => new this(type, path, full))
+        ).map(([_0, type, path]) => new this(type, path, (t, p) => `"${t}${p ? `'${p}'` : ""}"`))
     }
 
     /** @returns {P<ObjectReferenceEntity>} */
     static createTypeReferenceGrammar() {
-        return this.typeReference.map(v => new this(v, "", v))
+        return this.typeReference.map(v => new this(v, "", (t, p) => t))
     }
 
     static createNoneInstance() {
-        return new ObjectReferenceEntity("None", "", "None")
+        return new this("None")
     }
 
     getName(dropCounter = false) {
-        return Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
+        if (!this.#name) {
+            if (!dropCounter) {
+                return this.#name = Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
+            }
+            return Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
+        }
+        return this.#name
     }
 
     doSerialize(insideString = false) {
+        let result = this.full(this.type, this.path)
         if (insideString) {
-            if (this.#fullEscaped === undefined) {
-                this.#fullEscaped = Utility.escapeString(this.#full, false)
-            }
-            return this.#fullEscaped
+            result = Utility.escapeString(result, false)
         }
-        return this.full
+        return result
     }
 
     /** @param {IEntity} other */
@@ -116,5 +127,9 @@ export default class ObjectReferenceEntity extends IEntity {
             return false
         }
         return this.type == other.type && this.path == other.path
+    }
+
+    toString() {
+        return this.full(this.type, this.path)
     }
 }

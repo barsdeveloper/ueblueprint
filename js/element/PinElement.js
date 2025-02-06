@@ -1,5 +1,5 @@
+import Configuration from "../Configuration.js"
 import pinTemplate from "../decoding/pinTemplate.js"
-import ArrayEntity from "../entity/ArrayEntity.js"
 import BooleanEntity from "../entity/BooleanEntity.js"
 import GuidEntity from "../entity/GuidEntity.js"
 import LinearColorEntity from "../entity/LinearColorEntity.js"
@@ -44,7 +44,8 @@ export default class PinElement extends IElement {
                 fromAttribute: (value, type) => value
                     ? LinearColorEntity.getLinearColorFromAnyFormat().parse(value)
                     : null,
-                toAttribute: (value, type) => value ? LinearColorEntity.printLinearColor(value) : null,
+                /** @param {LinearColorEntity} value */
+                toAttribute: (value, type) => value?.toString() ?? "",
             },
             attribute: "data-color",
             reflect: true,
@@ -96,15 +97,25 @@ export default class PinElement extends IElement {
         this.connectable = !entity.bNotConnectable?.valueOf()
         super.initialize(entity, template)
         this.pinId = this.entity.PinId
-        this.pinType = this.entity.getType()
+        this.updateType()
         this.defaultValue = this.entity.getDefaultValue()
-        this.color = PinElement.properties.color.converter.fromAttribute(this.getColor().toString())
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden"
+        /** @type {LinearColorEntity} */
+        this.color = PinElement.properties.color.converter.fromAttribute(this.entity.pinColor().toString())
     }
 
     setup() {
         super.setup()
         this.nodeElement = this.closest("ueb-node")
+    }
+
+    updateType() {
+        this.pinType = this.entity.getType()
+        const newColor = PinElement.properties.color.converter.fromAttribute(this.entity.pinColor().toString())
+        if (!this.color?.equals(newColor)) {
+            this.color = newColor
+            this.acknowledgeUpdate()
+        }
     }
 
     createPinReference() {
@@ -123,21 +134,68 @@ export default class PinElement extends IElement {
         return this.entity.pinTitle()
     }
 
-    /** @return {CSSResult} */
-    getColor() {
-        return this.entity.pinColor()
+    /** @param {PinElement} pin */
+    #traverseKnots(pin) {
+        while (pin?.isKnot()) {
+            const pins = pin.nodeElement.getPinElements()
+            pin = pin === pins[0] ? pins[1] : pins[0]
+            pin = pin.isLinked ? this.blueprint.getPin(pin.getLinks()[0]) : null
+        }
+        return pin?.isKnot() ? undefined : pin
     }
 
-    isInput() {
-        return this.entity.isInput()
+    isInput(ignoreKnots = false) {
+        /** @type {PinElement} */
+        let result = this
+        if (ignoreKnots) {
+            return this.#traverseKnots(result)?.isInput()
+        }
+        return result.entity.isInput()
     }
 
-    isOutput() {
-        return this.entity.isOutput()
+    /** @returns {boolean} True when the pin is the input part of a knot that can switch direction */
+    isInputLoosely() {
+        return this.isInput(false) && this.isInput(true) === undefined
     }
 
-    getLinkLocation() {
-        return this.template.getLinkLocation()
+    /** @returns {boolean} True when the pin is input and if it is a knot it appears input */
+    isInputVisually() {
+        const template = /** @type {KnotNodeTemplate} */(this.nodeElement.template)
+        const isKnot = this.isKnot()
+        return isKnot && this.isInput() != template.switchDirectionsVisually
+            || !isKnot && this.isInput()
+    }
+
+    isOutput(ignoreKnots = false) {
+        /** @type {PinElement} */
+        let result = this
+        if (ignoreKnots) {
+            return this.#traverseKnots(result)?.isOutput()
+        }
+        return result.entity.isOutput()
+    }
+
+    /** @returns {boolean} True when the pin is the output part of a knot that can switch direction */
+    isOutputLoosely() {
+        return this.isOutput(false) && this.isOutput(true) === undefined
+    }
+
+    /** @returns {boolean} True when the pin is output and if it is a knot it appears output */
+    isOutputVisually() {
+        const template = /** @type {KnotNodeTemplate} */(this.nodeElement.template)
+        const isKnot = this.isKnot()
+        return isKnot && this.isOutput() != template.switchDirectionsVisually
+            || !isKnot && this.isOutput()
+    }
+
+
+    /** @returns {value is InstanceType<PinElement<>>} */
+    isKnot() {
+        return this.nodeElement?.getType() == Configuration.paths.knot
+    }
+
+    getLinkLocation(oppositeDirection = false) {
+        return this.template.getLinkLocation(oppositeDirection)
     }
 
     getNodeElement() {
@@ -188,14 +246,17 @@ export default class PinElement extends IElement {
         const pinReference = this.createPinReference()
         if (
             this.isLinked
-            && this.isOutput()
-            && (this.pinType === "exec" || targetPinElement.pinType === "exec")
-            && !this.getLinks().some(ref => pinReference.equals(ref))) {
+            && this.entity.isExecution()
+            && this.isOutput(true)
+            && this.getLinks().some(ref => !pinReference.equals(ref))
+        ) {
+            if (this.isKnot()) {
+
+            }
             this.unlinkFromAll()
         }
         if (this.entity.linkTo(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)) {
             this.isLinked = this.entity.isLinked()
-            this.nodeElement?.template.linksChanged()
             if (this.entity.recomputesNodeTitleOnChange) {
                 this.nodeElement?.computeNodeDisplayName()
             }
@@ -206,7 +267,6 @@ export default class PinElement extends IElement {
     unlinkFrom(targetPinElement, removeLink = true) {
         if (this.entity.unlinkFrom(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)) {
             this.isLinked = this.entity.isLinked()
-            this.nodeElement?.template.linksChanged()
             if (removeLink) {
                 this.blueprint.getLink(this, targetPinElement)?.remove() // Might be called after the link is removed
             }
@@ -217,11 +277,8 @@ export default class PinElement extends IElement {
     }
 
     unlinkFromAll() {
-        const isLinked = this.getLinks().length
         this.getLinks().map(ref => this.blueprint.getPin(ref)).forEach(pin => this.unlinkFrom(pin))
-        if (isLinked) {
-            this.nodeElement?.template.linksChanged()
-        }
+        const isLinked = false
     }
 
     /**
@@ -238,5 +295,10 @@ export default class PinElement extends IElement {
             return true
         }
         return false
+    }
+
+    acknowledgeUpdate() {
+        let event = new CustomEvent(Configuration.pinUpdateEventName)
+        this.dispatchEvent(event)
     }
 }

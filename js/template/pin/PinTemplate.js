@@ -121,6 +121,9 @@ export default class PinTemplate extends ITemplate {
         if (this.element.nodeElement?.template instanceof VariableOperationNodeTemplate) {
             return SVGIcon.operationPin
         }
+        if (this.element.entity.PinType.PinCategory?.toString().toLocaleLowerCase() === "statictype") {
+            return SVGIcon.staticPin
+        }
         return SVGIcon.genericPin
     }
 
@@ -156,27 +159,44 @@ export default class PinTemplate extends ITemplate {
             // When connected, an input may drop its input fields which means the node has to reflow
             const node = this.element.nodeElement
             this.element.requestUpdate()
-            this.element.updateComplete.then(() => node.acknowledgeReflow())
+            this.element.updateComplete.then(() => node.acknowledgeUpdate())
+        }
+        if (changedProperties.has("color")) {
+            this.element.style.setProperty("--ueb-pin-color-rgb", this.element.color.toString())
         }
     }
 
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
-        this.element.style.setProperty("--ueb-pin-color-rgb", this.element.entity.pinColor().cssText)
         this.#iconElement = this.element.querySelector(".ueb-pin-icon svg") ?? this.element
         this.#wrapperElement = this.element.querySelector(".ueb-pin-wrapper")
     }
 
-    getLinkLocation() {
-        const rect = this.iconElement.getBoundingClientRect()
+    getLinkLocation(oppositeDirection = false) {
+        const rect = (this.#iconElement ?? this.element).getBoundingClientRect()
         /** @type {[Number, Number]} */
-        const boundingLocation = [this.element.isInput() ? rect.left : rect.right + 1, (rect.top + rect.bottom) / 2]
+        const boundingLocation = [
+            this.element.isInputVisually() != oppositeDirection ? rect.left : rect.right + 1,
+            (rect.top + rect.bottom) / 2
+        ]
         const location = Utility.convertLocation(boundingLocation, this.blueprint.template.gridElement)
         return this.blueprint.compensateTranslation(location[0], location[1])
     }
 
     getClickableElement() {
         return this.#wrapperElement ?? this.element
+    }
+
+    /** All the link connected to this pin */
+    getAllConnectedLinks() {
+        if (!this.element.isLinked) {
+            return []
+        }
+        const nodeTitle = this.element.nodeElement.nodeTitle
+        const pinId = this.element.pinId
+        const query = `ueb-link[data-origin-node="${nodeTitle}"][data-origin-pin="${pinId}"],`
+            + `ueb-link[data-target-node="${nodeTitle}"][data-target-pin="${pinId}"]`
+        return /** @type {LinkElement[]} */([...this.blueprint.querySelectorAll(query)])
     }
 }

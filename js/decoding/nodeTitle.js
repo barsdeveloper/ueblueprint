@@ -34,6 +34,68 @@ const keyNameValue = {
     "Subtract": "Num -",
     "Tilde": "`",
 }
+const niagaraNodeNames = {
+    "Boolean::LogicAnd": "Logic AND",
+    "Boolean::LogicEq": "==",
+    "Boolean::LogicNEq": "!=",
+    "Boolean::LogicNot": "Logic NOT",
+    "Boolean::LogicOr": "Logic OR",
+    "Integer::BitAnd": "Bitwise AND",
+    "Integer::BitLShift": "Bitwise Left Shift",
+    "Integer::BitNot": "Bitwise NOT",
+    "Integer::BitOr": "Bitwise OR",
+    "Integer::BitRShift": "Bitwise Right Shift",
+    "Integer::BitXOr": "Bitwise XOR",
+    "Integer::EnumEq": "==",
+    "Integer::EnumNEq": "!=",
+    "Matrix::MatrixMultiply": "Multiply (Matrix * Matrix)",
+    "Matrix::MatrixVectorMultiply": "Multiply (Matrix * Vector4)",
+    // Numeric::
+    ...Object.fromEntries(Object.entries({
+        "Add": "+",
+        "ArcCosine": "ArcCosine",
+        "ArcCosine(Degrees)": "ArcCos(D)",
+        "ArcCosine(Radians)": "ArcCos(R)",
+        "ArcSine": "ArcSine",
+        "ArcSine(Degrees)": "ArcSin(D)",
+        "ArcSine(Radians)": "ArcSin(R)",
+        "ArcTangent(Degrees)": "ArcTan(D)",
+        "ArcTangent(Radians)": "ArcTan(R)",
+        "CmpEQ": "==",
+        "CmpGE": ">=",
+        "CmpGT": ">",
+        "CmpLE": "<=",
+        "CmpLT": "<",
+        "CmpNEQ": "!=",
+        "Cosine(Degrees)": "Cos(D)",
+        "Cosine(Radians)": "Cos(R)",
+        "DegreesToRadians": "DegToRad",
+        "DistancePos": "Distance",
+        "Div": String.fromCharCode(0x00f7),
+        "FMod": "%",
+        "FModFast": "Modulo Fast",
+        "Length": "Len",
+        "Madd": `(A${String.fromCharCode(0x2a2f)}B)+C`,
+        "Mul": String.fromCharCode(0x2a2f),
+        "Negate": "-A",
+        "OneMinus": "1-A",
+        "PI": String.fromCharCode(0x03C0),
+        "RadiansToDegrees": "RadToDeg",
+        "Rand Float": "Random Float",
+        "Rand Integer": "Random Integer",
+        "Rand": "Random",
+        "Rcp": "Reciprocal",
+        "RSqrt": "Rcp Sqrt",
+        "Sine(Degrees)": "Sin(D)",
+        "Sine(Radians)": "Sin(R)",
+        "Subtract": "-",
+        "Tangent(Degrees)": "Tan(D)",
+        "Tangent(Radians)": "Tan(R)",
+        "TWO_PI": `2 ${String.fromCharCode(0x03C0)}`,
+    }).map(([k, v]) => ["Numeric::" + k, v])),
+}
+const p = Configuration.paths
+const format = Utility.formatStringName
 
 /** @param {String} value */
 function numberFromText(value = "") {
@@ -78,58 +140,58 @@ function keyName(value) {
 export default function nodeTitle(entity) {
     let value
     switch (entity.getType()) {
-        case Configuration.paths.addDelegate:
+        case p.addDelegate:
             value ??= "Bind Event to "
-        case Configuration.paths.clearDelegate:
+        case p.clearDelegate:
             value ??= "Unbind all Events from "
-        case Configuration.paths.removeDelegate:
+        case p.removeDelegate:
             value ??= "Unbind Event from "
-            return value + Utility.formatStringName(
+            return value + format(
                 entity.DelegateReference?.MemberName?.toString().replace(/Delegate$/, "") ?? "None"
             )
-        case Configuration.paths.asyncAction:
+        case p.asyncAction:
             if (entity.ProxyFactoryFunctionName) {
-                return Utility.formatStringName(entity.ProxyFactoryFunctionName?.toString())
+                return format(entity.ProxyFactoryFunctionName?.toString())
             }
-        case Configuration.paths.actorBoundEvent:
-        case Configuration.paths.componentBoundEvent:
-            return `${Utility.formatStringName(entity.DelegatePropertyName?.toString())} (${entity.ComponentPropertyName?.toString() ?? "Unknown"})`
-        case Configuration.paths.callDelegate:
+        case p.actorBoundEvent:
+        case p.componentBoundEvent:
+            return `${format(entity.DelegatePropertyName?.toString())} (${entity.ComponentPropertyName?.toString() ?? "Unknown"})`
+        case p.callDelegate:
             return `Call ${entity.DelegateReference?.MemberName?.toString() ?? "None"}`
-        case Configuration.paths.createDelegate:
+        case p.createDelegate:
             return "Create Event"
-        case Configuration.paths.customEvent:
+        case p.customEvent:
             if (entity.CustomFunctionName) {
                 return entity.CustomFunctionName?.toString()
             }
-        case Configuration.paths.dynamicCast:
+        case p.dynamicCast:
             if (!entity.TargetType) {
                 return "Bad cast node" // Target type not found
             }
             return `Cast To ${entity.TargetType?.getName()}`
-        case Configuration.paths.enumLiteral:
+        case p.enumLiteral:
             return `Literal enum ${entity.Enum?.getName()}`
-        case Configuration.paths.event:
+        case p.event:
             return `Event ${(entity.EventReference?.MemberName?.toString() ?? "").replace(/^Receive/, "")}`
-        case Configuration.paths.executionSequence:
+        case p.executionSequence:
             return "Sequence"
-        case Configuration.paths.forEachElementInEnum:
+        case p.forEachElementInEnum:
             return `For Each ${entity.Enum?.getName()}`
-        case Configuration.paths.forEachLoopWithBreak:
+        case p.forEachLoopWithBreak:
             return "For Each Loop with Break"
-        case Configuration.paths.functionEntry:
+        case p.functionEntry:
             return entity.FunctionReference?.MemberName?.toString() === "UserConstructionScript"
                 ? "Construction Script"
                 : entity.FunctionReference?.MemberName?.toString()
-        case Configuration.paths.functionResult:
+        case p.functionResult:
             return "Return Node"
-        case Configuration.paths.ifThenElse:
+        case p.ifThenElse:
             return "Branch"
-        case Configuration.paths.makeStruct:
+        case p.makeStruct:
             if (entity.StructType) {
                 return `Make ${entity.StructType.getName()}`
             }
-        case Configuration.paths.materialExpressionComponentMask: {
+        case p.materialExpressionComponentMask: {
             const materialObject = entity.getMaterialSubobject()
             if (materialObject) {
                 return `Mask ( ${Configuration.rgba
@@ -138,15 +200,15 @@ export default function nodeTitle(entity) {
                     .join("")})`
             }
         }
-        case Configuration.paths.materialExpressionConstant:
+        case p.materialExpressionConstant:
             value ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName.toString() == "Value")?.DefaultValue]
-        case Configuration.paths.materialExpressionConstant2Vector:
+        case p.materialExpressionConstant2Vector:
             value ??= [
                 entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "X")?.DefaultValue,
                 entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "Y")?.DefaultValue,
             ]
-        case Configuration.paths.materialExpressionConstant3Vector:
-        case Configuration.paths.materialExpressionConstant4Vector:
+        case p.materialExpressionConstant3Vector:
+        case p.materialExpressionConstant4Vector:
             if (!value) {
                 const vector = entity.getCustomproperties()
                     .find(pinEntity => pinEntity.PinName?.toString() == "Constant")
@@ -160,32 +222,32 @@ export default function nodeTitle(entity) {
             }
             value = undefined
             break
-        case Configuration.paths.materialExpressionFunctionInput: {
+        case p.materialExpressionFunctionInput: {
             const materialObject = entity.getMaterialSubobject()
             const inputName = materialObject?.InputName ?? "In"
             const inputType = materialObject?.InputType?.value.match(/^.+?_(\w+)$/)?.[1] ?? "Vector3"
             return `Input ${inputName} (${inputType})`
         }
-        case Configuration.paths.materialExpressionLogarithm:
+        case p.materialExpressionLogarithm:
             return "Ln"
-        case Configuration.paths.materialExpressionLogarithm10:
+        case p.materialExpressionLogarithm10:
             return "Log10"
-        case Configuration.paths.materialExpressionLogarithm2:
+        case p.materialExpressionLogarithm2:
             return "Log2"
-        case Configuration.paths.materialExpressionMaterialFunctionCall:
+        case p.materialExpressionMaterialFunctionCall:
             const materialFunction = entity.getMaterialSubobject()?.MaterialFunction
             if (materialFunction) {
                 return materialFunction.getName()
             }
             break
-        case Configuration.paths.materialExpressionSquareRoot:
+        case p.materialExpressionSquareRoot:
             return "Sqrt"
-        case Configuration.paths.materialExpressionSubtract:
+        case p.materialExpressionSubtract:
             const materialObject = entity.getMaterialSubobject()
             if (materialObject) {
                 return `Subtract(${materialObject.ConstA ?? "1"},${materialObject.ConstB ?? "1"})`
             }
-        case Configuration.paths.metasoundEditorGraphExternalNode: {
+        case p.metasoundEditorGraphExternalNode: {
             const name = entity["ClassName"]?.["Name"]
             if (name) {
                 switch (name) {
@@ -194,11 +256,19 @@ export default function nodeTitle(entity) {
                 }
             }
         }
-        case Configuration.paths.pcgEditorGraphNodeInput:
+        case p.niagaraNodeConvert:
+            /** @type {String} */
+            const targetType = (entity["AutowireMakeType"]?.["ClassStructOrEnum"] ?? "")
+                .toString()
+                .match(/(?:Niagara)?(\w+)['"]*$/)
+                ?.[1]
+                ?? ""
+            return `Make ${targetType}`
+        case p.pcgEditorGraphNodeInput:
             return "Input"
-        case Configuration.paths.pcgEditorGraphNodeOutput:
+        case p.pcgEditorGraphNodeOutput:
             return "Output"
-        case Configuration.paths.spawnActorFromClass:
+        case p.spawnActorFromClass:
             let className = entity.getCustomproperties()
                 .find(pinEntity => pinEntity.PinName.toString() == "ReturnValue")
                 ?.PinType
@@ -207,20 +277,21 @@ export default function nodeTitle(entity) {
             if (className === "Actor") {
                 className = null
             }
-            return `SpawnActor ${Utility.formatStringName(className ?? "NONE")}`
-        case Configuration.paths.switchEnum:
+            return `SpawnActor ${format(className ?? "NONE")}`
+        case p.switchEnum:
             return `Switch on ${entity.Enum?.getName() ?? "Enum"}`
-        case Configuration.paths.switchInteger:
+        case p.switchInteger:
             return `Switch on Int`
-        case Configuration.paths.variableGet:
+        case p.variableGet:
             return ""
-        case Configuration.paths.variableSet:
+        case p.variableSet:
             return "SET"
     }
+    const className = entity.getClass()
     let switchTarget = entity.switchTarget()
     if (switchTarget) {
         if (switchTarget[0] !== "E") {
-            switchTarget = Utility.formatStringName(switchTarget)
+            switchTarget = format(switchTarget)
         }
         return `Switch on ${switchTarget}`
     }
@@ -230,19 +301,20 @@ export default function nodeTitle(entity) {
     const keyNameSymbol = entity.getHIDAttribute()
     if (keyNameSymbol) {
         const name = keyNameSymbol.toString()
-        let title = keyName(name) ?? Utility.formatStringName(name)
-        if (entity.getClass() === Configuration.paths.inputDebugKey) {
+        let title = keyName(name) ?? format(name)
+        if (className === p.inputDebugKey) {
             title = "Debug Key " + title
-        } else if (entity.getClass() === Configuration.paths.getInputAxisKeyValue) {
+        } else if (className === p.getInputAxisKeyValue) {
             title = "Get " + title
         }
         return title
     }
-    if (entity.getClass() === Configuration.paths.macro) {
-        return Utility.formatStringName(entity.MacroGraphReference?.getMacroName())
+    if (className === p.macro) {
+        return format(entity.MacroGraphReference?.getMacroName())
     }
-    if (entity.isMaterial() && entity.getMaterialSubobject()) {
-        let result = nodeTitle(entity.getMaterialSubobject())
+    const materialSubobject = entity.getMaterialSubobject()
+    if (materialSubobject) {
+        let result = nodeTitle(materialSubobject)
         result = result.match(/Material Expression (.+)/)?.[1] ?? result
         return result
     }
@@ -257,19 +329,19 @@ export default function nodeTitle(entity) {
     }
     const settingsObject = entity.getSettingsObject()
     if (settingsObject) {
-        if (settingsObject.ExportPath.type === Configuration.paths.pcgHiGenGridSizeSettings) {
+        if (settingsObject.ExportPath?.valueOf()?.type === p.pcgHiGenGridSizeSettings) {
             return `Grid Size: ${(
                 settingsObject.HiGenGridSize?.toString().match(/\d+/)?.[0]?.concat("00")
                 ?? settingsObject.HiGenGridSize?.toString().match(/^\w+$/)?.[0]
             ) ?? "256"}`
         }
         if (settingsObject.BlueprintElementInstance) {
-            return Utility.formatStringName(settingsObject.BlueprintElementType.getName())
+            return format(settingsObject.BlueprintElementType.getName())
         }
         if (settingsObject.Operation) {
             const match = settingsObject.Name?.toString().match(/PCGMetadata(\w+)Settings_\d+/)
             if (match) {
-                return Utility.formatStringName(match[1] + ": " + settingsObject.Operation)
+                return format(match[1] + ": " + settingsObject.Operation)
             }
         }
         const settingsSubgraphObject = settingsObject.getSubgraphObject()
@@ -284,7 +356,7 @@ export default function nodeTitle(entity) {
             case "AddKey":
                 let result = memberParent.match(sequencerScriptingNameRegex)
                 if (result) {
-                    return `Add Key (${Utility.formatStringName(result[1])})`
+                    return `Add Key (${format(result[1])})`
                 }
             case "Concat_StrStr":
                 return "Append"
@@ -295,14 +367,16 @@ export default function nodeTitle(entity) {
                 + (memberNameTraceLineMatch[1] === "Multi" ? " Multi " : " ")
                 + (memberNameTraceLineMatch[2] === ""
                     ? "By Channel"
-                    : Utility.formatStringName(memberNameTraceLineMatch[2])
+                    : format(memberNameTraceLineMatch[2])
                 )
         }
         switch (memberParent) {
-            case Configuration.paths.blueprintGameplayTagLibrary:
-            case Configuration.paths.kismetMathLibrary:
-            case Configuration.paths.slateBlueprintLibrary:
-            case Configuration.paths.timeManagementBlueprintLibrary:
+            case p.blueprintGameplayTagLibrary:
+            case p.kismetMathLibrary:
+            case p.kismetStringLibrary:
+            case p.slateBlueprintLibrary:
+            case p.timeManagementBlueprintLibrary:
+            case p.typedElementHandleLibrary:
                 const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/)
                 if (leadingLetter) {
                     // Some functions start with B or F (Like FCeil, FMax, BMin)
@@ -313,6 +387,7 @@ export default function nodeTitle(entity) {
                     case "BooleanAND": return "AND"
                     case "BooleanNAND": return "NAND"
                     case "BooleanOR": return "OR"
+                    case "Equal": return "=="
                     case "Exp": return "e"
                     case "LineTraceSingle": return "Line Trace By Channel"
                     case "Max": return "MAX"
@@ -386,23 +461,23 @@ export default function nodeTitle(entity) {
                     return "^"
                 }
                 break
-            case Configuration.paths.blueprintSetLibrary:
+            case p.blueprintSetLibrary:
                 {
                     const setOperationMatch = memberName.match(/Set_(\w+)/)
                     if (setOperationMatch) {
-                        return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
+                        return format(setOperationMatch[1]).toUpperCase()
                     }
                 }
                 break
-            case Configuration.paths.blueprintMapLibrary:
+            case p.blueprintMapLibrary:
                 {
                     const setOperationMatch = memberName.match(/Map_(\w+)/)
                     if (setOperationMatch) {
-                        return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
+                        return format(setOperationMatch[1]).toUpperCase()
                     }
                 }
                 break
-            case Configuration.paths.kismetArrayLibrary:
+            case p.kismetArrayLibrary:
                 {
                     const arrayOperationMath = memberName.match(/Array_(\w+)/)
                     if (arrayOperationMath) {
@@ -411,29 +486,27 @@ export default function nodeTitle(entity) {
                 }
                 break
         }
-        return Utility.formatStringName(memberName)
+        return format(memberName)
     }
     if (entity.OpName) {
-        switch (entity.OpName.toString()) {
-            case "Boolean::LogicAnd": return "Logic AND"
-            case "Boolean::LogicEq": return "=="
-            case "Boolean::LogicNEq": return "!="
-            case "Boolean::LogicNot": return "Logic NOT"
-            case "Boolean::LogicOr": return "Logic OR"
-            case "Matrix::MatrixMultiply": return "Multiply (Matrix * Matrix)"
-            case "Matrix::MatrixVectorMultiply": return "Multiply (Matrix * Vector4)"
-            case "Numeric::Abs": return "Abs"
-            case "Numeric::Add": return "+"
-            case "Numeric::DistancePos": return "Distance"
-            case "Numeric::Mul": return String.fromCharCode(0x2a2f)
-        }
-        return Utility.formatStringName(entity.OpName.toString()).replaceAll("::", " ")
+        return niagaraNodeNames[entity.OpName.toString()]
+            ?? format(entity.OpName.toString().replaceAll(/(?:^\w+(?<!^Matrix))?::/g, " "))
     }
     if (entity.FunctionDisplayName) {
-        return Utility.formatStringName(entity.FunctionDisplayName.toString())
+        return format(entity.FunctionDisplayName.toString())
     }
     if (entity.ObjectRef) {
         return entity.ObjectRef.getName()
     }
-    return Utility.formatStringName(entity.getNameAndCounter()[0])
+    let prefix
+    if (
+        className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNodeParameter")
+        || className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNode")
+    ) {
+        return entity["Input"]?.["Name"]?.toString() ?? format(className.substring(prefix.length))
+    }
+    if (entity.ParameterName) {
+        return entity.ParameterName.toString()
+    }
+    return format(entity.getNameAndCounter()[0])
 }

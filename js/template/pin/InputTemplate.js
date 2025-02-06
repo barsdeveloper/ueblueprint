@@ -32,7 +32,9 @@ export default class InputTemplate extends ITemplate {
         super.initialize(element)
         this.element.classList.add("ueb-pin-input-content")
         this.element.setAttribute("role", "textbox")
-        this.element.contentEditable = "true"
+        if (this.element.contentEditable !== "false") {
+            this.element.contentEditable = "true"
+        }
     }
 
     /** @param {PropertyValues} changedProperties */

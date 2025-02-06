@@ -1,9 +1,14 @@
 import P from "parsernostrum"
 import Grammar from "../serialization/Grammar.js"
+import GuidEntity from "./GuidEntity.js"
 import IEntity from "./IEntity.js"
 
 export default class UnknownKeysEntity extends IEntity {
 
+    static attributes = {
+        ...super.attributes,
+        VariableGuid: GuidEntity,
+    }
     static grammar = this.createGrammar()
 
     static {

@@ -13,7 +13,7 @@ export default class CommentNodeTemplate extends IResizeableTemplate {
         element.classList.add("ueb-node-style-comment", "ueb-node-resizeable")
         element.sizeX = 25 * Configuration.gridSize
         element.sizeY = 6 * Configuration.gridSize
-        super.initialize(element) // Keep it at the end because it calls this.getColor() where this.#color must be initialized
+        super.initialize(element) // Keep it at the end because it needs the color. this.#color must be initialized
     }
 
     /** @returns {HTMLElement} */
