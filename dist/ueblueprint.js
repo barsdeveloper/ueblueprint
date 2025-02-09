@@ -7671,6 +7671,8 @@ class LinkTemplate extends IFromToPositionedTemplate {
         this.blueprint.addGraphElement(knot); // Important: keep it before changing existing links
         const inputPin = this.element.getInputPin();
         const outputPin = this.element.getOutputPin();
+        this.element.origin = null;
+        this.element.target = null;
         const link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
             .newObject(outputPin, knotTemplate.inputPin);
         this.blueprint.addGraphElement(link);
@@ -7689,9 +7691,9 @@ class LinkTemplate extends IFromToPositionedTemplate {
 
         // Switch actual input/output pins if allowed and makes sense
         if (isOriginAKnot && !targetPin) {
-            if (originPin?.isInputLoosely() && to > from + Configuration.distanceThreshold) {
+            if (originPin?.isInput() && to > from + Configuration.distanceThreshold) {
                 this.element.origin = /** @type {KnotPinTemplate} */(originPin.template).getoppositePin();
-            } else if (originPin?.isOutputLoosely() && to < from - Configuration.distanceThreshold) {
+            } else if (originPin?.isOutput() && to < from - Configuration.distanceThreshold) {
                 this.element.origin = /** @type {KnotPinTemplate} */(originPin.template).getoppositePin();
             }
         }
