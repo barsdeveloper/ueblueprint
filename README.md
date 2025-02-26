@@ -2,6 +2,8 @@
 
 A stand alone implementation of the UE's Blueprint visual language editor
 
+https://github.com/barsdeveloper/ueblueprint :star:
+
 https://www.npmjs.com/package/ueblueprint
 
 ## Features:
