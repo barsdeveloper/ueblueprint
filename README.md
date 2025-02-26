@@ -2,7 +2,7 @@
 
 A stand alone implementation of the UE's Blueprint visual language editor
 
-https://github.com/barsdeveloper/ueblueprint :star:
+https://github.com/barsdeveloper/ueblueprint ⭐
 
 https://www.npmjs.com/package/ueblueprint
 
@@ -52,7 +52,10 @@ You can check `index.html` for a working example, the main steps are the followi
 </script>
 ```
 5. Define your blueprint by writing the code inside a `template`, inside a `ueb-blueprint` element.
-It can have light background using the following CSS class: `<ueb-blueprint class="ueb-light-mode">`
+Configuration:
+    - Height: `<ueb-blueprint style="--ueb-height: 500px">`
+    - Light mode: `<ueb-blueprint class="ueb-light-mode">`
+    - Initial zoom: `<ueb-blueprint data-zoom="-4">`
 ```HTML
 <ueb-blueprint>
     <template>
