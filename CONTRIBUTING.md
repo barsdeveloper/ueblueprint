@@ -47,20 +47,28 @@ And refresh the HTML page possibly holding `Shift`.
 There are a few concepts that must be assimilated in order to understand the design. Those concepts are in general each mapped into a subfolder in `js/`.
 
 ### Entity
-An Entity is just a data holder object that does not really do anything by itself, it has a purely information storage related purpose. The top class at the hierarchy of entities is `IEntity`. It is responsible for the initialization of the entity in its constructor according to the information contained in the object provided as an argument or from the attributes static field. This ended up being a somewhat wacky runtime type system. Each subclass can specify its attributes in the form of a static member variable of type vanilla object where each entry is a subclass of IEntity. The entities moreover are responsible for their serialization and deserialization: each class has a `serialize()` method and a `grammar` attribute to parse entities.
+An **Entity** is a simple object that only stores data, it doesn’t perform any actions. The base class for all entities is `IEntity`. Its main job is to initialize an entity using data from an input object or a predefined attributes field. This setup has resulted in a somewhat unconventional runtime type system. Each subclass of `IEntity` defines its `attributes` as a object static field, where each entry represents another `IEntity` subclass (class object, not instance). Additionally, entities handle their own serialization and deserialization using the `serialize()` method and a `grammar` attribute, which parses entity data from the blueprint code.
 
 ### Element
-Each element is just a custom HTML element type and its tag name is defined in the class file. The top level of the hierarchy is `IElement` and it inherits from `LitElement`. This class can be thought as an association between an entity and a template (and those are the arguments of the constructor). The top class `IElement` does propagate the lifecycle provided by `LitElement` to the template so that a template can hook into it.
+An **Element** is a custom HTML element, with its tag name defined in the class file. At the top of the hierarchy is `IElement`, which extends `LitElement`. You can think of `IElement` as a bridge between an *Entity* and a *Template*, these are passed as arguments to its constructor. Moreover, `IElement` ensures that the lifecycle events provided by `LitElement` are passed down to the template, allowing the template to hook into them.
 
 ### Template
-When looking at the Lit documentation, it might be noticed that usually HTML templates are returned as part of the `render()` method of an Element. The problem with such approach is that it makes it hard to have very different templates and UI behavior for the same element in a natural way (by means of inheritance because a custom element cannot be mapped to multiple classes). Take for example a `<ueb-pin>` in a graph node, it may or may not have any input and if it has one, the input might be a checkbox, a vector or something completely different like a texture. For this reason the responsibility to render the HTML content is moved from the Element to the Template and inheritance is replaced with composition so that two same elements can have different templates.
-Templates do have access to the same lifecycle as elements have, this is implemented in the IElement class that calls, for each method in the lifecycle, the relative method in the template. Moreover the templates hierarchy can also introduce new behaviors that can be replaced by subclasses, one example of such is IInputPinTemplate.
+In Lit, HTML templates are typically returned from an element’s `render()` method. However, this approach makes it difficult to apply different templates and UI behaviors to the same element, since a custom element can only be associated with one class.
+For example, consider a `<ueb-pin>` element inside a graph node. It may or may not have an input, and if it does, the input type could be text, a checkbox, a vector. To handle this flexibility, rendering is moved from the *Element* to the *Template*. Instead of using inheritance (which is limiting), we use composition, allowing the same element to have different templates.
+
+Templates have access to the same lifecycle methods as elements. This is achieved in `IElement`, which forwards lifecycle calls to the corresponding methods in the template. The template hierarchy can introduce new behaviors that subclasses can override. For example, `IInputPinTemplate` defines behaviors that can be customized by its subclasses.
 
 ### Input
-Classes used to map input events (generated from a mouse or a keyboard for example) to operations on the graph. They do model advanced user interaction (like mouse drag) that are originated by input JavaScript events. Simpler events (like click or focus), are implemented in the lit templates directly.
+These classes handle input events (such as mouse and keyboard interactions) and map them to operations on the graph. They support complex interactions, like dragging with the mouse, which originate from JavaScript input events. In contrast, simpler events such as click or focus are handled directly within Lit templates.
 
 ### Selection
-It contains just a few classes related exclusively to the operation of selecting nodes. It is an (arguably useless) attempt to optimize the selection in case of graphs with a very large numbers of nodes (it is not really usefull because in the case of many many nodes, the bootleneck becomes the DOM rendering, not deciding in JavaScript which nodes are selected and which are not even though this happens every frame). Selection has two models: one very simple that checks every frame all the nodes in the graph to see whether or not they are selected by the selector, and the fast model that attemps to optimize the number of nodes that are looked up at, much more complicated and not super usefull as stated before.
+This module contains a few classes focused solely on selecting nodes. It was originally designed to optimize selection for graphs with a very large number of nodes, but in practice, this optimization is of limited use. The real performance bottleneck in such cases is DOM rendering, not the JavaScript logic that determines which nodes are selected.
+There are two selection models:
+1. Simple Model: every frame, it checks all nodes in the graph to determine whether they are selected.
+2. Fast Model: uses a structured index of nodes to limit lookups, reducing the need to scan the entire graph.
+
+### Decoding
+This handles blueprint interpretation, defining node *Template* classes, colors, icons, and other attributes like the title of a node.
 
 ## Code Style
 
