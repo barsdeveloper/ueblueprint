@@ -5884,13 +5884,9 @@ class PinEntity extends IEntity {
         }
         if (this.objectEntity?.isPcg()) {
             const pcgSuboject = this.objectEntity.getPcgSubobject();
-            const pinObjectReference = this.isInput()
-                ? pcgSuboject.InputPins?.valueOf()[this.pinIndex]
-                : pcgSuboject.OutputPins?.valueOf()[this.pinIndex];
-            if (pinObjectReference) {
-                /** @type {ObjectEntity} */
-                const pinObject = pcgSuboject[Configuration.subObjectAttributeNameFromReference(pinObjectReference, true)];
-                let allowedTypes = pinObject.Properties?.AllowedTypes?.toString() ?? "";
+            const pinObject = this.getPinObject(pcgSuboject);
+            if (pinObject) {
+                let allowedTypes = pinObject["Properties"]?.AllowedTypes?.toString() ?? "";
                 if (allowedTypes == "") {
                     allowedTypes = this.PinType.PinCategory ?? "";
                     if (allowedTypes == "") {
@@ -5899,8 +5895,8 @@ class PinEntity extends IEntity {
                 }
                 if (allowedTypes) {
                     if (
-                        pinObject.Properties.bAllowMultipleData?.valueOf() !== false
-                        && pinObject.Properties.bAllowMultipleConnections?.valueOf() !== false
+                        pinObject["Properties"].bAllowMultipleData?.valueOf() !== false
+                        && pinObject["Properties"].bAllowMultipleConnections?.valueOf() !== false
                     ) {
                         allowedTypes += "[]";
                     }
@@ -6015,6 +6011,17 @@ class PinEntity extends IEntity {
             return true
         }
         return false
+    }
+
+    /** @param {ObjectEntity} pcgSuboject */
+    getPinObject(pcgSuboject) {
+        const pinObjectReference = this.isInput()
+            ? pcgSuboject.InputPins?.valueOf()[this.pinIndex]
+            : pcgSuboject.OutputPins?.valueOf()[this.pinIndex];
+        if (pinObjectReference) {
+            /** @type {ObjectEntity} */
+            return pcgSuboject[Configuration.subObjectAttributeNameFromReference(pinObjectReference, true)]
+        }
     }
 
     getSubCategory() {
@@ -9611,8 +9618,12 @@ class PinTemplate extends ITemplate {
                 ${this.isInputRendered() ? this.renderInput() : x``}
             </div>
         `;
+        let pcgSubobject = this.element.nodeElement.entity.getPcgSubobject();
         return x`
             <div class="ueb-pin-wrapper">
+                ${pcgSubobject && this.element.entity.getPinObject(pcgSubobject)?.["Properties"]?.["PinStatus"] == "Required"
+                ? x`<div class="ueb-pin-required-mark"></div>`
+                : E}
                 ${this.element.isInput() ? x`${icon}${content}` : x`${content}${icon}`}
             </div>
         `
@@ -9647,13 +9658,13 @@ class PinTemplate extends ITemplate {
             case "Set": return SVGIcon.setPin
             case "Map": return SVGIcon.mapPin
         }
-        if (this.element.entity.PinType.PinCategory?.toString().toLocaleLowerCase() === "delegate") {
+        if (this.element.entity.PinType.PinCategory?.toString().toLocaleLowerCase() == "delegate") {
             return SVGIcon.delegate
         }
         if (this.element.nodeElement?.template instanceof VariableOperationNodeTemplate) {
             return SVGIcon.operationPin
         }
-        if (this.element.entity.PinType.PinCategory?.toString().toLocaleLowerCase() === "statictype") {
+        if (this.element.entity.PinType.PinCategory?.toString().toLocaleLowerCase() == "statictype") {
             return SVGIcon.staticPin
         }
         return SVGIcon.genericPin

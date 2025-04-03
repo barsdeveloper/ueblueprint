@@ -67,6 +67,20 @@ ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-pin-wrapper:h
     background: none !important;
 }
 
+.ueb-pin-required-mark {
+    width: 0;
+
+    &::before {
+        content: "";
+        display: block;
+        width: 6px;
+        height: 4px;
+        background: var(--ueb-pin-color);
+        margin-left: -13px;
+        border-radius: 0 2px 2px 0;
+    }
+}
+
 .ueb-pin-content {
     display: flex;
     align-items: center;

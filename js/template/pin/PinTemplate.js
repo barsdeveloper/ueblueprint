@@ -79,8 +79,12 @@ export default class PinTemplate extends ITemplate {
                 ${this.isInputRendered() ? this.renderInput() : html``}
             </div>
         `
+        let pcgSubobject = this.element.nodeElement.entity.getPcgSubobject()
         return html`
             <div class="ueb-pin-wrapper">
+                ${pcgSubobject && this.element.entity.getPinObject(pcgSubobject)?.["Properties"]?.["PinStatus"] == "Required"
+                ? html`<div class="ueb-pin-required-mark"></div>`
+                : nothing}
                 ${this.element.isInput() ? html`${icon}${content}` : html`${content}${icon}`}
             </div>
         `
@@ -115,13 +119,13 @@ export default class PinTemplate extends ITemplate {
             case "Set": return SVGIcon.setPin
             case "Map": return SVGIcon.mapPin
         }
-        if (this.element.entity.PinType.PinCategory?.toString().toLocaleLowerCase() === "delegate") {
+        if (this.element.entity.PinType.PinCategory?.toString().toLocaleLowerCase() == "delegate") {
             return SVGIcon.delegate
         }
         if (this.element.nodeElement?.template instanceof VariableOperationNodeTemplate) {
             return SVGIcon.operationPin
         }
-        if (this.element.entity.PinType.PinCategory?.toString().toLocaleLowerCase() === "statictype") {
+        if (this.element.entity.PinType.PinCategory?.toString().toLocaleLowerCase() == "statictype") {
             return SVGIcon.staticPin
         }
         return SVGIcon.genericPin

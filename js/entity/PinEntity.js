@@ -186,13 +186,9 @@ export default class PinEntity extends IEntity {
         }
         if (this.objectEntity?.isPcg()) {
             const pcgSuboject = this.objectEntity.getPcgSubobject()
-            const pinObjectReference = this.isInput()
-                ? pcgSuboject.InputPins?.valueOf()[this.pinIndex]
-                : pcgSuboject.OutputPins?.valueOf()[this.pinIndex]
-            if (pinObjectReference) {
-                /** @type {ObjectEntity} */
-                const pinObject = pcgSuboject[Configuration.subObjectAttributeNameFromReference(pinObjectReference, true)]
-                let allowedTypes = pinObject.Properties?.AllowedTypes?.toString() ?? ""
+            const pinObject = this.getPinObject(pcgSuboject)
+            if (pinObject) {
+                let allowedTypes = pinObject["Properties"]?.AllowedTypes?.toString() ?? ""
                 if (allowedTypes == "") {
                     allowedTypes = this.PinType.PinCategory ?? ""
                     if (allowedTypes == "") {
@@ -201,8 +197,8 @@ export default class PinEntity extends IEntity {
                 }
                 if (allowedTypes) {
                     if (
-                        pinObject.Properties.bAllowMultipleData?.valueOf() !== false
-                        && pinObject.Properties.bAllowMultipleConnections?.valueOf() !== false
+                        pinObject["Properties"].bAllowMultipleData?.valueOf() !== false
+                        && pinObject["Properties"].bAllowMultipleConnections?.valueOf() !== false
                     ) {
                         allowedTypes += "[]"
                     }
@@ -317,6 +313,17 @@ export default class PinEntity extends IEntity {
             return true
         }
         return false
+    }
+
+    /** @param {ObjectEntity} pcgSuboject */
+    getPinObject(pcgSuboject) {
+        const pinObjectReference = this.isInput()
+            ? pcgSuboject.InputPins?.valueOf()[this.pinIndex]
+            : pcgSuboject.OutputPins?.valueOf()[this.pinIndex]
+        if (pinObjectReference) {
+            /** @type {ObjectEntity} */
+            return pcgSuboject[Configuration.subObjectAttributeNameFromReference(pinObjectReference, true)]
+        }
     }
 
     getSubCategory() {
