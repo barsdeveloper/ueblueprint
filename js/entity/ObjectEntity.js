@@ -119,6 +119,8 @@ export default class ObjectEntity extends IEntity {
         PositionY: MirroredEntity.of(IntegerEntity),
         SettingsInterface: ObjectReferenceEntity,
         PCGNode: ObjectReferenceEntity,
+        SoundNode: ObjectReferenceEntity,
+        SoundWaveAssetPtr: ObjectReferenceEntity,
         HiGenGridSize: SymbolEntity,
         Operation: SymbolEntity,
         NodePosX: IntegerEntity,
@@ -263,6 +265,8 @@ export default class ObjectEntity extends IEntity {
         /** @type {InstanceType<typeof ObjectEntity.attributes.OutputPins>} */ this.OutputPins
         /** @type {InstanceType<typeof ObjectEntity.attributes.ParameterName>} */ this.ParameterName
         /** @type {InstanceType<typeof ObjectEntity.attributes.PCGNode>} */ this.PCGNode
+        /** @type {InstanceType<typeof ObjectEntity.attributes.SoundNode>} */ this.SoundNode
+        /** @type {InstanceType<typeof ObjectEntity.attributes.SoundWaveAssetPtr>} */ this.SoundWaveAssetPtr
         /** @type {InstanceType<typeof ObjectEntity.attributes.PinNames>} */ this.PinNames
         /** @type {InstanceType<typeof ObjectEntity.attributes.PinTags>} */ this.PinTags
         /** @type {InstanceType<typeof ObjectEntity.attributes.PositionX>} */ this.PositionX
@@ -478,6 +482,10 @@ export default class ObjectEntity extends IEntity {
         if (this.MaterialExpression) {
             return this.MaterialExpression.type
         }
+        let subobject = this.getSounCueSubobject()
+        if (subobject) {
+            return subobject.getClass()
+        }
         return this.getClass()
     }
 
@@ -613,17 +621,44 @@ export default class ObjectEntity extends IEntity {
     }
 
     isPcg() {
-        return this.getClass() === Configuration.paths.pcgEditorGraphNode
-            || this.getPcgSubobject() != null
+        return this.getClass() == Configuration.paths.pcgEditorGraphNode || this.getPcgSubobject() != null
     }
 
     isNiagara() {
         return this.Class && (this.Class.type ? this.Class.type : this.Class.path)?.startsWith("/Script/NiagaraEditor.")
     }
 
+    isSoundCue() {
+        return this.getClass() == Configuration.paths.soundCueGraphNode
+    }
+
+    getBlueprintType() {
+        if (this.isMaterial()) {
+            return "MATERIAL"
+        }
+        if (this.isNiagara()) {
+            return "NIAGARA"
+        }
+        if (this.isPcg()) {
+            return "PCG Graph"
+        }
+        if (this.isSoundCue()) {
+            return "SOUND CUE"
+        }
+        return "BLUEPRINT"
+    }
+
     /** @return {ObjectEntity} */
     getPcgSubobject() {
         const node = this.PCGNode
+        return node
+            ? this[Configuration.subObjectAttributeNameFromReference(node, true)]
+            : null
+    }
+
+    /** @return {ObjectEntity} */
+    getSounCueSubobject() {
+        const node = this.SoundNode
         return node
             ? this[Configuration.subObjectAttributeNameFromReference(node, true)]
             : null

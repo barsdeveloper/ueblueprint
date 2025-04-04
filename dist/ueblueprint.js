@@ -230,6 +230,8 @@ class Configuration {
         select: "/Script/BlueprintGraph.K2Node_Select",
         self: "/Script/BlueprintGraph.K2Node_Self",
         slateBlueprintLibrary: "/Script/UMG.SlateBlueprintLibrary",
+        soundCueGraphNode: "/Script/AudioEditor.SoundCueGraphNode",
+        soundNodeWavePlayer: "/Script/Engine.SoundNodeWavePlayer",
         spawnActorFromClass: "/Script/BlueprintGraph.K2Node_SpawnActorFromClass",
         switchEnum: "/Script/BlueprintGraph.K2Node_SwitchEnum",
         switchGameplayTag: "/Script/GameplayTagsEditor.GameplayTagsK2Node_SwitchGameplayTag",
@@ -4273,6 +4275,13 @@ function nodeTitle(entity) {
             return "Input"
         case p$6.pcgEditorGraphNodeOutput:
             return "Output"
+        case p$6.soundNodeWavePlayer:
+            return `Wave Player : ${entity.getSounCueSubobject()
+                ?.SoundWaveAssetPtr
+                ?.type
+                .match(/([^.]+)$/)
+                ?.[0]
+                ?? "NONE"}`
         case p$6.spawnActorFromClass:
             let className = entity.getCustomproperties()
                 .find(pinEntity => pinEntity.PinName.toString() == "ReturnValue")
@@ -4327,6 +4336,10 @@ function nodeTitle(entity) {
         let pcgSubobject = entity.getPcgSubobject();
         let result = pcgSubobject.NodeTitle ? pcgSubobject.NodeTitle.toString() : nodeTitle(pcgSubobject);
         return result
+    }
+    const soundCueSubobject = entity.getSounCueSubobject();
+    if (soundCueSubobject) {
+        return Utility.formatStringName(soundCueSubobject.getObjectName(true).replace(/^SoundNode/, ""))
     }
     const subgraphObject = entity.getSubgraphObject();
     if (subgraphObject) {
@@ -4520,7 +4533,7 @@ const p$5 = Configuration.paths;
 
 /** @param {ObjectEntity} entity */
 function nodeIcon(entity) {
-    if (entity.isMaterial() || entity.isPcg() || entity.isNiagara()) {
+    if (entity.isMaterial() || entity.isPcg() || entity.isSoundCue() || entity.isNiagara()) {
         return null
     }
     switch (entity.getType()) {
@@ -6409,6 +6422,8 @@ class ObjectEntity extends IEntity {
         PositionY: MirroredEntity.of(IntegerEntity),
         SettingsInterface: ObjectReferenceEntity,
         PCGNode: ObjectReferenceEntity,
+        SoundNode: ObjectReferenceEntity,
+        SoundWaveAssetPtr: ObjectReferenceEntity,
         HiGenGridSize: SymbolEntity,
         Operation: SymbolEntity,
         NodePosX: IntegerEntity,
@@ -6553,6 +6568,8 @@ class ObjectEntity extends IEntity {
         /** @type {InstanceType<typeof ObjectEntity.attributes.OutputPins>} */ this.OutputPins;
         /** @type {InstanceType<typeof ObjectEntity.attributes.ParameterName>} */ this.ParameterName;
         /** @type {InstanceType<typeof ObjectEntity.attributes.PCGNode>} */ this.PCGNode;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.SoundNode>} */ this.SoundNode;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.SoundWaveAssetPtr>} */ this.SoundWaveAssetPtr;
         /** @type {InstanceType<typeof ObjectEntity.attributes.PinNames>} */ this.PinNames;
         /** @type {InstanceType<typeof ObjectEntity.attributes.PinTags>} */ this.PinTags;
         /** @type {InstanceType<typeof ObjectEntity.attributes.PositionX>} */ this.PositionX;
@@ -6768,6 +6785,10 @@ class ObjectEntity extends IEntity {
         if (this.MaterialExpression) {
             return this.MaterialExpression.type
         }
+        let subobject = this.getSounCueSubobject();
+        if (subobject) {
+            return subobject.getClass()
+        }
         return this.getClass()
     }
 
@@ -6901,17 +6922,44 @@ class ObjectEntity extends IEntity {
     }
 
     isPcg() {
-        return this.getClass() === Configuration.paths.pcgEditorGraphNode
-            || this.getPcgSubobject() != null
+        return this.getClass() == Configuration.paths.pcgEditorGraphNode || this.getPcgSubobject() != null
     }
 
     isNiagara() {
         return this.Class && (this.Class.type ? this.Class.type : this.Class.path)?.startsWith("/Script/NiagaraEditor.")
     }
 
+    isSoundCue() {
+        return this.getClass() == Configuration.paths.soundCueGraphNode
+    }
+
+    getBlueprintType() {
+        if (this.isMaterial()) {
+            return "MATERIAL"
+        }
+        if (this.isNiagara()) {
+            return "NIAGARA"
+        }
+        if (this.isPcg()) {
+            return "PCG Graph"
+        }
+        if (this.isSoundCue()) {
+            return "SOUND CUE"
+        }
+        return "BLUEPRINT"
+    }
+
     /** @return {ObjectEntity} */
     getPcgSubobject() {
         const node = this.PCGNode;
+        return node
+            ? this[Configuration.subObjectAttributeNameFromReference(node, true)]
+            : null
+    }
+
+    /** @return {ObjectEntity} */
+    getSounCueSubobject() {
+        const node = this.SoundNode;
         return node
             ? this[Configuration.subObjectAttributeNameFromReference(node, true)]
             : null
@@ -11259,7 +11307,7 @@ class BlueprintTemplate extends ITemplate {
                     Zoom ${this.blueprint.zoom == 0 ? "1:1" : (this.blueprint.zoom > 0 ? "+" : "") + this.blueprint.zoom}
                 </div>
             </div>
-            <div class="ueb-viewport-overlay"></div>
+            <div class="ueb-viewport-type">${this.blueprint.blueprintType}</div>
             <div class="ueb-viewport-body">
                 <div class="ueb-grid"
                     style="--ueb-additional-x: ${Math.round(this.blueprint.translateX)}; --ueb-additional-y: ${Math.round(this.blueprint.translateY)}; --ueb-translate-x: ${Math.round(this.blueprint.translateX)}; --ueb-translate-y: ${Math.round(this.blueprint.translateY)};">
@@ -11432,6 +11480,11 @@ class BlueprintTemplate extends ITemplate {
 class Blueprint extends IElement {
 
     static properties = {
+        blueprintType: {
+            type: String,
+            attribute: "data-type",
+            reflect: true,
+        },
         selecting: {
             type: Boolean,
             attribute: "data-selecting",
@@ -11508,6 +11561,7 @@ class Blueprint extends IElement {
 
     constructor() {
         super();
+        this.blueprintType = "";
         this.selecting = false;
         this.scrolling = false;
         this.focused = false;
@@ -11808,17 +11862,17 @@ class Blueprint extends IElement {
         const removeEventHandler = event => {
             const target = event.currentTarget;
             target.removeEventListener(Configuration.removeEventName, removeEventHandler);
-            const [graphElementsArray, entity] = target instanceof NodeElement
+            const [container, entity] = target instanceof NodeElement
                 ? [this.nodes, target.entity]
                 : target instanceof LinkElement
                     ? [this.links]
                     : null;
             // @ts-expect-error
-            const index = graphElementsArray?.indexOf(target);
+            const index = container?.indexOf(target);
             if (index >= 0) {
-                const last = graphElementsArray.pop();
-                if (index < graphElementsArray.length) {
-                    graphElementsArray[index] = last;
+                const last = container.pop();
+                if (index < container.length) {
+                    container[index] = last;
                 }
             }
             if (entity) {
@@ -11849,6 +11903,9 @@ class Blueprint extends IElement {
                 this.entity.addObjectEntity(element.entity);
                 element.addEventListener(Configuration.removeEventName, removeEventHandler);
                 this.template.nodesContainerElement?.appendChild(element);
+                if (!this.blueprintType) {
+                    this.blueprintType = element.entity.getBlueprintType();
+                }
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element);
                 element.addEventListener(Configuration.removeEventName, removeEventHandler);
@@ -11874,6 +11931,9 @@ class Blueprint extends IElement {
                 return
             }
             element.remove();
+        }
+        if (this.nodes.length == 0) {
+            this.blueprintType = "";
         }
     }
 

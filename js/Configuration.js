@@ -206,6 +206,8 @@ export default class Configuration {
         select: "/Script/BlueprintGraph.K2Node_Select",
         self: "/Script/BlueprintGraph.K2Node_Self",
         slateBlueprintLibrary: "/Script/UMG.SlateBlueprintLibrary",
+        soundCueGraphNode: "/Script/AudioEditor.SoundCueGraphNode",
+        soundNodeWavePlayer: "/Script/Engine.SoundNodeWavePlayer",
         spawnActorFromClass: "/Script/BlueprintGraph.K2Node_SpawnActorFromClass",
         switchEnum: "/Script/BlueprintGraph.K2Node_SwitchEnum",
         switchGameplayTag: "/Script/GameplayTagsEditor.GameplayTagsK2Node_SwitchGameplayTag",

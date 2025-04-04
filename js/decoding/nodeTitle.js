@@ -268,6 +268,13 @@ export default function nodeTitle(entity) {
             return "Input"
         case p.pcgEditorGraphNodeOutput:
             return "Output"
+        case p.soundNodeWavePlayer:
+            return `Wave Player : ${entity.getSounCueSubobject()
+                ?.SoundWaveAssetPtr
+                ?.type
+                .match(/([^.]+)$/)
+                ?.[0]
+                ?? "NONE"}`
         case p.spawnActorFromClass:
             let className = entity.getCustomproperties()
                 .find(pinEntity => pinEntity.PinName.toString() == "ReturnValue")
@@ -322,6 +329,10 @@ export default function nodeTitle(entity) {
         let pcgSubobject = entity.getPcgSubobject()
         let result = pcgSubobject.NodeTitle ? pcgSubobject.NodeTitle.toString() : nodeTitle(pcgSubobject)
         return result
+    }
+    const soundCueSubobject = entity.getSounCueSubobject()
+    if (soundCueSubobject) {
+        return Utility.formatStringName(soundCueSubobject.getObjectName(true).replace(/^SoundNode/, ""))
     }
     const subgraphObject = entity.getSubgraphObject()
     if (subgraphObject) {

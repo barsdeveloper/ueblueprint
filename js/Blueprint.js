@@ -12,6 +12,11 @@ import BlueprintTemplate from "./template/BlueprintTemplate.js"
 export default class Blueprint extends IElement {
 
     static properties = {
+        blueprintType: {
+            type: String,
+            attribute: "data-type",
+            reflect: true,
+        },
         selecting: {
             type: Boolean,
             attribute: "data-selecting",
@@ -88,6 +93,7 @@ export default class Blueprint extends IElement {
 
     constructor() {
         super()
+        this.blueprintType = ""
         this.selecting = false
         this.scrolling = false
         this.focused = false
@@ -388,17 +394,17 @@ export default class Blueprint extends IElement {
         const removeEventHandler = event => {
             const target = event.currentTarget
             target.removeEventListener(Configuration.removeEventName, removeEventHandler)
-            const [graphElementsArray, entity] = target instanceof NodeElement
+            const [container, entity] = target instanceof NodeElement
                 ? [this.nodes, target.entity]
                 : target instanceof LinkElement
                     ? [this.links]
                     : null
             // @ts-expect-error
-            const index = graphElementsArray?.indexOf(target)
+            const index = container?.indexOf(target)
             if (index >= 0) {
-                const last = graphElementsArray.pop()
-                if (index < graphElementsArray.length) {
-                    graphElementsArray[index] = last
+                const last = container.pop()
+                if (index < container.length) {
+                    container[index] = last
                 }
             }
             if (entity) {
@@ -429,6 +435,9 @@ export default class Blueprint extends IElement {
                 this.entity.addObjectEntity(element.entity)
                 element.addEventListener(Configuration.removeEventName, removeEventHandler)
                 this.template.nodesContainerElement?.appendChild(element)
+                if (!this.blueprintType) {
+                    this.blueprintType = element.entity.getBlueprintType()
+                }
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element)
                 element.addEventListener(Configuration.removeEventName, removeEventHandler)
@@ -454,6 +463,9 @@ export default class Blueprint extends IElement {
                 return
             }
             element.remove()
+        }
+        if (this.nodes.length == 0) {
+            this.blueprintType = ""
         }
     }
 

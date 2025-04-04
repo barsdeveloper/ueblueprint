@@ -68,6 +68,18 @@ ueb-blueprint svg {
   letter-spacing: -1px;
 }
 
+.ueb-viewport-type {
+  position: absolute;
+  right: 10px;
+  bottom: 5px;
+  font-size: 60px;
+  font-weight: 900;
+  color: rgba(128, 128, 128, 0.2509803922);
+  font-stretch: condensed;
+  z-index: 1;
+  pointer-events: none;
+}
+
 .ueb-viewport-body {
   position: relative;
   height: var(--ueb-height, 30rem);

@@ -6,7 +6,7 @@ const p = Configuration.paths
 
 /** @param {ObjectEntity} entity */
 export default function nodeIcon(entity) {
-    if (entity.isMaterial() || entity.isPcg() || entity.isNiagara()) {
+    if (entity.isMaterial() || entity.isPcg() || entity.isSoundCue() || entity.isNiagara()) {
         return null
     }
     switch (entity.getType()) {

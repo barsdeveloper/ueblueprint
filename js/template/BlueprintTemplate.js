@@ -146,7 +146,7 @@ export default class BlueprintTemplate extends ITemplate {
                     Zoom ${this.blueprint.zoom == 0 ? "1:1" : (this.blueprint.zoom > 0 ? "+" : "") + this.blueprint.zoom}
                 </div>
             </div>
-            <div class="ueb-viewport-overlay"></div>
+            <div class="ueb-viewport-type">${this.blueprint.blueprintType}</div>
             <div class="ueb-viewport-body">
                 <div class="ueb-grid"
                     style="--ueb-additional-x: ${Math.round(this.blueprint.translateX)}; --ueb-additional-y: ${Math.round(this.blueprint.translateY)}; --ueb-translate-x: ${Math.round(this.blueprint.translateX)}; --ueb-translate-y: ${Math.round(this.blueprint.translateY)};">

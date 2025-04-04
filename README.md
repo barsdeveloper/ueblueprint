@@ -56,6 +56,7 @@ Configuration:
     - Height: `<ueb-blueprint style="--ueb-height: 500px">`
     - Light mode: `<ueb-blueprint class="ueb-light-mode">`
     - Initial zoom: `<ueb-blueprint data-zoom="-4">`
+    - Graph type: `<ueb-blueprint data-type="MATERIAL FUNCTION">`
 ```HTML
 <ueb-blueprint>
     <template>
