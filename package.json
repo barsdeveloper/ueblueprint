@@ -1,7 +1,7 @@
 {
   "name": "ueblueprint",
   "description": "Unreal Engine's Blueprint visualization web library",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "type": "module",
   "main": "dist/ueblueprint.js",
   "types": "types.js",
@@ -25,14 +25,14 @@
   },
   "homepage": "https://github.com/barsdeveloper/ueblueprint#readme",
   "devDependencies": {
-    "@playwright/test": "1.49",
+    "@playwright/test": "1",
     "@rollup/plugin-node-resolve": "^16",
-    "@rollup/plugin-terser": "^0",
+    "@rollup/plugin-terser": "^1",
     "concurrently": "^9",
     "http-server": "^14",
     "rollup": "^4 || ^3 || ^2",
     "rollup-plugin-copy": "^3",
-    "rollup-plugin-minify-html-literals": "^1",
+    "@lit-labs/rollup-plugin-minify-html-literals": "^0 || ^1",
     "sass": "^1",
     "terser": "^5"
   },
