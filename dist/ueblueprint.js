@@ -25,7 +25,7 @@ const t$1=globalThis,i$3=t=>t,s$1=t$1.trustedTypes,e$1=s$1?s$1.createPolicy("lit
  */const s=globalThis;let i$2 = class i extends y$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){const t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){const r=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=D(r,this.renderRoot,this.renderOptions);}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(true);}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(false);}render(){return E}};i$2._$litElement$=true,i$2["finalized"]=true,s.litElementHydrateSupport?.({LitElement:i$2});const o$1=s.litElementPolyfillSupport;o$1?.({LitElement:i$2});(s.litElementVersions??=[]).push("4.2.2");
 
 class Configuration {
-    static VERSION = "2.0.0"
+    static VERSION = "3.0.0"
     static nodeColors = {
         black: i$5`20, 20, 20`,
         blue: i$5`84, 122, 156`,
@@ -11326,11 +11326,8 @@ class BlueprintTemplate extends ITemplate {
                     Version: ${Configuration.VERSION}<br />
                     Author: barsdeveloper<br />
                     License: MIT<br />
-
+                    ⭐
                     <a target="_blank" href="https://github.com/barsdeveloper/ueblueprint">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#e3b341" style="vertical-align: bottom">
-                            <path d="M 12 0.587 L 16 8 L 24 9 L 18 15 L 20 24 L 12 19 L 4 24 L 6 15 L 0 9 L 8 8 Z M 0 0"></path>
-                        </svg>
                         https://github.com/barsdeveloper/ueblueprint
                     </a>
                 </p>
